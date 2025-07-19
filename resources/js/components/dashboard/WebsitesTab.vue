@@ -43,7 +43,8 @@
                         </div>
                         <p class="text-muted small mb-3">Last updated on {{ website.lastUpdated }}</p>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-outline-primary btn-sm">
+                            <button @click="$router.push(`/website/${website.id}/manage`)"
+                                class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-speedometer2 me-1"></i>
                                 Dashboard
                             </button>

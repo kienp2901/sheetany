@@ -6,6 +6,9 @@ import DashboardPage from "../pages/DashboardPage.vue";
 import NewWebsitePage from "../pages/NewWebsitePage.vue";
 import WebsiteAddPage from "../pages/WebsiteAddPage.vue";
 
+// Thêm import cho WebsiteManagePage
+import WebsiteManagePage from "../pages/WebsiteManagePage.vue";
+
 const routes = [
     {
         path: "/",
@@ -82,6 +85,13 @@ const routes = [
         path: "/website/add/:templateId",
         name: "WebsiteAdd",
         component: WebsiteAddPage,
+        meta: { requiresAuth: true },
+    },
+    // Thêm route mới vào routes array
+    {
+        path: "/website/:id/manage",
+        name: "WebsiteManage",
+        component: WebsiteManagePage,
         meta: { requiresAuth: true },
     },
 ];
