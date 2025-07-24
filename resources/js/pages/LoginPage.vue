@@ -101,7 +101,7 @@ const error = ref('')
 const googleLoading = ref(false)
 
 // Google Sign-In configuration
-const GOOGLE_CLIENT_ID = '127333669613-it7ts5m6dbkpiv97ar1orc0vt1nren7a.apps.googleusercontent.com' // Replace with your actual client ID
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const handleLogin = async () => {
     error.value = ''

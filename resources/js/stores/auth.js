@@ -4,7 +4,7 @@ import axios from "axios";
 
 // Configure axios defaults
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = "http://127.0.0.1:8000/";
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export const useAuthStore = defineStore("auth", () => {
     const user = ref(null);
