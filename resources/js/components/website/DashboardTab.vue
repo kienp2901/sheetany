@@ -1,5 +1,7 @@
 <template>
     <div>
+        <NotificationAlert ref="notificationAlert" />
+        
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h4 class="mb-1">Dashboard</h4>
@@ -84,7 +86,63 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import axios from 'axios'
+import NotificationAlert from '@/components/NotificationAlert.vue'
 
+const route = useRoute()
+const notificationAlert = ref(null)
+
+const loading = ref(true)
 const passwords = ref('')
+
+
+const isUrl = (string) => {
+    try {
+        new URL(string)
+        return true
+    } catch {
+        return false
+    }
+}
+
+const fetchWebsiteInfo = async (id) => {
+    try {
+        loading.value = true
+        const response = await axios.get(`/api/sites/${id}`)
+
+        if (response.data && response.data.sheets) {
+            // const infoSheet = response.data.sheets.find(sheet => sheet.sheet_name === 'Information')
+            // if (infoSheet && infoSheet.sheet_data) {
+            //     informationData.value = infoSheet.sheet_data
+            //     if (infoSheet.sheet_headers) {
+            //         sheetHeaders.value = infoSheet.sheet_headers
+            //     }
+            //     notificationAlert.value?.showSuccess('Information sheet loaded successfully')
+            // } else {
+            //     notificationAlert.value?.showWarning('No information sheet found')
+            // }
+        }
+    } catch (error) {
+        console.error('Failed to fetch website info:', error)
+
+        if (error.response?.status === 403) {
+            notificationAlert.value?.showError('You do not have permission to access this website', 'Access Denied')
+        } else if (error.response?.status === 404) {
+            notificationAlert.value?.showError('Website not found', 'Not Found')
+        } else {
+            notificationAlert.value?.showError('Failed to load data', 'Loading Error')
+        }
+    } finally {
+        loading.value = false
+    }
+}
+
+onMounted(() => {
+    const websiteId = route.params.id
+    if (websiteId) {
+        fetchWebsiteInfo(websiteId)
+    }
+})
 </script>

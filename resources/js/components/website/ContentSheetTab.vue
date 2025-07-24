@@ -1,5 +1,7 @@
 <template>
     <div>
+        <NotificationAlert ref="notificationAlert" />
+
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h4 class="mb-1">Content sheet</h4>
@@ -7,64 +9,144 @@
             </div>
         </div>
 
-        <div class="card border-1">
+        <div v-if="loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted mt-2">Loading content sheet...</p>
+        </div>
+
+        <div v-else-if="contentData.length > 0" class="card border-0 shadow-sm">
             <div class="card-body p-0">
-                <div class="table-responsive">
+                <div class="table-responsive-scroll">
                     <table class="table table-hover mb-0">
                         <thead class="bg-light">
                             <tr>
-                                <th class="px-3 py-3 text-muted small">#</th>
-                                <th class="px-3 py-3 text-muted small">SKU</th>
-                                <th class="px-3 py-3 text-muted small">NAME</th>
-                                <th class="px-3 py-3 text-muted small">INVENTORY</th>
-                                <th class="px-3 py-3 text-muted small">PRICE</th>
-                                <th class="px-3 py-3 text-muted small">OLD PRICE</th>
-                                <th class="px-3 py-3 text-muted small">LINK</th>
-                                <th class="px-3 py-3 text-muted small">SIZE</th>
+                                <th class="px-3 py-3 text-muted small bg-primary/10">#</th>
+                                <th v-for="header in contentSheetHeaders" :key="header" class="px-3 py-3 text-muted small bg-primary/10">
+                                    {{ header.toUpperCase() }}
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="(item, index) in contentData" :key="index">
                                 <td class="px-3 py-3">{{ index + 1 }}</td>
-                                <td class="px-3 py-3">{{ item.sku }}</td>
-                                <td class="px-3 py-3">{{ item.name }}</td>
-                                <td class="px-3 py-3">{{ item.inventory }}</td>
-                                <td class="px-3 py-3">{{ item.price }}</td>
-                                <td class="px-3 py-3">{{ item.oldPrice }}</td>
-                                <td class="px-3 py-3">
-                                    <a v-if="item.link" :href="item.link" class="text-decoration-none" target="_blank">
-                                        {{ item.link }}
-                                    </a>
+                                <td v-for="(header, headerIndex) in contentSheetHeaders" :key="headerIndex" class="px-3 py-3">
+                                    <!-- <template v-if="header === 'Thumbnail'">
+                                        <img v-if="item[header]" :src="item[header]" alt="Thumbnail" class="rounded"
+                                            style="width: 40px; height: 40px; object-fit: cover;">
+                                        <span v-else class="text-muted">No image</span>
+                                    </template> -->
+                                    <template v-if="header === 'Content'">
+                                        <a v-if="item[header]" :href="item[header]" target="_blank"
+                                            class="text-decoration-none">
+                                            <i class="bi bi-file-earmark-text me-1"></i>
+                                            View
+                                        </a>
+                                        <span v-else class="text-muted">No content</span>
+                                    </template>
+                                    <template v-else-if="header === 'Categories'">
+                                        <span class="badge bg-secondary">{{ item[header] }}</span>
+                                    </template>
+                                    <template v-else-if="header === 'Slug'">
+                                        <code class="small">{{ item[header] }}</code>
+                                    </template>
+                                    <template v-else-if="header === 'Excerpt'">
+                                        <div class="text-truncate" style="max-width: 200px;" :title="item[header]">
+                                            {{ item[header] }}
+                                        </div>
+                                    </template>
+                                     <template v-else-if="header === 'Title'">
+                                        <div class="fw-medium">{{ item[header] }}</div>
+                                    </template>
+                                    <template v-else>
+                                        {{ item[header] }}
+                                    </template>
                                 </td>
-                                <td class="px-3 py-3">{{ item.size }}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
+
+        <div v-else class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-file-earmark fs-1 text-muted mb-3"></i>
+                <h5 class="mb-2">No Content Sheet Data</h5>
+                <p class="text-muted">No content sheet data found for this website</p>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import axios from 'axios'
+import NotificationAlert from '@/components/NotificationAlert.vue'
 
-const contentData = ref([
-    { sku: '789-02', name: 'Cat Photographs Ut', inventory: 30, price: '400.00', oldPrice: '500.00', link: '', size: 'L' },
-    { sku: '789-03', name: 'Sesame Street Ut', inventory: 35, price: '200.33', oldPrice: '300.00', link: 'https://www.amazon.com', size: 'M' },
-    { sku: '789-01', name: 'Sesame Street Ut', inventory: 100, price: '359.00', oldPrice: '400.00', link: 'https://www.amazon.com', size: 'X' },
-    { sku: '789-04', name: 'Sesame Street Ut', inventory: 40, price: '200.00', oldPrice: '400.00', link: '', size: 'XL' },
-    { sku: '789-05', name: 'Sesame Street Ut', inventory: 45, price: '250.00', oldPrice: '400.00', link: 'https://www.amazon.com', size: 'L' },
-    { sku: '789-06', name: 'Sesame Street Ut', inventory: 50, price: '600.00', oldPrice: '900.00', link: 'https://www.amazon.com', size: 'X' },
-    { sku: '789-07', name: 'Sesame Street Ut', inventory: 55, price: '200.00', oldPrice: '250.00', link: '', size: 'L' },
-    { sku: '789-08', name: 'Sesame Street Ut', inventory: 0, price: '700.00', oldPrice: '900.00', link: 'https://www.amazon.com', size: 'M' },
-    { sku: '789-09', name: 'Sesame Street Ut', inventory: 65, price: '200.00', oldPrice: '400.00', link: 'https://www.amazon.com', size: 'XL' },
-    { sku: '789-10', name: 'Sesame Street Ut', inventory: 70, price: '440.00', oldPrice: '700.00', link: '', size: 'X' },
-    { sku: '789-11', name: 'Sesame Street Ut', inventory: 75, price: '250.00', oldPrice: '400.00', link: 'https://www.amazon.com', size: 'L' },
-    { sku: '789-12', name: 'Sesame Street Ut', inventory: 80, price: '600.00', oldPrice: '900.00', link: 'https://www.amazon.com', size: 'X' },
-    { sku: '789-13', name: 'Sesame Street Ut', inventory: 85, price: '200.00', oldPrice: '250.00', link: 'https://www.amazon.com', size: 'L' },
-    { sku: '789-14', name: 'Sesame Street Ut', inventory: 90, price: '700.00', oldPrice: '900.00', link: '', size: 'M' },
-    { sku: '789-15', name: 'Sesame Street Ut', inventory: 95, price: '200.00', oldPrice: '400.00', link: 'https://www.amazon.com', size: 'XXL' },
-    { sku: '789-16', name: 'Sesame Street Ut', inventory: 100, price: '440.00', oldPrice: '700.00', link: 'https://www.amazon.com', size: 'X' }
-])
+const route = useRoute()
+const notificationAlert = ref(null)
+
+const loading = ref(true)
+const contentData = ref([])
+const contentSheetHeaders = ref([])
+
+const fetchWebsiteInfo = async (id) => {
+    try {
+        loading.value = true
+        const response = await axios.get(`/api/sites/${id}`)
+
+        if (response.data && response.data.sheets) {
+            const contentSheet = response.data.sheets.find(sheet => sheet.sheet_name === 'Content')
+            if (contentSheet && contentSheet.sheet_data) {
+                contentData.value = contentSheet.sheet_data
+                if (contentSheet.sheet_headers) {
+                    contentSheetHeaders.value = contentSheet.sheet_headers
+                }
+                notificationAlert.value.showSuccess('Content sheet loaded successfully')
+            } else {
+                notificationAlert.value.showWarning('No content sheet found')
+            }
+        }
+    } catch (error) {
+        console.error('Failed to fetch website info:', error)
+
+        if (error.response?.status === 403) {
+            notificationAlert.value.showError('You do not have permission to access this website', 'Access Denied')
+        } else if (error.response?.status === 404) {
+            notificationAlert.value.showError('Website not found', 'Not Found')
+        } else {
+            notificationAlert.value.showError('Failed to load content sheet', 'Loading Error')
+        }
+    } finally {
+        loading.value = false
+    }
+}
+
+onMounted(() => {
+    const websiteId = route.params.id
+    if (websiteId) {
+        fetchWebsiteInfo(websiteId)
+    }
+})
 </script>
+
+<style scoped>
+/* CSS để làm cho bảng cuộn ngang */
+.table-responsive-scroll {
+    overflow-x: auto; /* Cho phép cuộn ngang khi nội dung tràn ra */
+    -webkit-overflow-scrolling: touch; /* Tăng trải nghiệm cuộn trên thiết bị di động */
+}
+
+/* Tùy chỉnh thêm nếu cần để bảng không bị thu nhỏ quá mức */
+.table {
+    white-space: nowrap; /* Ngăn chặn văn bản bị ngắt dòng trong các ô */
+    min-width: 100%; /* Đảm bảo bảng luôn chiếm ít nhất 100% chiều rộng của cha */
+}
+
+.bg-primary\/10 {
+    background-color: rgba(15, 157, 96, .1);
+}
+</style>

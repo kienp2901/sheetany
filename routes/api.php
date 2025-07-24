@@ -9,6 +9,7 @@ use App\Http\Controllers\WorkspaceController;
 use App\Http\Controllers\TempController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\ApiTestController;
+use App\Http\Controllers\PageController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -68,6 +69,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/sites/{site}', [SiteController::class, 'show']);
     Route::put('/sites/{site}', [SiteController::class, 'update']);
     Route::delete('/sites/{site}', [SiteController::class, 'destroy']);
+    Route::post('/sites/{site}/subdomain', [SiteController::class, 'updateSubdomain']);
+    Route::post('/sites/{site}/sync', [SiteController::class, 'syncSheets']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/pages', [PageController::class, 'index']);
+    Route::post('/pages', [PageController::class, 'store']);
 });
 
 Route::post('/domain/test', [ApiTestController::class, 'index']);

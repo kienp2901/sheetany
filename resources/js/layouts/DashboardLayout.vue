@@ -2,7 +2,7 @@
   <div class="min-vh-100 d-flex">
    <Sidebar :activeTab="currentTab" @change-tab="setActiveTab" @logout="handleLogout" />
 
-    <div class="flex-fill d-flex flex-column">
+    <div class="flex-fill d-flex flex-column overflow-hidden">
       <Header @show-feedback="showFeedbackModal = true" @change-tab="setActiveTab" />
 
       <!-- Nội dung truyền từ page -->

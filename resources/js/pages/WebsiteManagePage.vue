@@ -1,7 +1,7 @@
 <template>
     <DashboardLayout v-model:activeTab="activeTab">
         <!-- Header -->
-        <WebsiteHeader :websiteName="websiteName" />
+        <WebsiteHeader :websiteName="websiteName" :linkGoogleSheet="linkGoogleSheet" :websiteId="websiteId"  />
 
         <div class="d-flex flex-grow-1" style="min-height: 0;">
             <!-- Website Sidebar -->
@@ -62,8 +62,10 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 const activeTab = ref('dashboard')
-const websiteName = ref('Test Web')
+const websiteName = ref('')
+const linkGoogleSheet = ref('')
 const websiteData = ref(null)
+let websiteId = route.params.id
 
 const setActiveTab = (tab) => {
     activeTab.value = tab
@@ -80,15 +82,16 @@ const fetchWebsiteInfo = async (id) => {
         const res = await axios.get(`/api/sites/${id}`)
         websiteData.value = res.data
         websiteName.value = res.data.name || 'Unnamed Website'
+        linkGoogleSheet.value = res.data.google_sheet || ''
         console.log('Website data:', res.data)
     } catch (err) {
         console.error('Failed to fetch website info:', err)
         websiteName.value = 'Unknown Website'
+        inkGoogleSheet.value = ''
     }
 }
 
 onMounted(() => {
-    const websiteId = route.params.id
     if (websiteId) {
         fetchWebsiteInfo(websiteId) // ✨ Call the function
     }
