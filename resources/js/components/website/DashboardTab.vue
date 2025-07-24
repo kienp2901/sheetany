@@ -10,12 +10,12 @@
         <div class="row g-4 mb-4">
             <!-- Customize your site -->
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
+                <div class="card h-100 border-1">
                     <div class="card-body">
                         <h6 class="card-title">Customize your site</h6>
                         <p class="card-text text-muted small">Customize site: show or hide action blocks, page size,
                             etc.</p>
-                        <button class="btn btn-outline-secondary btn-sm">
+                        <button class="btn btn-outline-secondary btn-sm" @click="$emit('change-tab', 'settings')">
                             Customize <i class="bi bi-arrow-right ms-1"></i>
                         </button>
                     </div>
@@ -24,11 +24,11 @@
 
             <!-- Customize your domain -->
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
+                <div class="card h-100 border-1">
                     <div class="card-body">
                         <h6 class="card-title">Customize your domain</h6>
                         <p class="card-text text-muted small">Personalize your domain by connecting it to Sheetany.</p>
-                        <button class="btn btn-outline-secondary btn-sm">
+                        <button class="btn btn-outline-secondary btn-sm" @click="$emit('change-tab', 'domain')" >
                             Connect domain <i class="bi bi-arrow-right ms-1"></i>
                         </button>
                     </div>
@@ -37,11 +37,11 @@
 
             <!-- Pages -->
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
+                <div class="card h-100 border-1">
                     <div class="card-body">
                         <h6 class="card-title">Pages</h6>
                         <p class="card-text text-muted small">Create multiple pages from Google Docs.</p>
-                        <button class="btn btn-outline-secondary btn-sm">
+                        <button class="btn btn-outline-secondary btn-sm" @click="$emit('change-tab', 'pages')" >
                             Create page <i class="bi bi-arrow-right ms-1"></i>
                         </button>
                     </div>
@@ -50,7 +50,7 @@
         </div>
 
         <!-- Embed your site into external websites -->
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-1 mb-4">
             <div class="card-body">
                 <h6 class="card-title">Embed your site into external websites</h6>
                 <p class="card-text text-muted">
@@ -66,7 +66,7 @@
         </div>
 
         <!-- Password protected -->
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1">
             <div class="card-body">
                 <h6 class="card-title">Password protected</h6>
                 <p class="card-text text-muted">

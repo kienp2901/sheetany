@@ -10,8 +10,12 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body text-center py-5">
                 <i class="bi bi-file-earmark fs-1 text-muted mb-3"></i>
-                <h5 class="mb-2">Pages Management</h5>
-                <p class="text-muted">Create and manage your website pages</p>
+                <h5 class="mb-2">You don't have any pages</h5>
+                <p class="text-muted">Create a page and display your content</p>
+                <button class="btn btn-success">
+                    <i class="bi bi-plus me-1"></i>
+                    Create a new page
+                </button>
             </div>
         </div>
     </div>

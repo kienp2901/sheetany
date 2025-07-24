@@ -5,6 +5,8 @@ namespace App\Service;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use App\Models\Temp;
 
 class SetupDefaultService
 {
@@ -13,7 +15,7 @@ class SetupDefaultService
         try {
             $apiToken = getenv('CLOUD_FLARE_API_TOKEN');
             $ip = getenv('SERVER_IP_ADDRESS');
-            
+
             [$sub, $domain] = $this->extractSubdomainAndDomain($fullDomain, 'microgem.io.vn');
             $zoneId = $this->getZoneIdByDomain($apiToken, $domain);
 
@@ -100,19 +102,40 @@ class SetupDefaultService
     {
         $confPath = "/etc/apache2/sites-available/{$domain}.conf";
 
+        // $vhostConfig = <<<EOL
+        //     <VirtualHost *:80>
+        //         ServerName {$domain}
+        //         DocumentRoot {$projectPath}
+
+        //         <Directory {$projectPath}>
+        //             Options Indexes FollowSymLinks
+        //             AllowOverride All
+        //             Require all granted
+        //         </Directory>
+
+        //         ErrorLog \${APACHE_LOG_DIR}/{$domain}_error.log
+        //         CustomLog \${APACHE_LOG_DIR}/{$domain}_access.log combined
+        //     </VirtualHost>
+        //     EOL;
+
         $vhostConfig = <<<EOL
             <VirtualHost *:80>
                 ServerName {$domain}
-                DocumentRoot {$projectPath}
-
-                <Directory {$projectPath}>
-                    Options Indexes FollowSymLinks
-                    AllowOverride All
-                    Require all granted
-                </Directory>
 
                 ErrorLog \${APACHE_LOG_DIR}/{$domain}_error.log
                 CustomLog \${APACHE_LOG_DIR}/{$domain}_access.log combined
+
+                ProxyPreserveHost On
+                ProxyRequests Off
+
+                # Proxy for HTTP
+                ProxyPass / http://localhost:3001/
+                ProxyPassReverse / http://localhost:3001/
+
+                # Proxy for WebSocket
+                RewriteEngine on
+                RewriteCond %{HTTP:Upgrade} =websocket [NC]
+                RewriteRule /(.*) ws://localhost:3001/\$1 [P,L]
             </VirtualHost>
             EOL;
 
@@ -247,5 +270,88 @@ class SetupDefaultService
 
         $data = json_decode($response, true);
         return $data['success'] ?? false;
+    }
+
+    public function createDatabase($databaseName)
+    {
+        try {
+            // Escape tên database để tránh injection
+            $safeDatabaseName = escapeshellarg($databaseName);
+            $dbUser = escapeshellarg(env('DB_USERNAME'));
+            $dbPassword = escapeshellarg(env('DB_PASSWORD'));
+
+            // Lệnh tạo database
+            $command = "mysql -u {$dbUser} -p{$dbPassword} -e \"CREATE DATABASE IF NOT EXISTS {$databaseName};\"";
+
+            exec($command, $output, $returnVar);
+
+            if ($returnVar !== 0) {
+                throw new Exception("Lỗi khi tạo cơ sở dữ liệu: " . implode("\n", $output));
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => "Cơ sở dữ liệu {$databaseName} đã được tạo thành công."
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Lỗi: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function getDataFromSheet($tempId)
+    {
+        $temp = Temp::findOrFail($tempId);
+
+        try {
+            // Extract spreadsheet ID from URL
+            preg_match('/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/', $temp->google_sheet, $matches);
+            if (!$matches) {
+                return response()->json(['error' => 'Invalid Google Sheets URL'], 400);
+            }
+
+            $spreadsheetId = $matches[1];
+            $apiKey = env('GOOGLE_SHEETS_API_KEY');
+
+            // Step 1: Get list of sheets
+            $metadataResponse = Http::get("https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}", [
+                'key' => $apiKey,
+            ]);
+
+            if (!$metadataResponse->successful()) {
+                return response()->json(['error' => 'Failed to retrieve sheet metadata'], 400);
+            }
+
+            $sheetData = [];
+            $sheets = $metadataResponse->json()['sheets'] ?? [];
+
+            foreach ($sheets as $sheet) {
+                $title = $sheet['properties']['title'];
+
+                // Step 2: Get values from each sheet
+                $valueResponse = Http::get("https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}/values/" . urlencode($title), [
+                    'key' => $apiKey,
+                ]);
+
+                if ($valueResponse->successful()) {
+                    $values = $valueResponse->json()['values'] ?? [];
+                    $sheetData[$title] = $values;
+                } else {
+                    $sheetData[$title] = ['error' => 'Failed to retrieve data'];
+                }
+            }
+
+            return response()->json([
+                'connected' => true,
+                'spreadsheet_id' => $spreadsheetId,
+                'data' => $sheetData
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error connecting to Google Sheets: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

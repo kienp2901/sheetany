@@ -22,16 +22,16 @@ if (!function_exists('current_user_name')) {
 /**
  * Run migration for a tenant with given db name and migration path.
  *
- * @param string $dbName Tên database tenant
- * @param string $path   Relative path from base_path(), ví d?: 'database/migrations/tenant/type_1'
+ * @param string $dbName Tï¿½n database tenant
+ * @param string $path   Relative path from base_path(), vï¿½ d?: 'database/migrations/tenant/type_1'
  * @return void
  */
 if (!function_exists('migrateTenantDatabase')) {
     function migrateTenantDatabase(string $dbName, string $path)
     {
-        // Ensure database connection config is set before this
+        $connectionName = setupTenantConnection($dbName);
         Artisan::call('migrate', [
-            '--database' => $dbName,
+            '--database' => $connectionName,
             '--path'     => $path,
             '--force'    => true,
         ]);
@@ -41,15 +41,15 @@ if (!function_exists('migrateTenantDatabase')) {
 /**
  * Set up a tenant database connection by domain (which maps to database name).
  *
- * @param string $domainSite Tên domain ho?c tên database (ví d?: tenant_abc)
- * @return string Tên k?t n?i (m?c d?nh là 'tenant')
+ * @param string $domainSite Tï¿½n domain ho?c tï¿½n database (vï¿½ d?: tenant_abc)
+ * @return string Tï¿½n k?t n?i (m?c d?nh lï¿½ 'tenant')
  */
 if (!function_exists('setupTenantConnection')) {
     function setupTenantConnection(string $domainSite)
     {
         $connectionName = 'tenant';
 
-        // Gán config d?ng cho k?t n?i tenant
+        // Gï¿½n config d?ng cho k?t n?i tenant
         Config::set("database.connections.$connectionName", [
             'driver'    => 'mysql',
             'host'      => env('DB_HOST', '127.0.0.1'),
@@ -62,7 +62,7 @@ if (!function_exists('setupTenantConnection')) {
             'prefix'    => '',
         ]);
 
-        // Xóa k?t n?i cu (n?u có) và k?t n?i l?i
+        // Xï¿½a k?t n?i cu (n?u cï¿½) vï¿½ k?t n?i l?i
         DB::purge($connectionName);
         DB::reconnect($connectionName);
 

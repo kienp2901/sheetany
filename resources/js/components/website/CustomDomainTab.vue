@@ -8,7 +8,7 @@
         </div>
 
         <!-- Subdomain Section -->
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-1 mb-4">
             <div class="card-body">
                 <h6 class="card-title">Subdomain</h6>
                 <p class="text-muted">
@@ -32,7 +32,7 @@
         </div>
 
         <!-- Custom Domain Section -->
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="card-title mb-0">

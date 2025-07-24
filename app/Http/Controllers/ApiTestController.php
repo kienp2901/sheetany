@@ -7,9 +7,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use App\Models\Temp;
+use Illuminate\Support\Facades\Http;
+use App\Service\DatabaseDefaultService;
 
 class ApiTestController extends Controller
 {
+    public function __construct(DatabaseDefaultService $databaseDefaultService) 
+    {
+        $this->databaseDefaultService = $databaseDefaultService;
+    }
+
     public function index(Request $request)
     {
         try {
@@ -29,7 +37,9 @@ class ApiTestController extends Controller
             $response = $this->createSubdomainOnCloudflare($apiToken, $zoneId, $sub, $domain, $ip);
             $projectPath = '/var/www/html/sheetany_blog/dist';
             $vhostResult = $this->addApacheVirtualHost($fullDomain, $projectPath);
-
+            $path = 'database/migrations/blog';
+            $this->createDatabase($sub);
+            migrateTenantDatabase($sub, $path);
             return response()->json([
                 'status' => true,
                 'message' => 'Tạo subdomain và VirtualHost thành công.',
@@ -102,19 +112,40 @@ class ApiTestController extends Controller
     {
         $confPath = "/etc/apache2/sites-available/{$domain}.conf";
 
+        // $vhostConfig = <<<EOL
+        //     <VirtualHost *:80>
+        //         ServerName {$domain}
+        //         DocumentRoot {$projectPath}
+
+        //         <Directory {$projectPath}>
+        //             Options Indexes FollowSymLinks
+        //             AllowOverride All
+        //             Require all granted
+        //         </Directory>
+
+        //         ErrorLog \${APACHE_LOG_DIR}/{$domain}_error.log
+        //         CustomLog \${APACHE_LOG_DIR}/{$domain}_access.log combined
+        //     </VirtualHost>
+        //     EOL;
+
         $vhostConfig = <<<EOL
             <VirtualHost *:80>
                 ServerName {$domain}
-                DocumentRoot {$projectPath}
-
-                <Directory {$projectPath}>
-                    Options Indexes FollowSymLinks
-                    AllowOverride All
-                    Require all granted
-                </Directory>
 
                 ErrorLog \${APACHE_LOG_DIR}/{$domain}_error.log
                 CustomLog \${APACHE_LOG_DIR}/{$domain}_access.log combined
+
+                ProxyPreserveHost On
+                ProxyRequests Off
+
+                # Proxy for HTTP
+                ProxyPass / http://localhost:3001/
+                ProxyPassReverse / http://localhost:3001/
+
+                # Proxy for WebSocket
+                RewriteEngine on
+                RewriteCond %{HTTP:Upgrade} =websocket [NC]
+                RewriteRule /(.*) ws://localhost:3001/\$1 [P,L]
             </VirtualHost>
             EOL;
 
@@ -129,7 +160,7 @@ class ApiTestController extends Controller
         }
 
         exec("sudo a2ensite {$domain}.conf", $out1, $c1);
-        exec("sudo a2enmod ssl", $out2);
+        // exec("sudo a2enmod ssl", $out2);
         exec("sudo systemctl reload apache2", $out3, $c2);
 
         if ($c1 === 0 && $c2 === 0) {
@@ -249,6 +280,34 @@ class ApiTestController extends Controller
 
         $data = json_decode($response, true);
         return $data['success'] ?? false;
+    }
+
+    public function createDatabase($databaseName)
+    {
+        try {
+            $command = "mysql -u root -p'".env('DB_PASSWORD')."' -e 'CREATE DATABASE IF NOT EXISTS {$databaseName};'";
+            exec($command, $output, $returnVar);
+
+            if ($returnVar !== 0) {
+                throw new Exception("Lỗi khi tạo cơ sở dữ liệu: " . implode("\n", $output));
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => "Cơ sở dữ liệu {$databaseName} đã được tạo thành công."
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Lỗi: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function getDataFromSheet(Request $request)
+    {
+        $tempId = $request->temp_id;
+        $this->databaseDefaultService->getDataFromSheet($tempId);
     }
 
 }

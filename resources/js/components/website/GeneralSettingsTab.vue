@@ -11,7 +11,7 @@
             <!-- Left Column -->
             <div class="col-md-6">
                 <!-- Name -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <h6 class="card-title">Name</h6>
                         <p class="text-muted small">Website name displayed in the dashboard</p>
@@ -20,7 +20,7 @@
                 </div>
 
                 <!-- Show dark mode -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -35,7 +35,7 @@
                 </div>
 
                 <!-- Hide footer -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -50,7 +50,7 @@
                 </div>
 
                 <!-- Show collected emails -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -67,7 +67,7 @@
                 </div>
 
                 <!-- Disable auto-sync -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -82,7 +82,7 @@
                 </div>
 
                 <!-- Text center -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -98,7 +98,7 @@
                 </div>
 
                 <!-- Pagination Size -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <h6 class="card-title">Pagination Size</h6>
                         <p class="text-muted small">Set the number of data items to display on the website. It should be
@@ -109,7 +109,7 @@
                 </div>
 
                 <!-- Publish website -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -128,7 +128,7 @@
             <!-- Right Column -->
             <div class="col-md-6">
                 <!-- Build on Sheetany -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -147,7 +147,7 @@
                 </div>
 
                 <!-- Hide header -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -162,7 +162,7 @@
                 </div>
 
                 <!-- Hide hero -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -177,7 +177,7 @@
                 </div>
 
                 <!-- Show the About Us page -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -193,7 +193,7 @@
                 </div>
 
                 <!-- Show feedback form -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -210,7 +210,7 @@
                 </div>
 
                 <!-- Font size -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -225,7 +225,7 @@
                 </div>
 
                 <!-- Font Family -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-1 mb-4">
                     <div class="card-body">
                         <h6 class="card-title">Font Family</h6>
                         <p class="text-muted small">Display font for website</p>

@@ -8,7 +8,7 @@
         </div>
 
         <!-- Inject custom JS code -->
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-1 mb-4">
             <div class="card-body">
                 <h6 class="card-title">Inject custom JS code</h6>
                 <p class="text-muted">
@@ -33,7 +33,7 @@
         </div>
 
         <!-- Inject custom CSS code -->
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card border-1 mb-4">
             <div class="card-body">
                 <h6 class="card-title">Inject custom CSS code</h6>
                 <p class="text-muted">

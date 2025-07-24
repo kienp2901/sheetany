@@ -100,7 +100,7 @@ class TempController extends Controller
             }
 
             $spreadsheetId = $matches[1];
-            $apiKey = env('GOOGLE_SHEETS_API_KEY', 'AIzaSyAwU9gxvZ2R5xkrCaViJ3Juiz44oQCg5Z0');
+            $apiKey = env('GOOGLE_SHEETS_API_KEY');
 
             $response = Http::get("https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}", [
                 'key' => $apiKey,
@@ -159,12 +159,14 @@ class TempController extends Controller
                 'google_sheet' => $temp->google_sheet,
             ]);
 
+            // // Run external service after DB commit
+            // $this->setupDefaultService->addDomainToDns($domain_name);
+            // // $this->setupDefaultService->addDomainToVirtualHost($domain_name);
+            // //create new database with name $domain_name
+            // $this->setupDefaultService->createDatabase($domain_name);
+
             DB::commit(); // Commit before triggering external services
-
-            // Run external service after DB commit
-            $this->setupDefaultService->addDomainToDns($domain_name);
-            // $this->setupDefaultService->addDomainToVirtualHost($domain_name);
-
+            
             return response()->json([
                 'message' => 'Website created successfully',
                 'site' => $site,

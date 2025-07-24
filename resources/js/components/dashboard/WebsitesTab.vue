@@ -63,19 +63,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Empty State -->
-        <!-- <div v-if="websites.length === 0 && !loading" class="col-12">
-            <div class="bg-white rounded p-5 text-center">
-                <i class="bi bi-globe fs-1 text-muted mb-3"></i>
-                <h5 class="mb-2">No websites yet</h5>
-                <p class="text-muted mb-4">Create your first website to get started.</p>
-                <button @click="$router.push('/new-website')" class="btn btn-success">
-                    <i class="bi bi-plus me-1"></i>
-                    Create Website
-                </button>
-            </div>
-        </div> -->
     </div>
 </template>
 

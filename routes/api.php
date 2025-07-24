@@ -71,3 +71,5 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::post('/domain/test', [ApiTestController::class, 'index']);
+Route::post('/domain/test/getdata', [ApiTestController::class, 'getDataFromSheet']);
+Route::post('/domain/test/delete', [ApiTestController::class, 'deleteDomain']);

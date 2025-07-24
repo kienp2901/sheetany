@@ -7,7 +7,7 @@
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm">
+        <div class="card border-1">
             <div class="card-body text-center py-5">
                 <i class="bi bi-chat-dots fs-1 text-muted mb-3"></i>
                 <h5 class="mb-2">Feedback Management</h5>

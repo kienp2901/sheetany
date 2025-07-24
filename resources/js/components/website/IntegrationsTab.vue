@@ -10,7 +10,7 @@
         <div class="row g-4">
             <!-- Google Analytics -->
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
+                <div class="card h-100 border-1">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="bg-warning bg-opacity-20 rounded p-2 me-3">
@@ -27,7 +27,7 @@
 
             <!-- Google Adsense -->
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
+                <div class="card h-100 border-1">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="bg-primary bg-opacity-20 rounded p-2 me-3">
@@ -44,7 +44,7 @@
 
             <!-- Crisp Chat -->
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
+                <div class="card h-100 border-1">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="bg-info bg-opacity-20 rounded p-2 me-3">
@@ -61,7 +61,7 @@
 
             <!-- Google Tag Manager -->
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
+                <div class="card h-100 border-1">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="bg-success bg-opacity-20 rounded p-2 me-3">
@@ -78,7 +78,7 @@
 
             <!-- Mailchimp -->
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
+                <div class="card h-100 border-1">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="bg-warning bg-opacity-20 rounded p-2 me-3">
@@ -98,7 +98,7 @@
 
             <!-- Disqus -->
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm">
+                <div class="card h-100 border-1">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-3">
                             <div class="bg-primary bg-opacity-20 rounded p-2 me-3">
