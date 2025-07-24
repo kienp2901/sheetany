@@ -1,5 +1,8 @@
 <template>
     <div class="min-vh-100" style="background-color: #f8f9fa;">
+        <!-- Notification Component -->
+        <NotificationAlert ref="notification" />
+        
         <!-- Header -->
         <header class="bg-white border-bottom px-4 py-3">
             <div class="d-flex justify-content-between align-items-center">
@@ -29,8 +32,7 @@
                             <i v-if="currentStep > 1" class="bi bi-check"></i>
                             <span v-else>1</span>
                         </div>
-                        <span :class="currentStep >= 1 ? 'text-success fw-medium' : 'text-muted'">Create Google
-                            Sheet</span>
+                        <span :class="currentStep >= 1 ? 'text-success fw-medium' : 'text-muted'">Create Google Sheet</span>
                     </div>
 
                     <!-- Step 2 -->
@@ -49,8 +51,7 @@
                             style="width: 32px; height: 32px;">
                             <span>3</span>
                         </div>
-                        <span :class="currentStep >= 3 ? 'text-success fw-medium' : 'text-muted'">Select
-                            subdomain</span>
+                        <span :class="currentStep >= 3 ? 'text-success fw-medium' : 'text-muted'">Select subdomain</span>
                     </div>
                 </div>
             </div>
@@ -78,7 +79,10 @@
                     </div>
 
                     <div class="d-flex justify-content-end mt-4">
-                        <button @click="nextStep" class="btn btn-dark px-4">Next</button>
+                        <button @click="nextStep" class="btn btn-dark px-4" :disabled="loading">
+                            <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+                            Next
+                        </button>
                     </div>
                 </div>
             </div>
@@ -105,7 +109,8 @@
                                 <div class="input-group">
                                     <input v-model="googleSheetsUrl" type="url" class="form-control"
                                         placeholder="https://docs.google.com/spreadsheets/d/xxx">
-                                    <button @click="connectGoogleSheets" class="btn btn-outline-secondary">
+                                    <button @click="connectGoogleSheets" class="btn btn-outline-secondary" :disabled="loading">
+                                        <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
                                         Connect <i class="bi bi-arrow-right ms-1"></i>
                                     </button>
                                 </div>
@@ -140,7 +145,6 @@
                                     <label class="form-label text-start d-block fw-medium">Information</label>
                                     <p class="text-muted small text-start">Information Sheet</p>
                                     <select v-model="selectedInfoSheet" class="form-select">
-                                        <option value="">Information</option>
                                         <option v-for="sheet in availableSheets" :key="sheet" :value="sheet">{{ sheet }}
                                         </option>
                                     </select>
@@ -149,7 +153,6 @@
                                     <label class="form-label text-start d-block fw-medium">Content</label>
                                     <p class="text-muted small text-start">Content Sheet</p>
                                     <select v-model="selectedContentSheet" class="form-select">
-                                        <option value="">Content</option>
                                         <option v-for="sheet in availableSheets" :key="sheet" :value="sheet">{{ sheet }}
                                         </option>
                                     </select>
@@ -160,7 +163,10 @@
 
                     <div class="d-flex justify-content-between mt-4">
                         <button @click="prevStep" class="btn btn-outline-secondary px-4">Back</button>
-                        <button @click="nextStep" :disabled="!canProceedStep2" class="btn btn-dark px-4">Next</button>
+                        <button @click="nextStep" :disabled="!canProceedStep2 || loading" class="btn btn-dark px-4">
+                            <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+                            Next
+                        </button>
                     </div>
                 </div>
             </div>
@@ -191,15 +197,17 @@
                             <div class="input-group">
                                 <span class="input-group-text">https://</span>
                                 <input v-model="subdomain" type="text" class="form-control" placeholder="testweb">
-                                <span class="input-group-text text-muted">.sheetany.site</span>
+                                <span class="input-group-text text-muted">.microgem.io.vn</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-between mt-4">
                         <button @click="prevStep" class="btn btn-outline-secondary px-4">Back</button>
-                        <button @click="finishWebsite" :disabled="!canFinish"
-                            class="btn btn-success px-4">Finish</button>
+                        <button @click="finishWebsite" :disabled="!canFinish || loading" class="btn btn-success px-4">
+                            <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+                            Finish
+                        </button>
                     </div>
                 </div>
             </div>
@@ -211,12 +219,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
+import NotificationAlert from '../components/NotificationAlert.vue'
 
 const router = useRouter()
 const route = useRoute()
 
 const currentStep = ref(1)
-const templateId = ref('')
+const tempId = ref('')
 const googleSheetsUrl = ref('')
 const isConnected = ref(false)
 const availableSheets = ref([])
@@ -224,6 +233,8 @@ const selectedInfoSheet = ref('')
 const selectedContentSheet = ref('')
 const siteName = ref('')
 const subdomain = ref('')
+const loading = ref(false)
+const notification = ref(null)
 
 const canProceedStep2 = computed(() => {
     return isConnected.value && selectedInfoSheet.value && selectedContentSheet.value
@@ -234,34 +245,38 @@ const canFinish = computed(() => {
 })
 
 const makeACopy = () => {
-    // Open Google Sheets template in new tab
-    window.open('https://docs.google.com/spreadsheets/d/1IF9-vLSGFMK-Wv-4393Zu7RY81y-4-zPP2g5CvpjNVQ/copy', '_blank')
-}
-
-const extractSpreadsheetId = (url) => {
-    const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)
-    return match ? match[1] : null
+    // This will be populated based on the template type
+    const templateUrls = {
+        1: 'https://docs.google.com/spreadsheets/d/1EPVH68GntuAK5-onj85ORQlWgbHf0VRjCN52_AoEJB8/copy',
+        2: 'https://docs.google.com/spreadsheets/d/1TBQ4rDrwMIJhEBhNsFohP-HqvMZIKx8CZ-qrO6e0Zoc/copy'
+    }
+    
+    // For now, open the first template
+    window.open(templateUrls[1], '_blank')
 }
 
 const connectGoogleSheets = async () => {
+    if (!googleSheetsUrl.value) {
+        notification.value?.showWarning('Please enter a Google Sheets URL first.', 'URL Required')
+        return
+    }
+
     if (!googleSheetsUrl.value) return
 
+    loading.value = true
     try {
-        const spreadsheetId = extractSpreadsheetId(googleSheetsUrl.value)
-        if (!spreadsheetId) {
-            alert('Invalid Google Sheets URL')
-            return
-        }
+        // Update temp with Google Sheet URL
+        await axios.put(`/api/temps/${tempId.value}/google-sheet`, {
+            google_sheet: googleSheetsUrl.value
+        })
 
-        // Call Google Sheets API to get sheet names
-        const apiKey = 'AIzaSyAwU9gxvZ2R5xkrCaViJ3Juiz44oQCg5Z0'
-        const response = await axios.get(
-            `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?key=${apiKey}`,
-            { withCredentials: false } // Thêm dòng này
-        )
+        notification.value?.showInfo('Connecting to Google Sheets...', 'Connecting')
 
-        if (response.data && response.data.sheets) {
-            availableSheets.value = response.data.sheets.map(sheet => sheet.properties.title)
+        // Get sheet data from server
+        const response = await axios.get(`/api/temps/${tempId.value}/google-sheet-data`)
+        
+        if (response.data.connected) {
+            availableSheets.value = response.data.sheets
             isConnected.value = true
 
             // Auto-select sheets if available
@@ -271,38 +286,97 @@ const connectGoogleSheets = async () => {
             if (availableSheets.value.includes('Content')) {
                 selectedContentSheet.value = 'Content'
             }
+
+            notification.value?.showSuccess(
+                `Successfully connected! Found ${availableSheets.value.length} sheets in your Google Sheets.`,
+                'Connected Successfully!'
+            )
+        } else {
+            notification.value?.showError('Unable to connect to Google Sheets. Please check the URL and permissions.', 'Connection Failed')
         }
     } catch (error) {
         console.error('Error connecting to Google Sheets:', error)
-        alert('Failed to connect to Google Sheets. Please check the URL and make sure the sheet is public.')
+        
+        if (error.response?.status === 403) {
+            notification.value?.showError('Access denied. Please make sure the Google Sheet is public or shared with proper permissions.', 'Permission Error')
+        } else if (error.response?.status === 404) {
+            notification.value?.showError('Google Sheet not found. Please check the URL and try again.', 'Sheet Not Found')
+        } else {
+            notification.value?.showError('Failed to connect to Google Sheets. Please check the URL and make sure the sheet is public.', 'Connection Error')
+        }
+    } finally {
+        loading.value = false
     }
 }
 
-const nextStep = () => {
-    if (currentStep.value < 3) {
+const nextStep = async () => {
+    if (currentStep.value === 1) {
+        // Step 1 to 2: Just move to next step
         currentStep.value++
+        notification.value?.showInfo('Please connect your Google Sheets to continue.', 'Next Step')
+    } else if (currentStep.value === 2) {
+        // Step 2 to 3: Send temp_id to server (already handled in connectGoogleSheets)
+        currentStep.value++
+        notification.value?.showInfo('Almost done! Please enter your site details.', 'Final Step')
     }
 }
 
 const prevStep = () => {
     if (currentStep.value > 1) {
         currentStep.value--
+        notification.value?.clearNotifications()
     }
 }
 
-const finishWebsite = () => {
-    // Create website logic here
-    console.log('Creating website:', {
-        templateId: templateId.value,
-        siteName: siteName.value,
-        subdomain: subdomain.value,
-        googleSheetsUrl: googleSheetsUrl.value,
-        infoSheet: selectedInfoSheet.value,
-        contentSheet: selectedContentSheet.value
-    })
+const finishWebsite = async () => {
+    if (!siteName.value.trim()) {
+        notification.value?.showWarning('Please enter a site name.', 'Site Name Required')
+        return
+    }
 
-    // Redirect to dashboard
-    router.push('/dashboard/websites')
+    if (!subdomain.value.trim()) {
+        notification.value?.showWarning('Please enter a subdomain.', 'Subdomain Required')
+        return
+    }
+
+    loading.value = true
+    notification.value?.clearNotifications()
+    
+    try {
+        notification.value?.showInfo('Creating your website...', 'Processing')
+
+        const response = await axios.post(`/api/temps/${tempId.value}/finish`, {
+            site_name: siteName.value,
+            site_domain: subdomain.value
+        })
+
+        notification.value?.showSuccess('Your website has been created successfully!', 'Website Created!', {
+            duration: 3000
+        })
+
+        // Redirect after showing success message
+        setTimeout(() => {
+            router.push('/dashboard/websites')
+        }, 2000)
+
+    } catch (error) {
+        console.error('Error creating website:', error)
+        
+        if (error.response?.status === 422) {
+            const errors = error.response.data.errors
+            if (errors.site_domain) {
+                notification.value?.showError('This subdomain is already taken. Please choose a different one.', 'Subdomain Unavailable')
+            } else {
+                notification.value?.showError('Please check your input and try again.', 'Validation Error')
+            }
+        } else if (error.response?.status === 409) {
+            notification.value?.showError('A website with this subdomain already exists. Please choose a different subdomain.', 'Subdomain Conflict')
+        } else {
+            notification.value?.showError('Something went wrong while creating your website. Please try again.', 'Creation Failed')
+        }
+    } finally {
+        loading.value = false
+    }
 }
 
 const exitFlow = () => {
@@ -312,7 +386,8 @@ const exitFlow = () => {
 }
 
 onMounted(() => {
-    templateId.value = route.params.templateId
+    tempId.value = route.params.templateId
+    notification.value?.showInfo('Welcome to the website creation wizard!', 'Getting Started')
 })
 </script>
 

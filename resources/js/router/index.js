@@ -5,9 +5,8 @@ import LoginPage from "../pages/LoginPage.vue";
 import DashboardPage from "../pages/DashboardPage.vue";
 import NewWebsitePage from "../pages/NewWebsitePage.vue";
 import WebsiteAddPage from "../pages/WebsiteAddPage.vue";
-
-// Thêm import cho WebsiteManagePage
-import WebsiteManagePage from "../pages/WebsiteManagePage.vue";
+import WebsiteManagePage from "../pages/WebsiteManagePage.vue"
+import GoogleCallbackPage from "../pages/GoogleCallbackPage.vue"
 
 const routes = [
     {
@@ -26,6 +25,12 @@ const routes = [
         name: "Register",
         component: () => import("../pages/RegisterPage.vue"),
         meta: { requiresGuest: true },
+    },
+    {
+      path: "/auth/google/callback",
+      name: "GoogleCallback",
+      component: GoogleCallbackPage,
+      meta: { requiresGuest: true },
     },
     {
         path: "/dashboard",

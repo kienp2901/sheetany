@@ -44,7 +44,7 @@
                         </div>
 
                         <button type="submit" :disabled="authStore.loading"
-                            class="btn btn-success w-100 py-2 fw-medium">
+                            class="btn btn-success w-100 py-2 fw-medium mb-3">
                             <span v-if="authStore.loading">
                                 <span class="spinner-border spinner-border-sm me-2" role="status"></span>
                                 Signing in...
@@ -52,7 +52,7 @@
                             <span v-else>Sign In</span>
                         </button>
 
-                        <div class="text-center mt-3">
+                        <div class="text-center mb-3">
                             <p class="text-muted mb-0">
                                 Don't have an account?
                                 <router-link to="/register" class="text-success text-decoration-none fw-medium">Sign up
@@ -62,10 +62,21 @@
 
                         <hr class="my-4">
 
-                        <button type="button" class="btn btn-outline-secondary w-100 py-2">
-                            <i class="bi bi-google me-2"></i>
-                            Sign in with Google
-                        </button>
+                        <!-- Google Sign In Button -->
+                        <div id="google-signin-button" class="d-flex justify-content-center mb-3"></div>
+
+                        <!-- Fallback Google Button -->
+                        <!-- <button type="button" @click="handleGoogleLogin" :disabled="authStore.loading"
+                            class="btn btn-outline-secondary w-100 py-2">
+                            <span v-if="googleLoading">
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                Signing in with Google...
+                            </span>
+                            <span v-else>
+                                <i class="bi bi-google me-2"></i>
+                                Sign in with Google
+                            </span>
+                        </button> -->
                     </form>
                 </div>
             </div>
@@ -74,7 +85,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 
@@ -87,6 +98,10 @@ const form = ref({
 })
 
 const error = ref('')
+const googleLoading = ref(false)
+
+// Google Sign-In configuration
+const GOOGLE_CLIENT_ID = '127333669613-it7ts5m6dbkpiv97ar1orc0vt1nren7a.apps.googleusercontent.com' // Replace with your actual client ID
 
 const handleLogin = async () => {
     error.value = ''
@@ -99,4 +114,115 @@ const handleLogin = async () => {
         error.value = result.message
     }
 }
+
+const handleGoogleLogin = async () => {
+    if (window.google && window.google.accounts) {
+        // Use Google Identity Services
+        window.google.accounts.id.prompt()
+    } else {
+        // Fallback: redirect to Google OAuth
+        const googleAuthUrl = `https://accounts.google.com/oauth/authorize?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(window.location.origin + '/auth/google/callback')}&scope=openid%20email%20profile&response_type=code`
+        window.location.href = googleAuthUrl
+    }
+}
+
+const handleCredentialResponse = async (response) => {
+    googleLoading.value = true
+    error.value = ''
+
+    try {
+        const result = await authStore.loginWithGoogle(response.credential)
+
+        if (result.success) {
+            router.push('/dashboard')
+        } else {
+            error.value = result.message
+        }
+    } catch (err) {
+        error.value = 'Google sign-in failed. Please try again.'
+    } finally {
+        googleLoading.value = false
+    }
+}
+
+const initializeGoogleSignIn = () => {
+    if (window.google && window.google.accounts) {
+        window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleCredentialResponse,
+            auto_select: false,
+            cancel_on_tap_outside: true
+        })
+
+        // Render the Google Sign-In button
+        window.google.accounts.id.renderButton(
+            document.getElementById('google-signin-button'),
+            {
+                theme: 'outline',
+                size: 'large',
+                width: '100%',
+                text: 'signin_with',
+                shape: 'rectangular'
+            }
+        )
+    }
+}
+
+const loadGoogleScript = () => {
+    return new Promise((resolve, reject) => {
+        if (window.google && window.google.accounts) {
+            resolve()
+            return
+        }
+
+        const script = document.createElement('script')
+        script.src = 'https://accounts.google.com/gsi/client'
+        script.async = true
+        script.defer = true
+        script.onload = resolve
+        script.onerror = reject
+        document.head.appendChild(script)
+    })
+}
+
+onMounted(async () => {
+    await loadGoogleScript()
+    initializeGoogleSignIn()
+})
+
+onUnmounted(() => {
+    // Clean up Google Sign-In
+    if (window.google && window.google.accounts) {
+        window.google.accounts.id.cancel()
+    }
+})
 </script>
+
+<style scoped>
+.input-group-text {
+    background-color: #f8f9fa;
+    border-right: none;
+}
+
+.form-control {
+    border-left: none;
+}
+
+.form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.input-group:focus-within .input-group-text {
+    border-color: #28a745;
+}
+
+/* Google Sign-In button styling */
+#google-signin-button {
+    min-height: 44px;
+}
+
+#google-signin-button>div {
+    width: 100% !important;
+}
+</style>

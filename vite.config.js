@@ -19,4 +19,12 @@ export default defineConfig({
           'vue': 'vue/dist/vue.esm-bundler.js', // để dùng template compiler
         },
     },
+    build: {
+        outDir: 'public/build',
+        emptyOutDir: true,
+        manifest: true,
+        rollupOptions: {
+            input: 'resources/js/app.js',
+        },
+    },
 });

@@ -1,5 +1,8 @@
 <template>
     <div class="min-vh-100" style="background-color: #f8f9fa;">
+        <!-- Notification Component -->
+        <NotificationAlert ref="notification" />
+
         <!-- Header -->
         <header class="bg-white border-bottom px-4 py-3">
             <div class="d-flex justify-content-between align-items-center">
@@ -11,7 +14,7 @@
                     <span class="fw-bold text-success fs-5">Sheetany</span>
                 </div>
 
-                <button @click="$router.push('/dashboard/websites')" class="btn btn-outline-secondary">
+                <button @click="exitWithConfirmation" class="btn btn-outline-secondary">
                     <i class="bi bi-x me-1"></i>
                     Exit
                 </button>
@@ -27,24 +30,50 @@
                 </p>
             </div>
 
-            <div class="row g-4">
+            <!-- Loading State -->
+            <div v-if="initialLoading" class="text-center py-5">
+                <div class="spinner-border text-success" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-muted mt-3">Loading templates...</p>
+            </div>
+
+            <!-- Templates Grid -->
+            <div v-else class="row g-4 justify-content-center">
                 <div v-for="template in templates" :key="template.id" class="col-md-6 col-lg-4">
-                    <div class="card h-100 border-0 shadow-sm">
+                    <div class="card h-100 border-0 shadow-sm" 
+                         :class="{ 'border-success': selectedTemplateId === template.site_type && loading }">
                         <div class="position-relative">
                             <img :src="template.image" :alt="template.name" class="card-img-top"
                                 style="height: 200px; object-fit: cover;">
                             <div class="position-absolute top-0 end-0 m-2">
                                 <span class="badge bg-success">{{ template.category }}</span>
                             </div>
+                            <!-- Loading Overlay -->
+                            <div v-if="loading && selectedTemplateId === template.site_type" 
+                                 class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                                 style="background-color: rgba(255, 255, 255, 0.8);">
+                                <div class="spinner-border text-success" role="status">
+                                    <span class="visually-hidden">Creating...</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="card-body d-flex flex-column">
-                            <h6 class="card-title fw-bold">{{ template.id }}. {{ template.name }}</h6>
+                            <h6 class="card-title fw-bold">{{ template.name }}</h6>
                             <p class="card-text text-muted small flex-grow-1">{{ template.description }}</p>
                             <div class="d-flex gap-2 mt-auto">
-                                <button @click="selectTemplate(template)" class="btn btn-success btn-sm flex-fill">
-                                    Use template
+                                <button @click="selectTemplate(template)" 
+                                        class="btn btn-success btn-sm flex-fill" 
+                                        :disabled="loading">
+                                    <span v-if="loading && selectedTemplateId === template.site_type" 
+                                          class="spinner-border spinner-border-sm me-2"></span>
+                                    <i v-else class="bi bi-plus me-1"></i>
+                                    {{ loading && selectedTemplateId === template.site_type ? 'Creating...' : 'Use template' }}
                                 </button>
-                                <button class="btn btn-outline-secondary btn-sm">
+                                <button @click="previewTemplate(template)" 
+                                        class="btn btn-outline-secondary btn-sm"
+                                        :disabled="loading">
+                                    <i class="bi bi-eye me-1"></i>
                                     Preview
                                 </button>
                             </div>
@@ -52,202 +81,159 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Empty State (if no templates) -->
+            <div v-if="!initialLoading && templates.length === 0" class="text-center py-5">
+                <i class="bi bi-exclamation-triangle fs-1 text-muted mb-3"></i>
+                <h5 class="mb-2">No templates available</h5>
+                <p class="text-muted mb-4">Please try again later or contact support.</p>
+                <button @click="loadTemplates" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-clockwise me-1"></i>
+                    Retry
+                </button>
+            </div>
         </main>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
+import NotificationAlert from '../components/NotificationAlert.vue'
 
 const router = useRouter()
+const notification = ref(null)
+const loading = ref(false)
+const initialLoading = ref(true)
+const selectedTemplateId = ref(null)
 
 const templates = ref([
     {
-        id: '01',
+        id: 1,
         name: 'Blog',
         category: 'Blog',
         description: 'Perfect for personal or business blogs with clean design',
-        image: '/placeholder.svg?height=200&width=300&text=Blog+Template'
+        image: '/placeholder.svg?height=200&width=300&text=Blog+Template',
+        site_type: 1,
+        google_sheet_url: 'https://docs.google.com/spreadsheets/d/1EPVH68GntuAK5-onj85ORQlWgbHf0VRjCN52_AoEJB8/edit?gid=0#gid=0'
     },
     {
-        id: '02',
-        name: 'Clean Directory',
-        category: 'Directory',
-        description: 'Organize and display listings in a clean format',
-        image: '/placeholder.svg?height=200&width=300&text=Directory+Template'
-    },
-    {
-        id: '03',
-        name: 'Job board',
-        category: 'Jobs',
-        description: 'Post and manage job listings effectively',
-        image: '/placeholder.svg?height=200&width=300&text=Job+Board+Template'
-    },
-    {
-        id: '04',
-        name: 'Landing page',
-        category: 'Marketing',
-        description: 'Convert visitors with beautiful landing pages',
-        image: '/placeholder.svg?height=200&width=300&text=Landing+Page+Template'
-    },
-    {
-        id: '05',
-        name: 'Store',
-        category: 'E-commerce',
-        description: 'Sell products online with this store template',
-        image: '/placeholder.svg?height=200&width=300&text=Store+Template'
-    },
-    {
-        id: '06',
-        name: 'Directory',
-        category: 'Directory',
-        description: 'List businesses, services, or resources',
-        image: '/placeholder.svg?height=200&width=300&text=Directory+Template'
-    },
-    {
-        id: '07',
-        name: 'Changelog',
-        category: 'Documentation',
-        description: 'Keep users updated with product changes',
-        image: '/placeholder.svg?height=200&width=300&text=Changelog+Template'
-    },
-    {
-        id: '08',
-        name: 'Listing',
-        category: 'Listing',
-        description: 'Display items in an organized list format',
-        image: '/placeholder.svg?height=200&width=300&text=Listing+Template'
-    },
-    {
-        id: '09',
-        name: 'Book list',
-        category: 'Education',
-        description: 'Showcase books and reading lists',
-        image: '/placeholder.svg?height=200&width=300&text=Book+List+Template'
-    },
-    {
-        id: '10',
-        name: 'Personal',
-        category: 'Personal',
-        description: 'Create your personal website or portfolio',
-        image: '/placeholder.svg?height=200&width=300&text=Personal+Template'
-    },
-    {
-        id: '11',
-        name: 'Events',
-        category: 'Events',
-        description: 'Manage and display events calendar',
-        image: '/placeholder.svg?height=200&width=300&text=Events+Template'
-    },
-    {
-        id: '12',
-        name: 'Blog box',
-        category: 'Blog',
-        description: 'Modern blog layout with card-based design',
-        image: '/placeholder.svg?height=200&width=300&text=Blog+Box+Template'
-    },
-    {
-        id: '13',
-        name: 'Minimalist Directory',
-        category: 'Directory',
-        description: 'Clean and minimal directory layout',
-        image: '/placeholder.svg?height=200&width=300&text=Minimal+Directory'
-    },
-    {
-        id: '14',
-        name: 'Fashion Store',
-        category: 'E-commerce',
-        description: 'Stylish template for fashion retailers',
-        image: '/placeholder.svg?height=200&width=300&text=Fashion+Store'
-    },
-    {
-        id: '15',
-        name: 'Listing Site',
-        category: 'Listing',
-        description: 'Professional listing website template',
-        image: '/placeholder.svg?height=200&width=300&text=Listing+Site'
-    },
-    {
-        id: '16',
-        name: 'Data Table',
-        category: 'Data',
-        description: 'Display data in organized tables',
-        image: '/placeholder.svg?height=200&width=300&text=Data+Table'
-    },
-    {
-        id: '17',
-        name: 'Video',
-        category: 'Media',
-        description: 'Showcase video content beautifully',
-        image: '/placeholder.svg?height=200&width=300&text=Video+Template'
-    },
-    {
-        id: '18',
-        name: 'Personal Blog',
-        category: 'Blog',
-        description: 'Personal blogging with modern design',
-        image: '/placeholder.svg?height=200&width=300&text=Personal+Blog'
-    },
-    {
-        id: '19',
-        name: 'Minimalist Job board',
-        category: 'Jobs',
-        description: 'Simple and clean job board layout',
-        image: '/placeholder.svg?height=200&width=300&text=Minimal+Jobs'
-    },
-    {
-        id: '20',
-        name: 'Roadmap',
-        category: 'Planning',
-        description: 'Display product roadmap and milestones',
-        image: '/placeholder.svg?height=200&width=300&text=Roadmap+Template'
-    },
-    {
-        id: '21',
-        name: 'Waitlist',
-        category: 'Marketing',
-        description: 'Collect emails for product launches',
-        image: '/placeholder.svg?height=200&width=300&text=Waitlist+Template'
-    },
-    {
-        id: '22',
-        name: 'Feature Blog',
-        category: 'Blog',
-        description: 'Feature-rich blog with advanced layouts',
-        image: '/placeholder.svg?height=200&width=300&text=Feature+Blog'
-    },
-    {
-        id: '23',
-        name: 'Podcast',
-        category: 'Media',
-        description: 'Perfect for podcast websites',
-        image: '/placeholder.svg?height=200&width=300&text=Podcast+Template'
-    },
-    {
-        id: '24',
-        name: 'Documentation',
-        category: 'Documentation',
-        description: 'Create comprehensive documentation sites',
-        image: '/placeholder.svg?height=200&width=300&text=Documentation'
-    },
-    {
-        id: '25',
+        id: 2,
         name: 'E-commerce',
         category: 'E-commerce',
-        description: 'Full-featured online store template',
-        image: '/placeholder.svg?height=200&width=300&text=E-commerce'
-    },
-    {
-        id: '26',
-        name: 'Affiliate',
-        category: 'Marketing',
-        description: 'Promote affiliate products effectively',
-        image: '/placeholder.svg?height=200&width=300&text=Affiliate+Template'
+        description: 'Sell products online with this store template',
+        image: '/placeholder.svg?height=200&width=300&text=E-commerce+Template',
+        site_type: 2,
+        google_sheet_url: 'https://docs.google.com/spreadsheets/d/1TBQ4rDrwMIJhEBhNsFohP-HqvMZIKx8CZ-qrO6e0Zoc/edit?gid=679145369#gid=679145369'
     }
 ])
 
-const selectTemplate = (template) => {
-    router.push(`/website/add/${template.id}`)
+const loadTemplates = async () => {
+    initialLoading.value = true
+    try {
+        // Simulate loading templates (in real app, this would be an API call)
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        if (templates.value.length > 0) {
+            notification.value?.showSuccess('Templates loaded successfully!', 'Ready to create')
+        }
+    } catch (error) {
+        console.error('Error loading templates:', error)
+        notification.value?.showError('Failed to load templates. Please try again.', 'Loading Error')
+    } finally {
+        initialLoading.value = false
+    }
 }
+
+const selectTemplate = async (template) => {
+    if (loading.value) return
+
+    loading.value = true
+    selectedTemplateId.value = template.site_type
+
+    try {
+        notification.value?.showInfo(`Creating ${template.name} template...`, 'Please wait')
+        
+        const response = await axios.post('/api/temps', {
+            site_type: template.site_type
+        })
+
+        notification.value?.showSuccess(`${template.name} template created successfully!`, 'Success!')
+        
+        // Small delay to show success message
+        setTimeout(() => {
+            router.push(`/website/add/${response.data.temp_id}`)
+        }, 1000)
+
+    } catch (error) {
+        console.error('Error creating temp:', error)
+        
+        if (error.response?.status === 403) {
+            notification.value?.showError('You do not have permission to create websites.', 'Permission Denied')
+        } else if (error.response?.status === 422) {
+            notification.value?.showError('Invalid template selection. Please try again.', 'Validation Error')
+        } else if (error.response?.status === 429) {
+            notification.value?.showWarning('Too many requests. Please wait a moment before trying again.', 'Rate Limited')
+        } else if (error.response?.status >= 500) {
+            notification.value?.showError('Server error occurred. Please try again later.', 'Server Error')
+        } else {
+            notification.value?.showError('Failed to create template. Please try again.', 'Creation Error')
+        }
+    } finally {
+        loading.value = false
+        selectedTemplateId.value = null
+    }
+}
+
+const previewTemplate = (template) => {
+    notification.value?.showInfo(`Opening ${template.name} template preview...`, 'Preview')
+    
+    try {
+        // Open Google Sheets template in new tab for preview
+        window.open(template.google_sheet_url, '_blank')
+        notification.value?.showSuccess('Template preview opened in new tab.', 'Preview Ready')
+    } catch (error) {
+        console.error('Error opening preview:', error)
+        notification.value?.showError('Failed to open template preview.', 'Preview Error')
+    }
+}
+
+const exitWithConfirmation = () => {
+    if (loading.value) {
+        notification.value?.showWarning('Please wait for the current operation to complete.', 'Operation in Progress')
+        return
+    }
+
+    const shouldExit = confirm('Are you sure you want to exit? Any unsaved progress will be lost.')
+    if (shouldExit) {
+        notification.value?.showInfo('Returning to dashboard...', 'Goodbye!')
+        setTimeout(() => {
+            router.push('/dashboard/websites')
+        }, 500)
+    }
+}
+
+onMounted(() => {
+    loadTemplates()
+})
 </script>
+
+<style scoped>
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.border-success {
+    border: 2px solid #28a745 !important;
+}
+
+.btn:disabled {
+    cursor: not-allowed;
+}
+</style>

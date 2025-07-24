@@ -12,7 +12,7 @@
             <div class="card-body">
                 <h6 class="card-title">Subdomain</h6>
                 <p class="text-muted">
-                    Your <strong>.sheetany.site</strong> subdomain.<br>
+                    Your <strong>.microgem.io.vn</strong> subdomain.<br>
                     You can also use a custom domain or a subdirectory on your main domain to host your site if you have
                     one.
                 </p>
@@ -22,7 +22,7 @@
                     <div class="input-group">
                         <span class="input-group-text">https://</span>
                         <input v-model="subdomain" type="text" class="form-control" placeholder="testweb">
-                        <span class="input-group-text text-muted">.sheetany.site</span>
+                        <span class="input-group-text text-muted">.microgem.io.vn</span>
                         <button class="btn btn-success">
                             Update <i class="bi bi-arrow-right ms-1"></i>
                         </button>

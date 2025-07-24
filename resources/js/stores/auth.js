@@ -61,6 +61,32 @@ export const useAuthStore = defineStore("auth", () => {
         }
     };
 
+    const loginWithGoogle = async (googleToken) => {
+        loading.value = true
+        try {
+            // Get CSRF token first
+            await axios.get("/sanctum/csrf-cookie")
+
+            // Send Google token to backend
+            const response = await axios.post("/api/auth/google", {
+                token: googleToken,
+            })
+
+            if (response.data.success) {
+                user.value = response.data.user
+                isAuthenticated.value = true
+                return { success: true }
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: error.response?.data?.message || "Google login failed",
+            }
+        } finally {
+            loading.value = false
+        }
+    }
+
     const logout = async () => {
         try {
             await axios.post("/api/logout");
@@ -92,6 +118,7 @@ export const useAuthStore = defineStore("auth", () => {
         loading,
         login,
         register,
+        loginWithGoogle,
         logout,
         checkAuth,
     };
