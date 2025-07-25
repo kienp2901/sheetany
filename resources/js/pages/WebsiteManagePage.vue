@@ -1,7 +1,7 @@
 <template>
     <DashboardLayout v-model:activeTab="activeTab">
         <!-- Header -->
-        <WebsiteHeader :websiteName="websiteName" :linkGoogleSheet="linkGoogleSheet" :websiteId="websiteId"  />
+        <WebsiteHeader :websiteName="websiteName" :linkGoogleSheet="linkGoogleSheet" :linkWebsite="linkWebsite" :websiteId="websiteId"  />
 
         <div class="d-flex flex-grow-1" style="min-height: 0;">
             <!-- Website Sidebar -->
@@ -65,6 +65,7 @@ const authStore = useAuthStore()
 const activeTab = ref('dashboard')
 const websiteName = ref('')
 const linkGoogleSheet = ref('')
+const linkWebsite = ref('')
 const websiteData = ref(null)
 let websiteId = route.params.id
 
@@ -86,10 +87,12 @@ const fetchWebsiteInfo = async (id) => {
         websiteData.value = res.data
         websiteName.value = res.data.name || 'Unnamed Website'
         linkGoogleSheet.value = res.data.google_sheet || ''
+        linkWebsite.value = res.data.domain_name || ''
     } catch (err) {
         console.error('Failed to fetch website info:', err)
         websiteName.value = 'Unknown Website'
-        inkGoogleSheet.value = ''
+        linkGoogleSheet.value = ''
+        linkWebsite.value = ''
     }
 }
 

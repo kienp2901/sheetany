@@ -37,7 +37,7 @@
                     <span v-if="isSyncing">Syncing...</span>
                 </button>
                 
-                <button class="btn btn-outline-success btn-sm">
+                <button @click="viewWebsite(linkWebsite)" class="btn btn-outline-success btn-sm">
                     View website <i class="bi bi-box-arrow-up-right ms-1"></i>
                 </button>
             </div>
@@ -62,6 +62,10 @@ const props = defineProps({
         default: 'Loading...'
     },
     linkGoogleSheet: {
+        type: String,
+        default: ''
+    },
+    linkWebsite: {
         type: String,
         default: ''
     },
@@ -136,6 +140,10 @@ const syncSheets = async () => {
         isSyncing.value = false; // Kết thúc trạng thái đồng bộ
     }
 };
+
+const viewWebsite = (website) => {
+    window.open(`https://${website}`, '_blank')
+}
 
 // Cập nhật thời gian đồng bộ ban đầu khi component được mount
 onMounted(() => {
