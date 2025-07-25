@@ -219,6 +219,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
+import { route as ziggyRoute } from 'ziggy-js'
 import NotificationAlert from '../components/NotificationAlert.vue'
 
 const router = useRouter()
@@ -266,14 +267,22 @@ const connectGoogleSheets = async () => {
     loading.value = true
     try {
         // Update temp with Google Sheet URL
-        await axios.put(`/api/temps/${tempId.value}/google-sheet`, {
+        // await axios.put(`/api/temps/${tempId.value}/google-sheet`, {
+        //     google_sheet: googleSheetsUrl.value
+        // })
+
+        const tempIdVal = tempId.value;
+
+        await axios.put(ziggyRoute('api.temps.google_sheet.update', { temp: tempIdVal }), {
             google_sheet: googleSheetsUrl.value
         })
 
         notification.value?.showInfo('Connecting to Google Sheets...', 'Connecting')
 
         // Get sheet data from server
-        const response = await axios.get(`/api/temps/${tempId.value}/google-sheet-data`)
+        // const response = await axios.get(`/api/temps/${tempId.value}/google-sheet-data`)
+
+        const response = await axios.get(ziggyRoute('api.temps.google_sheet.data', { temp: tempIdVal }))
         
         if (response.data.connected) {
             availableSheets.value = response.data.sheets
@@ -345,7 +354,14 @@ const finishWebsite = async () => {
     try {
         notification.value?.showInfo('Creating your website...', 'Processing')
 
-        const response = await axios.post(`/api/temps/${tempId.value}/finish`, {
+        const tempIdVal = tempId.value;
+
+        // const response = await axios.post(`/api/temps/${tempId.value}/finish`, {
+        //     site_name: siteName.value,
+        //     site_domain: subdomain.value
+        // })
+
+        const response = await axios.post(ziggyRoute('api.temps.finish', { temp: tempIdVal }), {
             site_name: siteName.value,
             site_domain: subdomain.value
         })

@@ -192,6 +192,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { route as ziggyRoute } from 'ziggy-js'
 import NotificationAlert from '../NotificationAlert.vue'
 
 const notification = ref(null)
@@ -218,8 +219,9 @@ const filteredWorkspaces = computed(() => {
 
 const fetchWorkspaces = async () => {
     try {
-        notification.value?.showInfo('Loading workspaces...', 'Please wait')
-        const response = await axios.get('/api/workspaces')
+        // notification.value?.showInfo('Loading workspaces...', 'Please wait')
+        // const response = await axios.get('/api/workspaces')
+        const response = await axios.get(ziggyRoute('api.workspaces.index'))
         workspaces.value = response.data
         notification.value?.clearNotifications()
         
@@ -243,12 +245,20 @@ const saveWorkspace = async () => {
     
     try {
         if (editingWorkspace.value) {
-            const response = await axios.put(`/api/workspaces/${editingWorkspace.value.id}`, workspaceForm.value)
+            // const response = await axios.put(`/api/workspaces/${editingWorkspace.value.id}`, workspaceForm.value)
+            const response = await axios.put(
+                ziggyRoute('api.workspaces.update', { workspace: editingWorkspace.value.id }),
+                workspaceForm.value
+            )
             const index = workspaces.value.findIndex(w => w.id === editingWorkspace.value.id)
             workspaces.value[index] = response.data
             notification.value?.showSuccess(`Workspace "${response.data.name}" updated successfully!`, 'Success!')
         } else {
-            const response = await axios.post('/api/workspaces', workspaceForm.value)
+            // const response = await axios.post('/api/workspaces', workspaceForm.value)
+            const response = await axios.post(
+                ziggyRoute('api.workspaces.store'),
+                workspaceForm.value
+            )
             workspaces.value.push(response.data)
             notification.value?.showSuccess(`Workspace "${response.data.name}" created successfully!`, 'Success!')
         }
@@ -280,7 +290,10 @@ const deleteWorkspace = async (workspace) => {
     if (!confirm(`Are you sure you want to delete "${workspace.name}"? This action cannot be undone.`)) return
 
     try {
-        await axios.delete(`/api/workspaces/${workspace.id}`)
+        // await axios.delete(`/api/workspaces/${workspace.id}`)
+        await axios.delete(
+            ziggyRoute('api.workspaces.destroy', { workspace: workspace.id })
+        )
         workspaces.value = workspaces.value.filter(w => w.id !== workspace.id)
         notification.value?.showSuccess(`Workspace "${workspace.name}" deleted successfully.`, 'Deleted!')
     } catch (error) {
@@ -304,7 +317,10 @@ const manageMembers = async (workspace) => {
     
     // Fetch latest workspace data with members
     try {
-        const response = await axios.get(`/api/workspaces/${workspace.id}`)
+        // const response = await axios.get(`/api/workspaces/${workspace.id}`)
+        const response = await axios.get(
+            ziggyRoute('api.workspaces.show', { workspace: workspace.id })
+        )
         selectedWorkspace.value = response.data
     } catch (error) {
         console.error('Error fetching workspace details:', error)
@@ -322,15 +338,25 @@ const addMember = async () => {
     loading.value = true
     
     try {
-        await axios.post(`/api/workspaces/${selectedWorkspace.value.id}/users`, {
-            email: memberEmail.value
-        })
-        
+        // await axios.post(`/api/workspaces/${selectedWorkspace.value.id}/users`, {
+        //     email: memberEmail.value
+        // })
+
+        await axios.post(
+            ziggyRoute('api.workspaces.users.add', { workspace: selectedWorkspace.value.id }),
+            { email: memberEmail.value }
+        )
+
         memberEmail.value = ''
         notification.value?.showSuccess('Member added successfully!', 'Success!')
         
         // Refresh workspace data
-        const response = await axios.get(`/api/workspaces/${selectedWorkspace.value.id}`)
+        // const response = await axios.get(`/api/workspaces/${selectedWorkspace.value.id}`)
+        
+        const response = await axios.get(
+            ziggyRoute('api.workspaces.show', { workspace: selectedWorkspace.value.id })
+        )
+
         selectedWorkspace.value = response.data
         
         // Update in main list
@@ -360,14 +386,26 @@ const removeMember = async (userId) => {
     if (!confirm('Are you sure you want to remove this member from the workspace?')) return
 
     try {
-        await axios.delete(`/api/workspaces/${selectedWorkspace.value.id}/users`, {
-            data: { user_id: userId }
-        })
+        // await axios.delete(`/api/workspaces/${selectedWorkspace.value.id}/users`, {
+        //     data: { user_id: userId }
+        // })
+
+        await axios.delete(
+            ziggyRoute('api.workspaces.users.remove', { workspace: selectedWorkspace.value.id }),
+            {
+                data: { user_id: userId }
+            }
+        )
         
         notification.value?.showSuccess('Member removed successfully.', 'Success!')
         
         // Refresh workspace data
-        const response = await axios.get(`/api/workspaces/${selectedWorkspace.value.id}`)
+        // const response = await axios.get(`/api/workspaces/${selectedWorkspace.value.id}`)
+        
+        const response = await axios.get(
+            ziggyRoute('api.workspaces.show', { workspace: selectedWorkspace.value.id })
+        )
+
         selectedWorkspace.value = response.data
         
         // Update in main list

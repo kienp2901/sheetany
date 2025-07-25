@@ -11,6 +11,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     
     @vite(['resources/js/app.js'])
+    @routes
 </head>
 <body>
     <div id="app"></div>

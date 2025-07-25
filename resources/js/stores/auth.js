@@ -1,8 +1,8 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import axios from "axios";
+import { route as ziggyRoute } from 'ziggy-js'; // ✅ Ziggy route import
 
-// Configure axios defaults
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -15,11 +15,12 @@ export const useAuthStore = defineStore("auth", () => {
     const login = async (credentials) => {
         loading.value = true;
         try {
-            // Get CSRF token first
             await axios.get("/sanctum/csrf-cookie");
 
-            // Attempt login
-            const response = await axios.post("/api/login", credentials);
+            const response = await axios.post(
+                ziggyRoute("api.login"),
+                credentials
+            );
 
             if (response.data.success) {
                 user.value = response.data.user;
@@ -39,11 +40,12 @@ export const useAuthStore = defineStore("auth", () => {
     const register = async (userData) => {
         loading.value = true;
         try {
-            // Get CSRF token first
             await axios.get("/sanctum/csrf-cookie");
 
-            // Attempt registration
-            const response = await axios.post("/api/register", userData);
+            const response = await axios.post(
+                ziggyRoute("api.register"),
+                userData
+            );
 
             if (response.data.success) {
                 user.value = response.data.user;
@@ -62,34 +64,33 @@ export const useAuthStore = defineStore("auth", () => {
     };
 
     const loginWithGoogle = async (googleToken) => {
-        loading.value = true
+        loading.value = true;
         try {
-            // Get CSRF token first
-            await axios.get("/sanctum/csrf-cookie")
+            await axios.get("/sanctum/csrf-cookie");
 
-            // Send Google token to backend
-            const response = await axios.post("/api/auth/google", {
-                token: googleToken,
-            })
+            const response = await axios.post(
+                ziggyRoute("api.auth.google"),
+                { token: googleToken }
+            );
 
             if (response.data.success) {
-                user.value = response.data.user
-                isAuthenticated.value = true
-                return { success: true }
+                user.value = response.data.user;
+                isAuthenticated.value = true;
+                return { success: true };
             }
         } catch (error) {
             return {
                 success: false,
                 message: error.response?.data?.message || "Google login failed",
-            }
+            };
         } finally {
-            loading.value = false
+            loading.value = false;
         }
-    }
+    };
 
     const logout = async () => {
         try {
-            await axios.post("/api/logout");
+            await axios.post(ziggyRoute("api.logout"));
             user.value = null;
             isAuthenticated.value = false;
         } catch (error) {
@@ -99,7 +100,7 @@ export const useAuthStore = defineStore("auth", () => {
 
     const checkAuth = async () => {
         try {
-            const response = await axios.get("/api/user");
+            const response = await axios.get(ziggyRoute("api.user.info")); // ✅ lấy từ route name
             if (response.data) {
                 user.value = response.data;
                 isAuthenticated.value = true;

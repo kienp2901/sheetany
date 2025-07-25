@@ -330,7 +330,38 @@ class SiteController extends Controller
         // Convert the Site model to an array
         $siteData = $site->toArray();
 
-        // Add the mock sheets data to the site data
+        $siteData['information'] = [
+            "sheet_name" => "Information",
+            "sheet_id" => 0
+        ];
+
+        $siteData['content'] = [
+            "sheet_name" => "Content",
+            "sheet_id" => 1061880646
+        ];
+
+        // Tab custom code
+        $siteData['custom_js_position'] = 'bodyOpen';
+        $siteData['custom_js'] = "console.log('hello')";
+        $siteData['custom_css'] = ".bg-primary\\/10 {\n    background-color: rgba(15, 157, 96, .1);\n}";
+
+        // Tab General Settings
+        $siteData['dark_mode'] = true; // Show dark mode
+        $siteData['hide_header'] = true; // Hide header
+        $siteData['hide_footer'] = true; // Hide footer
+        $siteData['disable_hero'] = false; // Hide hero
+        $siteData['collect_email'] = false; // Show collected emails
+        $siteData['about_us'] = false; // Show the About Us page
+        $siteData['disable_auto_sync'] = false; // Disable auto-sync
+        $siteData['feedback_form'] = false; // Show feedback form
+        $siteData['text_center'] = false; // Text center
+        $siteData['small_hero'] = true; // Font size
+        $siteData['grid_content'] = 2; // Grid content
+        $siteData['pagination_size'] = 3; // Pagination Size
+        $siteData['font_family'] = "Poppins"; // Font Family
+        $siteData['published'] = true; // Publish website
+
+        // Tab Information and Content Sheets
         $siteData['sheets'] = $mockSheetsData;
 
         return response()->json($siteData);
@@ -351,7 +382,7 @@ class SiteController extends Controller
 
         $site->update($request->only(['name', 'domain_name', 'google_sheet']));
 
-        return response()->json($site);
+        return response()->json(['success' => true, 'data' => $site]);
     }
 
     public function destroy(Site $site)
@@ -361,9 +392,9 @@ class SiteController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $site->delete();
+        // $site->delete();
 
-        return response()->json(['message' => 'Site deleted successfully']);
+        return response()->json(['success' => true, 'message' => 'Site deleted successfully']);
     }
 
     /**

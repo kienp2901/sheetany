@@ -69,6 +69,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { route as ziggyRoute } from 'ziggy-js'
 
 const websites = ref([])
 const searchQuery = ref('')
@@ -85,7 +86,8 @@ const filteredWebsites = computed(() => {
 const fetchWebsites = async () => {
     loading.value = true
     try {
-        const response = await axios.get('/api/sites')
+        // const response = await axios.get('/api/sites')
+        const response = await axios.get(ziggyRoute('api.sites.index'))
         websites.value = response.data
     } catch (error) {
         console.error('Error fetching websites:', error)

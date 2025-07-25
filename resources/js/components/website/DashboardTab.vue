@@ -89,6 +89,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
+import { route as ziggyRoute } from 'ziggy-js'
 import NotificationAlert from '@/components/NotificationAlert.vue'
 
 const route = useRoute()
@@ -110,19 +111,13 @@ const isUrl = (string) => {
 const fetchWebsiteInfo = async (id) => {
     try {
         loading.value = true
-        const response = await axios.get(`/api/sites/${id}`)
+        // const response = await axios.get(`/api/sites/${id}`)
+        const response = await axios.get(ziggyRoute('api.sites.show', { id }))
 
-        if (response.data && response.data.sheets) {
-            // const infoSheet = response.data.sheets.find(sheet => sheet.sheet_name === 'Information')
-            // if (infoSheet && infoSheet.sheet_data) {
-            //     informationData.value = infoSheet.sheet_data
-            //     if (infoSheet.sheet_headers) {
-            //         sheetHeaders.value = infoSheet.sheet_headers
-            //     }
-            //     notificationAlert.value?.showSuccess('Information sheet loaded successfully')
-            // } else {
-            //     notificationAlert.value?.showWarning('No information sheet found')
-            // }
+        if (response.data) {
+            notificationAlert.value?.showSuccess('Data loaded successfully');
+        } else {
+            notificationAlert.value?.showWarning('No website data or sheets found.');
         }
     } catch (error) {
         console.error('Failed to fetch website info:', error)

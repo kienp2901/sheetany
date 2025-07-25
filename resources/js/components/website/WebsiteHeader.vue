@@ -49,6 +49,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
+import { route as ziggyRoute } from 'ziggy-js'
 import NotificationAlert from '@/components/NotificationAlert.vue'
 
 const route = useRoute()
@@ -110,7 +111,8 @@ const syncSheets = async () => {
     try {
         // Gửi yêu cầu POST/PUT đến API đồng bộ, kèm theo websiteId
         // Giả định API endpoint của bạn là /api/sites/{id}/sync
-        const response = await axios.post(`/api/sites/${props.websiteId}/sync`);
+        // const response = await axios.post(`/api/sites/${props.websiteId}/sync`);
+        const response = await axios.post(ziggyRoute('api.sites.sync', { site: props.websiteId }));
 
         if (response.data.success) {
             notificationAlert.value?.showSuccess('Sheets synced successfully!');

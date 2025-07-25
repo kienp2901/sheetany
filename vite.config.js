@@ -16,6 +16,7 @@ export default defineConfig({
     resolve: {
         alias: {
           '@': path.resolve(__dirname, 'resources/js'),
+          '@images': path.resolve(__dirname, 'resources/images'),
           'vue': 'vue/dist/vue.esm-bundler.js', // để dùng template compiler
         },
     },

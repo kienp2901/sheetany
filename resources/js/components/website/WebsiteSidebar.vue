@@ -2,15 +2,10 @@
     <div class="bg-white border-end website-sidebar">
         <div class="p-3">
             <nav class="nav flex-column">
-                <button
-                    v-for="item in tabs"
-                    :key="item.key"
-                    @click="$emit('change-tab', item.key)"
-                    :class="[
-                        'nav-link d-flex align-items-center text-start border-0 bg-transparent w-100 py-2 px-3 rounded',
-                        activeTab === item.key ? 'bg-primary bg-opacity-10 text-primary' : 'text-muted'
-                    ]"
-                >
+                <button v-for="item in dynamicTabs" :key="item.key" @click="$emit('change-tab', item.key)" :class="[
+                    'nav-link d-flex align-items-center text-start border-0 bg-transparent w-100 py-2 px-3 rounded',
+                    activeTab === item.key ? 'bg-primary bg-opacity-10 text-primary' : 'text-muted'
+                ]">
                     <i :class="item.icon + ' me-3'"></i>
                     {{ item.label }}
                 </button>
@@ -20,10 +15,16 @@
 </template>
 
 <script setup>
-defineProps(['activeTab'])
+import { computed } from 'vue'; // Import computed
+
+const props = defineProps({
+    activeTab: String,
+    websiteData: Object // Định nghĩa prop để nhận websiteData
+})
 const emit = defineEmits(['change-tab'])
 
-const tabs = [
+// Định nghĩa các tab cơ bản
+const baseTabs = [
     { key: 'dashboard', label: 'Dashboard', icon: 'bi bi-speedometer2' },
     { key: 'information', label: 'Information sheet', icon: 'bi bi-info-circle' },
     { key: 'content', label: 'Content sheet', icon: 'bi bi-table' },
@@ -39,7 +40,27 @@ const tabs = [
     { key: 'webhooks', label: 'Webhooks', icon: 'bi bi-webhook' },
     { key: 'sitemap', label: 'Sitemap', icon: 'bi bi-diagram-3' },
     { key: 'rss', label: 'RSS', icon: 'bi bi-rss' }
-]
+];
+
+// Sử dụng computed property để tạo danh sách tabs động
+const dynamicTabs = computed(() => {
+    // Tạo một bản sao của baseTabs để tránh thay đổi trực tiếp
+    const updatedTabs = [...baseTabs];
+
+    // Cập nhật nhãn cho 'information' tab
+    const infoTab = updatedTabs.find(tab => tab.key === 'information');
+    if (infoTab && props.websiteData && props.websiteData.information && props.websiteData.information.sheet_name) {
+        infoTab.label = `${props.websiteData.information.sheet_name} sheet`;
+    }
+
+    // Cập nhật nhãn cho 'content' tab
+    const contentTab = updatedTabs.find(tab => tab.key === 'content');
+    if (contentTab && props.websiteData && props.websiteData.content && props.websiteData.content.sheet_name) {
+        contentTab.label = `${props.websiteData.content.sheet_name} sheet`;
+    }
+
+    return updatedTabs;
+});
 </script>
 
 <style scoped>

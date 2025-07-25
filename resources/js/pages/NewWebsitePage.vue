@@ -100,6 +100,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { route as ziggyRoute } from 'ziggy-js'
 import NotificationAlert from '../components/NotificationAlert.vue'
 
 const router = useRouter()
@@ -155,7 +156,10 @@ const selectTemplate = async (template) => {
     try {
         notification.value?.showInfo(`Creating ${template.name} template...`, 'Please wait')
         
-        const response = await axios.post('/api/temps', {
+        // const response = await axios.post('/api/temps', {
+        //     site_type: template.site_type
+        // })
+        const response = await axios.post(ziggyRoute('api.temps.store'), {
             site_type: template.site_type
         })
 

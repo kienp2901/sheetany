@@ -5,7 +5,7 @@
 
         <div class="d-flex flex-grow-1" style="min-height: 0;">
             <!-- Website Sidebar -->
-            <WebsiteSidebar :activeTab="activeTab" @change-tab="setActiveTab" />
+            <WebsiteSidebar :activeTab="activeTab" @change-tab="setActiveTab" :websiteData="websiteData" />
 
             <!-- Tab Content -->
             <main class="flex-fill p-4 overflow-auto" style="background-color: #f8f9fa;">
@@ -33,6 +33,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
+import { route as ziggyRoute } from 'ziggy-js'
 import { useAuthStore } from '../stores/auth.js'
 
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
@@ -79,11 +80,12 @@ const handleLogout = async () => {
 // ✨ Fetch website info by ID
 const fetchWebsiteInfo = async (id) => {
     try {
-        const res = await axios.get(`/api/sites/${id}`)
+        // const res = await axios.get(`/api/sites/${id}`)
+        const res = await axios.get(ziggyRoute('api.sites.show', { id }))
+
         websiteData.value = res.data
         websiteName.value = res.data.name || 'Unnamed Website'
         linkGoogleSheet.value = res.data.google_sheet || ''
-        console.log('Website data:', res.data)
     } catch (err) {
         console.error('Failed to fetch website info:', err)
         websiteName.value = 'Unknown Website'

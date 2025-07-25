@@ -10,6 +10,7 @@ use App\Http\Controllers\TempController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\ApiTestController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\NavbarController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -23,61 +24,74 @@ use App\Http\Controllers\PageController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
-});
+})->name('api.user');
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
+Route::post('/register', [AuthController::class, 'register'])->name('api.register');
+Route::post('/login', [AuthController::class, 'login'])->name('api.login');
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum')->name('api.logout');
+Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum')->name('api.user.info');
 
 // Google OAuth routes
-Route::post('/auth/google', [GoogleAuthController::class, 'handleGoogleAuth']);
-Route::post('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+Route::post('/auth/google', [GoogleAuthController::class, 'handleGoogleAuth'])->name('api.auth.google');
+Route::post('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback'])->name('api.auth.google.callback');
 
 // Profile routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'show']);
-    Route::put('/profile', [ProfileController::class, 'update']);
-    Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar']);
-    Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar']);
-    Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
-    Route::delete('/profile', [ProfileController::class, 'destroy']);
+    Route::get('/profile', [ProfileController::class, 'show'])->name('api.profile.show');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('api.profile.update');
+    Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar'])->name('api.profile.avatar.upload');
+    Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('api.profile.avatar.remove');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('api.profile.password.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('api.profile.destroy');
 });
 
 // Workspace routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/workspaces', [WorkspaceController::class, 'index']);
-    Route::post('/workspaces', [WorkspaceController::class, 'store']);
-    Route::get('/workspaces/{workspace}', [WorkspaceController::class, 'show']);
-    Route::put('/workspaces/{workspace}', [WorkspaceController::class, 'update']);
-    Route::delete('/workspaces/{workspace}', [WorkspaceController::class, 'destroy']);
-    Route::post('/workspaces/{workspace}/users', [WorkspaceController::class, 'addUser']);
-    Route::delete('/workspaces/{workspace}/users', [WorkspaceController::class, 'removeUser']);
+    Route::get('/workspaces', [WorkspaceController::class, 'index'])->name('api.workspaces.index');
+    Route::post('/workspaces', [WorkspaceController::class, 'store'])->name('api.workspaces.store');
+    Route::get('/workspaces/{workspace}', [WorkspaceController::class, 'show'])->name('api.workspaces.show');
+    Route::put('/workspaces/{workspace}', [WorkspaceController::class, 'update'])->name('api.workspaces.update');
+    Route::delete('/workspaces/{workspace}', [WorkspaceController::class, 'destroy'])->name('api.workspaces.destroy');
+    Route::post('/workspaces/{workspace}/users', [WorkspaceController::class, 'addUser'])->name('api.workspaces.users.add');
+    Route::delete('/workspaces/{workspace}/users', [WorkspaceController::class, 'removeUser'])->name('api.workspaces.users.remove');
 });
 
 // Temp routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/temps', [TempController::class, 'store']);
-    Route::put('/temps/{temp}/google-sheet', [TempController::class, 'updateGoogleSheet']);
-    Route::get('/temps/{temp}/google-sheet-data', [TempController::class, 'getGoogleSheetData']);
-    Route::post('/temps/{temp}/finish', [TempController::class, 'finish']);
+    Route::post('/temps', [TempController::class, 'store'])->name('api.temps.store');
+    Route::put('/temps/{temp}/google-sheet', [TempController::class, 'updateGoogleSheet'])->name('api.temps.google_sheet.update');
+    Route::get('/temps/{temp}/google-sheet-data', [TempController::class, 'getGoogleSheetData'])->name('api.temps.google_sheet.data');
+    Route::post('/temps/{temp}/finish', [TempController::class, 'finish'])->name('api.temps.finish');
 });
 
 // Site routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/sites', [SiteController::class, 'index']);
-    Route::get('/sites/{site}', [SiteController::class, 'show']);
-    Route::put('/sites/{site}', [SiteController::class, 'update']);
-    Route::delete('/sites/{site}', [SiteController::class, 'destroy']);
-    Route::post('/sites/{site}/subdomain', [SiteController::class, 'updateSubdomain']);
-    Route::post('/sites/{site}/sync', [SiteController::class, 'syncSheets']);
+    Route::get('/sites', [SiteController::class, 'index'])->name('api.sites.index');
+    Route::get('/sites/{site}', [SiteController::class, 'show'])->name('api.sites.show');
+    Route::put('/sites/{site}', [SiteController::class, 'update'])->name('api.sites.update');
+    Route::delete('/sites/{site}', [SiteController::class, 'destroy'])->name('api.sites.destroy');
+    Route::post('/sites/{site}/subdomain', [SiteController::class, 'updateSubdomain'])->name('api.sites.subdomain.update');
+    Route::post('/sites/{site}/sync', [SiteController::class, 'syncSheets'])->name('api.sites.sync');
 });
 
+// Page routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/pages', [PageController::class, 'index']);
-    Route::post('/pages', [PageController::class, 'store']);
+    Route::get('/pages', [PageController::class, 'index'])->name('api.pages.index');
+    Route::post('/pages', [PageController::class, 'store'])->name('api.pages.store');
+    Route::put('/pages/{page}', [PageController::class, 'update'])->name('api.pages.update');
+    Route::delete('/pages/{page}', [PageController::class, 'destroy'])->name('api.pages.destroy');
 });
 
-Route::post('/domain/test', [ApiTestController::class, 'index']);
-Route::post('/domain/test/getdata', [ApiTestController::class, 'getDataFromSheet']);
-Route::post('/domain/test/delete', [ApiTestController::class, 'deleteDomain']);
+// Navbar routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/navbar-items', [NavbarController::class, 'index'])->name('api.navbar.index');
+    Route::post('/navbar-items', [NavbarController::class, 'store'])->name('api.navbar.store');
+    Route::put('/navbar-items/{id}', [NavbarController::class, 'update'])->name('api.navbar.update');
+    Route::delete('/navbar-items/{id}', [NavbarController::class, 'destroy'])->name('api.navbar.destroy');
+    Route::post('/navbar-items/reorder', [NavbarController::class, 'reorder'])->name('api.navbar.reorder');
+});
+
+// Domain test routes
+Route::post('/domain/test', [ApiTestController::class, 'index'])->name('api.domain.test.index');
+Route::post('/domain/test/getdata', [ApiTestController::class, 'getDataFromSheet'])->name('api.domain.test.getdata');
+Route::post('/domain/test/delete', [ApiTestController::class, 'deleteDomain'])->name('api.domain.test.delete');

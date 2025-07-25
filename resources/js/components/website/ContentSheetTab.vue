@@ -84,6 +84,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
+import { route as ziggyRoute } from 'ziggy-js'
 import NotificationAlert from '@/components/NotificationAlert.vue'
 
 const route = useRoute()
@@ -96,19 +97,32 @@ const contentSheetHeaders = ref([])
 const fetchWebsiteInfo = async (id) => {
     try {
         loading.value = true
-        const response = await axios.get(`/api/sites/${id}`)
+        // const response = await axios.get(`/api/sites/${id}`)
+        const response = await axios.get(ziggyRoute('api.sites.show', { id }))
 
         if (response.data && response.data.sheets) {
-            const contentSheet = response.data.sheets.find(sheet => sheet.sheet_name === 'Content')
-            if (contentSheet && contentSheet.sheet_data) {
-                contentData.value = contentSheet.sheet_data
-                if (contentSheet.sheet_headers) {
-                    contentSheetHeaders.value = contentSheet.sheet_headers
-                }
-                notificationAlert.value.showSuccess('Content sheet loaded successfully')
-            } else {
-                notificationAlert.value.showWarning('No content sheet found')
+            // Logic cho Content sheet - Tương tự như Information sheet
+            let currentContentSheet = null; // Đổi tên biến để tránh trùng lặp với hàm fetchData.value
+            if (response.data.content && typeof response.data.content.sheet_id !== 'undefined') {
+                const contentSheetId = response.data.content.sheet_id;
+                currentContentSheet = response.data.sheets.find(sheet => sheet.sheet_id === contentSheetId);
             }
+            if (!currentContentSheet) {
+                currentContentSheet = response.data.sheets.find(sheet => sheet.sheet_name === 'Content');
+            }
+
+            if (currentContentSheet && currentContentSheet.sheet_data) {
+                contentData.value = currentContentSheet.sheet_data;
+                if (currentContentSheet.sheet_headers) {
+                    contentSheetHeaders.value = currentContentSheet.sheet_headers;
+                }
+                notificationAlert.value?.showSuccess('Content sheet loaded successfully');
+            } else {
+                notificationAlert.value?.showWarning('No complete content sheet data found.');
+            }
+
+        } else {
+            notificationAlert.value?.showWarning('No website data or sheets found.');
         }
     } catch (error) {
         console.error('Failed to fetch website info:', error)

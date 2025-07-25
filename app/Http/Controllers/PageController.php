@@ -95,4 +95,51 @@ class PageController extends Controller
 
         return response()->json($page, 201);
     }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content_type' => 'required|in:text,google_doc',
+            'content' => 'required|string',
+            'page_address' => 'required|string|max:255',
+            'page_width' => 'required|string',
+            'menu_title' => 'nullable|string|max:255',
+            'menu_type' => 'required|string',
+            'open_page_in' => 'required|string',
+            'show_in_header' => 'boolean',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
+            'social_image' => 'nullable|url',
+            'show_in_search' => 'boolean'
+        ]);
+
+        // Mock response for updating a page
+        $page = [
+            'id' => (int)$id,
+            'title' => $request->title,
+            'slug' => str_replace(' ', '-', strtolower($request->title)),
+            'content_type' => $request->content_type,
+            'content' => $request->content,
+            'page_address' => $request->page_address,
+            'page_width' => $request->page_width,
+            'menu_title' => $request->menu_title,
+            'menu_type' => $request->menu_type,
+            'open_page_in' => $request->open_page_in,
+            'show_in_header' => $request->show_in_header ?? false,
+            'meta_title' => $request->meta_title,
+            'meta_description' => $request->meta_description,
+            'social_image' => $request->social_image,
+            'show_in_search' => $request->show_in_search ?? true,
+            'updated_at' => now()
+        ];
+
+        return response()->json($page);
+    }
+
+    public function destroy($id)
+    {
+        // Mock response for deleting a page
+        return response()->json(['message' => 'Page deleted successfully']);
+    }
 }

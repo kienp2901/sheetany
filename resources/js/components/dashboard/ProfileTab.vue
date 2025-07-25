@@ -365,6 +365,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '../../stores/auth.js'
 import axios from 'axios'
+import { route as ziggyRoute } from 'ziggy-js'
 
 const authStore = useAuthStore()
 
@@ -420,7 +421,8 @@ const getInitials = (name) => {
 
 const loadProfile = async () => {
     try {
-        const response = await axios.get('/api/profile')
+        // const response = await axios.get('/api/profile')
+        const response = await axios.get(ziggyRoute('api.profile.show'))
         const userData = response.data
 
         profileForm.value = {
@@ -447,7 +449,8 @@ const updateProfile = async () => {
     errorMessage.value = ''
 
     try {
-        const response = await axios.put('/api/profile', profileForm.value)
+        // const response = await axios.put('/api/profile', profileForm.value)
+        const response = await axios.put(ziggyRoute('api.profile.update', profileForm.value))
 
         if (response.data.success) {
             successMessage.value = 'Profile updated successfully!'
@@ -505,11 +508,23 @@ const handleFileUpload = async (event) => {
         const formData = new FormData()
         formData.append('avatar', file)
 
-        const response = await axios.post('/api/profile/avatar', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
+        await axios.get("/sanctum/csrf-cookie");
+
+        // const response = await axios.post('/api/profile/avatar', formData, {
+        //     headers: {
+        //         'Content-Type': 'multipart/form-data'
+        //     }
+        // })
+
+        const response = await axios.post(
+            ziggyRoute('api.profile.avatar.upload'), // ✅ sử dụng tên route
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             }
-        })
+        );
 
         if (response.data.success) {
             profileForm.value.avatar = response.data.avatar_url
@@ -532,7 +547,8 @@ const handleFileUpload = async (event) => {
 
 const removeAvatar = async () => {
     try {
-        const response = await axios.delete('/api/profile/avatar')
+        // const response = await axios.delete('/api/profile/avatar')
+        const response = await axios.delete(ziggyRoute('api.profile.avatar.remove'))
 
         if (response.data.success) {
             profileForm.value.avatar = ''
@@ -556,7 +572,11 @@ const changePassword = async () => {
     passwordErrors.value = {}
 
     try {
-        const response = await axios.put('/api/profile/password', passwordForm.value)
+        // const response = await axios.put('/api/profile/password', passwordForm.value)
+        const response = await axios.put(
+            ziggyRoute('api.profile.password.update'), // ✅ sử dụng tên route
+            passwordForm.value
+        )
 
         if (response.data.success) {
             closePasswordModal()

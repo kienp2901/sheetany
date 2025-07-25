@@ -60,6 +60,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
+import { route as ziggyRoute } from 'ziggy-js'
 import NotificationAlert from '@/components/NotificationAlert.vue';
 
 const route = useRoute();
@@ -100,7 +101,11 @@ const updateSubdomain = async () => {
     try {
         // Assume your API endpoint for updating subdomain is something like /api/sites/{id}/subdomain
         // And it expects a POST/PUT request with the new subdomain in the body.
-        const response = await axios.post(`/api/sites/${route.params.id}/subdomain`, {
+        // const response = await axios.post(`/api/sites/${route.params.id}/subdomain`, {
+        //     subdomain: subdomain.value
+        // });
+
+        const response = await axios.post(ziggyRoute('api.sites.subdomain.update', { site: route.params.id }), {
             subdomain: subdomain.value
         });
 
@@ -135,7 +140,8 @@ const updateSubdomain = async () => {
 const fetchWebsiteInfo = async (id) => {
     try {
         loading.value = true;
-        const response = await axios.get(`/api/sites/${id}`);
+        // const response = await axios.get(`/api/sites/${id}`);
+         const response = await axios.get(ziggyRoute('api.sites.show', { id }));
 
         if (response.data) {
             siteData.value = response.data;

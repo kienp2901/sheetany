@@ -73,6 +73,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
+import { route as ziggyRoute } from 'ziggy-js'
 import NotificationAlert from '@/components/NotificationAlert.vue'
 
 const route = useRoute()
@@ -94,19 +95,34 @@ const isUrl = (string) => {
 const fetchWebsiteInfo = async (id) => {
     try {
         loading.value = true
-        const response = await axios.get(`/api/sites/${id}`)
+        // const response = await axios.get(`/api/sites/${id}`)
+        const response = await axios.get(ziggyRoute('api.sites.show', { id }))
 
         if (response.data && response.data.sheets) {
-            const infoSheet = response.data.sheets.find(sheet => sheet.sheet_name === 'Information')
-            if (infoSheet && infoSheet.sheet_data) {
-                informationData.value = infoSheet.sheet_data
-                if (infoSheet.sheet_headers) {
-                    sheetHeaders.value = infoSheet.sheet_headers
-                }
-                notificationAlert.value?.showSuccess('Information sheet loaded successfully')
-            } else {
-                notificationAlert.value?.showWarning('No information sheet found')
+            let infoSheet = null;
+
+            // Ưu tiên tìm sheet bằng sheet_id từ trường 'information' nếu có
+            if (response.data.information && typeof response.data.information.sheet_id !== 'undefined') {
+                const infoSheetId = response.data.information.sheet_id;
+                infoSheet = response.data.sheets.find(sheet => sheet.sheet_id === infoSheetId);
             }
+
+            // Nếu không tìm thấy bằng sheet_id hoặc trường 'information' không có, fallback tìm bằng sheet_name
+            if (!infoSheet) {
+                infoSheet = response.data.sheets.find(sheet => sheet.sheet_name === 'Information');
+            }
+            
+            if (infoSheet && infoSheet.sheet_data) {
+                informationData.value = infoSheet.sheet_data;
+                if (infoSheet.sheet_headers) {
+                    sheetHeaders.value = infoSheet.sheet_headers;
+                }
+                notificationAlert.value?.showSuccess('Information sheet loaded successfully');
+            } else {
+                notificationAlert.value?.showWarning('No complete information sheet data found.');
+            }
+        } else {
+            notificationAlert.value?.showWarning('No website data or sheets found.');
         }
     } catch (error) {
         console.error('Failed to fetch website info:', error)
