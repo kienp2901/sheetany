@@ -125,13 +125,19 @@
                             <div>
                                 <h6 class="card-title mb-1">
                                     Build on Sheetany
-                                    <span class="badge bg-dark ms-2">3</span>
+                                    <!-- Thay số 3 bằng icon khóa -->
+                                    <span class="badge bg-dark ms-2"><i class="bi bi-lock-fill text-white"></i> </span>
                                 </h6>
                                 <p class="text-muted small mb-0">Display the Build on Sheetany badge on your website</p>
                             </div>
                             <div class="form-check form-switch">
-                                <input v-model="buildOnSheetany" class="form-check-input" type="checkbox"
-                                    id="buildOnSheetany">
+                                <input 
+                                    v-model="buildOnSheetany" 
+                                    class="form-check-input" 
+                                    type="checkbox"
+                                    id="buildOnSheetany"
+                                    disabled="true"
+                                >
                             </div>
                         </div>
                     </div>

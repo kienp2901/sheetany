@@ -5,6 +5,10 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 
+define('CATEGORY_SHEET_NAME', 'Categories');
+define('PRODUCT_CONTENT', 'Content');
+define('PRODUCT_PUBLISHED_DATE', 'Published Date');
+
 if (!function_exists('format_date')) {
     function format_date($date)
     {
@@ -22,8 +26,8 @@ if (!function_exists('current_user_name')) {
 /**
  * Run migration for a tenant with given db name and migration path.
  *
- * @param string $dbName T�n database tenant
- * @param string $path   Relative path from base_path(), v� d?: 'database/migrations/tenant/type_1'
+ * @param string $dbName name database tenant
+ * @param string $path   Relative path from base_path(), example: 'database/migrations/tenant/type_1'
  * @return void
  */
 if (!function_exists('migrateTenantDatabase')) {
@@ -39,17 +43,17 @@ if (!function_exists('migrateTenantDatabase')) {
 }
 
 /**
- * Set up a tenant database connection by domain (which maps to database name).
+ * Set up a tenant database connection based on the domain (which maps to the database name).
  *
- * @param string $domainSite T�n domain ho?c t�n database (v� d?: tenant_abc)
- * @return string T�n k?t n?i (m?c d?nh l� 'tenant')
+ * @param string $domainSite The domain name or database name (e.g., tenant_abc)
+ * @return string The connection name (default is 'tenant')
  */
 if (!function_exists('setupTenantConnection')) {
     function setupTenantConnection(string $domainSite)
     {
         $connectionName = 'tenant';
 
-        // G�n config d?ng cho k?t n?i tenant
+         // Set the configuration for the tenant connection
         Config::set("database.connections.$connectionName", [
             'driver'    => 'mysql',
             'host'      => env('DB_HOST', '127.0.0.1'),
@@ -62,10 +66,26 @@ if (!function_exists('setupTenantConnection')) {
             'prefix'    => '',
         ]);
 
-        // X�a k?t n?i cu (n?u c�) v� k?t n?i l?i
+        // Clear the previous connection (if any) and reconnect
         DB::purge($connectionName);
         DB::reconnect($connectionName);
 
         return $connectionName;
+    }
+}
+
+/**
+ * Helper function to extract Google Sheet ID from URL.
+ * @param string $url
+ * @return string|null
+ */
+if (!function_exists('extractSheetIdFromUrl')) {
+    function extractSheetIdFromUrl($url)
+    {
+        $pattern = '/spreadsheets\/d\/([a-zA-Z0-9_-]+)/';
+        if (preg_match($pattern, $url, $matches)) {
+            return $matches[1];
+        }
+        return null;
     }
 }

@@ -9,13 +9,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use App\Service\SetupDefaultService;
+use App\Service\DatabaseDefaultService;
 use Illuminate\Support\Facades\DB;
 
 class TempController extends Controller
 {
-    public function __construct(SetupDefaultService $setupDefaultService) 
+    public function __construct(SetupDefaultService $setupDefaultService, DatabaseDefaultService $databaseDefaultService) 
     {
         $this->setupDefaultService = $setupDefaultService;
+        $this->databaseDefaultService = $databaseDefaultService;
     }
 
     public function store(Request $request)
@@ -94,12 +96,19 @@ class TempController extends Controller
 
         try {
             // Extract spreadsheet ID from URL
-            preg_match('/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/', $temp->google_sheet, $matches);
-            if (!$matches) {
+            // preg_match('/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/', $temp->google_sheet, $matches);
+            // if (!$matches) {
+            //     return response()->json(['error' => 'Invalid Google Sheets URL'], 400);
+            // }
+
+            // $spreadsheetId = $matches[1];
+
+            $spreadsheetId = extractSheetIdFromUrl($temp->google_sheet);
+
+            if (!$spreadsheetId) {
                 return response()->json(['error' => 'Invalid Google Sheets URL'], 400);
             }
 
-            $spreadsheetId = $matches[1];
             $apiKey = env('GOOGLE_SHEETS_API_KEY');
 
             $response = Http::get("https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}", [
@@ -159,11 +168,30 @@ class TempController extends Controller
                 'google_sheet' => $temp->google_sheet,
             ]);
 
-            // // Run external service after DB commit
-            // $this->setupDefaultService->addDomainToDns($domain_name);
-            // // $this->setupDefaultService->addDomainToVirtualHost($domain_name);
-            // //create new database with name $domain_name
-            // $this->setupDefaultService->createDatabase($domain_name);
+            // Run external service after DB commit
+            $addDomainToDns = $this->setupDefaultService->addDomainToDns($domain_name);
+            $responseAddDomainToDns = $addDomainToDns->getData(true); // Convert JsonResponse to array
+            if (!$responseAddDomainToDns['status']) {
+                throw new \Exception($responseAddDomainToDns['message'] ?? 'Unknown error');
+            }
+
+            //create new database with name $domain_name
+            $createDatabase = $this->setupDefaultService->createDatabase($temp->site_domain);
+            $path = 'database/migrations/blog';
+            migrateTenantDatabase($temp->site_domain, $path);
+            $responseCreateDatabase = $createDatabase->getData(true); // Convert JsonResponse to array
+            if (!$responseCreateDatabase['status']) {
+                throw new \Exception($responseCreateDatabase['message'] ?? 'Unknown error');
+            }
+
+            $spreadsheetId = extractSheetIdFromUrl($temp->google_sheet);
+
+            $importFromGoogleSheetByApiKey = $this->databaseDefaultService->importFromGoogleSheetByApiKey(['spreadsheet_id' => $spreadsheetId, 'full_domain' => $temp->site_domain, 'sheet_url' => $temp->google_sheet]);
+
+            $responseImportFromGoogleSheetByApiKey = $importFromGoogleSheetByApiKey->getData(true); // Convert JsonResponse to array
+            if (!$responseImportFromGoogleSheetByApiKey['status']) {
+                throw new \Exception($responseImportFromGoogleSheetByApiKey['message'] ?? 'Unknown error');
+            }
 
             DB::commit(); // Commit before triggering external services
             

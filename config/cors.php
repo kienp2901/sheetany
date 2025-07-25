@@ -4,7 +4,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://sheetdashboard.microgem.io.vn'], // ? DOMAIN FRONTEND
+    'allowed_origins' => ['*'], // ? DOMAIN FRONTEND
 
     'allowed_origins_patterns' => [],
 
@@ -14,6 +14,6 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true, // ? PH?I LÀ true
+    'supports_credentials' => true, // ? PH?I Lï¿½ true
 ];
 ?>

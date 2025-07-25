@@ -495,18 +495,4 @@ class SiteController extends Controller
             ], 500); // Internal Server Error
         }
     }
-
-    /**
-     * Helper function to extract Google Sheet ID from URL.
-     * @param string $url
-     * @return string|null
-     */
-    private function extractSheetIdFromUrl(string $url): ?string
-    {
-        $pattern = '/spreadsheets\/d\/([a-zA-Z0-9_-]+)/';
-        if (preg_match($pattern, $url, $matches)) {
-            return $matches[1];
-        }
-        return null;
-    }
 }

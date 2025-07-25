@@ -284,10 +284,10 @@ class ApiTestController extends Controller
 
     public function createDatabase($databaseName)
     {
+
         try {
             $command = "mysql -u root -p'".env('DB_PASSWORD')."' -e 'CREATE DATABASE IF NOT EXISTS {$databaseName};'";
             exec($command, $output, $returnVar);
-
             if ($returnVar !== 0) {
                 throw new Exception("Lỗi khi tạo cơ sở dữ liệu: " . implode("\n", $output));
             }
@@ -307,7 +307,7 @@ class ApiTestController extends Controller
     public function getDataFromSheet(Request $request)
     {
         $tempId = $request->temp_id;
-        $this->databaseDefaultService->getDataFromSheet($tempId);
+        return $this->databaseDefaultService->importFromGoogleSheetByApiKey($request);
     }
 
 }

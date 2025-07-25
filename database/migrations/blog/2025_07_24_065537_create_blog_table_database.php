@@ -27,7 +27,7 @@ return new class extends Migration
             $table->string('thumbnail');
             $table->string('author');
             $table->text('content');
-            $table->dateTime('publish_date');
+            $table->dateTime('published_date');
             $table->string('status');
             $table->timestamps();
         });
@@ -35,6 +35,7 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('code');
             $table->timestamps();
         });
 
