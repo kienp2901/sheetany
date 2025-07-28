@@ -20,33 +20,35 @@
             <p class="text-muted mt-2">Loading pages...</p>
         </div>
 
-        <div v-else-if="pages.length > 0">
-            <div v-for="page in pages" :key="page.id" class="card border mb-3">
-                <div class="card-body p-0">
-                    <div class="d-flex justify-content-between align-items-center p-3">
-                        <div>
-                            <h5 class="mb-1">{{ page.title }}</h5>
-                            <p class="text-muted mb-0">/{{ page.page_address }}</p>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button @click="editPage(page)" class="btn btn-sm btn-outline-secondary" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button @click="refreshPage(page)" class="btn btn-sm btn-outline-secondary" title="Refresh">
-                                <i class="bi bi-arrow-clockwise"></i>
-                            </button>
-                            <button @click="duplicatePage(page)" class="btn btn-sm btn-outline-secondary"
-                                title="Duplicate">
-                                <i class="bi bi-files"></i>
-                            </button>
-                            <button @click="confirmDeletePage(page)" class="btn btn-sm btn-outline-secondary"
-                                title="Delete">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                            <a :href="`/page/${page.page_address}`" target="_blank"
-                                class="btn btn-sm btn-outline-primary" title="View page">
-                                View page <i class="bi bi-box-arrow-up-right ms-1"></i>
-                            </a>
+        <div v-else-if="pages.length > 0" class="row">
+            <div v-for="page in pages" :key="page.id" class="col-12">
+                <div class="card border mb-3">
+                    <div class="card-body p-3">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                            <div>
+                                <h5 class="mb-1">{{ page.title }}</h5>
+                                <p class="text-muted mb-0">/{{ page.page_address }}</p>
+                            </div>
+                            <div class="d-flex flex-wrap flex-md-nowrap gap-2">
+                                <button @click="editPage(page)" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button @click="refreshPage(page)" class="btn btn-sm btn-outline-secondary" title="Refresh">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                                <button @click="duplicatePage(page)" class="btn btn-sm btn-outline-secondary"
+                                    title="Duplicate">
+                                    <i class="bi bi-files"></i>
+                                </button>
+                                <button @click="confirmDeletePage(page)" class="btn btn-sm btn-outline-secondary"
+                                    title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                <a :href="`/page/${page.page_address}`" target="_blank"
+                                    class="btn btn-sm btn-outline-primary" title="View page">
+                                    View page <i class="bi bi-box-arrow-up-right ms-1"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

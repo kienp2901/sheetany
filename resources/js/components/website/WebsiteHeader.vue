@@ -2,8 +2,8 @@
     <header class="border-bottom px-4 py-3">
         <NotificationAlert ref="notificationAlert" />
 
-        <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
+        <div class="d-flex flex-wrap flex-xl-nowrap justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center me-auto">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0">
                         <li class="breadcrumb-item">
@@ -14,32 +14,30 @@
                 </nav>
             </div>
 
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-muted ms-3 small">Synced: {{ lastSyncedText }}</span>
+            <div class="d-flex flex-wrap flex-sm-nowrap align-items-center gap-2">
+                <span class="text-muted small d-none d-lg-block">Synced: {{ lastSyncedText }}</span>
                 
                 <a 
                     :href="linkGoogleSheet" 
                     target="_blank" 
                     class="btn btn-success btn-sm text-decoration-none"
-                    v-if="linkGoogleSheet"
+                    :class="{ 'disabled': !linkGoogleSheet }"
                 >
-                    <i class="bi bi-pencil me-1"></i>
-                    Edit Google Sheets
+                    <i class="bi bi-pencil"></i>
+                    <span class="d-none d-md-inline ms-1">Edit Sheets</span>
                 </a>
-                <button v-else class="btn btn-success btn-sm" disabled>
-                    <i class="bi bi-pencil me-1"></i>
-                    Edit Google Sheets
-                </button>
-
+                
                 <button class="btn btn-outline-secondary btn-sm" @click="syncSheets" :disabled="isSyncing">
                     <span v-if="isSyncing" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                     <i class="bi bi-arrow-clockwise" :class="{ 'me-1': isSyncing }"></i>
-                    <span v-if="isSyncing">Syncing...</span>
+                    <span v-if="!isSyncing" class="d-none d-md-inline">Sync</span>
+                    <span v-else>Syncing...</span>
                 </button>
                 
-                <button @click="viewWebsite(linkWebsite)" class="btn btn-outline-success btn-sm">
-                    View website <i class="bi bi-box-arrow-up-right ms-1"></i>
-                </button>
+                <a :href="linkWebsite" target="_blank" class="btn btn-outline-success btn-sm" :class="{ 'disabled': !linkWebsite }">
+                    <span class="d-none d-md-inline">View website</span> 
+                    <i class="bi bi-box-arrow-up-right ms-1"></i>
+                </a>
             </div>
         </div>
     </header>
@@ -55,7 +53,6 @@ import NotificationAlert from '@/components/NotificationAlert.vue'
 const route = useRoute()
 const notificationAlert = ref(null)
 
-// Define props with default values for safety
 const props = defineProps({
     websiteName: {
         type: String,
@@ -71,20 +68,17 @@ const props = defineProps({
     },
     websiteId: {
         type: [String, Number],
-        required: true // websiteId là bắt buộc để gọi API
+        required: true
     }
 })
 
-const isSyncing = ref(false) // Trạng thái cho nút đồng bộ
-const lastSyncedAt = ref(null) // Thời gian cuối cùng đồng bộ, có thể lấy từ API
+const isSyncing = ref(false)
+const lastSyncedAt = ref(null)
 
-// Computed property để hiển thị thời gian đồng bộ
 const lastSyncedText = computed(() => {
     if (!lastSyncedAt.value) {
         return 'Never';
     }
-    // Logic để định dạng thời gian (ví dụ: "an hour ago", "just now")
-    // Đây là một ví dụ đơn giản, bạn có thể dùng thư viện như 'moment.js' hoặc 'date-fns'
     const now = new Date();
     const lastSyncDate = new Date(lastSyncedAt.value);
     const diffMinutes = Math.round((now - lastSyncDate) / (1000 * 60));
@@ -102,28 +96,20 @@ const lastSyncedText = computed(() => {
     }
 });
 
-
-// Function to handle sheet synchronization
 const syncSheets = async () => {
     if (!props.websiteId) {
         notificationAlert.value?.showError('Website ID is missing. Cannot sync sheets.');
         return;
     }
 
-    isSyncing.value = true; // Bắt đầu trạng thái đồng bộ
+    isSyncing.value = true;
 
     try {
-        // Gửi yêu cầu POST/PUT đến API đồng bộ, kèm theo websiteId
-        // Giả định API endpoint của bạn là /api/sites/{id}/sync
-        // const response = await axios.post(`/api/sites/${props.websiteId}/sync`);
         const response = await axios.post(ziggyRoute('api.sites.sync', { site: props.websiteId }));
 
         if (response.data.success) {
             notificationAlert.value?.showSuccess('Sheets synced successfully!');
-            // Cập nhật thời gian đồng bộ
-            lastSyncedAt.value = new Date(); // Lấy thời gian hiện tại hoặc từ response.data.synced_at
-            // Tùy chọn: gọi lại hàm fetchWebsiteInfo từ component cha hoặc gửi event để làm mới dữ liệu
-            // emit('sheetsSynced'); // Nếu bạn muốn gửi event lên cha
+            lastSyncedAt.value = new Date();
         } else {
             notificationAlert.value?.showWarning(response.data.message || 'Failed to sync sheets.');
         }
@@ -137,17 +123,24 @@ const syncSheets = async () => {
             notificationAlert.value?.showError('An error occurred during sync. Please try again.', 'Sync Error');
         }
     } finally {
-        isSyncing.value = false; // Kết thúc trạng thái đồng bộ
+        isSyncing.value = false;
     }
 };
 
 const viewWebsite = (website) => {
-    window.open(`https://${website}`, '_blank')
-}
+    // Thêm logic kiểm tra xem linkWebsite có phải là URL đầy đủ không
+    // Hoặc giả định linkWebsite là một đường dẫn tương đối
+    if (website && (website.startsWith('http://') || website.startsWith('https://'))) {
+        window.open(website, '_blank');
+    } else if (website) {
+        // Xử lý trường hợp không có http/https
+        window.open(`http://${website}`, '_blank');
+    } else {
+        notificationAlert.value?.showWarning('Website link is not available.');
+    }
+};
 
-// Cập nhật thời gian đồng bộ ban đầu khi component được mount
 onMounted(() => {
-    // Nếu bạn có thời gian đồng bộ ban đầu từ API, hãy truyền nó vào đây
-    // Ví dụ: lastSyncedAt.value = props.initialLastSyncedTime;
+    // Có thể fetch thời gian đồng bộ ban đầu từ API tại đây
 });
 </script>

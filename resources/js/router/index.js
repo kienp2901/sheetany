@@ -8,6 +8,22 @@ import WebsiteAddPage from "../pages/WebsiteAddPage.vue";
 import WebsiteManagePage from "../pages/WebsiteManagePage.vue"
 import GoogleCallbackPage from "../pages/GoogleCallbackPage.vue"
 
+import DashboardTab from '../components/website/DashboardTab.vue'
+import InformationSheetTab from '../components/website/InformationSheetTab.vue'
+import ContentSheetTab from '../components/website/ContentSheetTab.vue'
+import CustomDomainTab from '../components/website/CustomDomainTab.vue'
+import CustomCodeTab from '../components/website/CustomCodeTab.vue'
+import GeneralSettingsTab from '../components/website/GeneralSettingsTab.vue'
+import IntegrationsTab from '../components/website/IntegrationsTab.vue'
+import NavbarTab from '../components/website/NavbarTab.vue'
+import PagesTab from '../components/website/PagesTab.vue'
+import EmailsTab from '../components/website/EmailsTab.vue'
+import OrdersTab from '../components/website/OrdersTab.vue'
+import FeedbacksTab from '../components/website/FeedbacksTab.vue'
+import WebhooksTab from '../components/website/WebhooksTab.vue'
+import SitemapTab from '../components/website/SitemapTab.vue'
+import RSSTab from '../components/website/RSSTab.vue'
+
 const routes = [
     {
         path: "/",
@@ -95,10 +111,29 @@ const routes = [
     // Thêm route mới vào routes array
     {
         path: "/website/:id/manage",
-        name: "WebsiteManage",
         component: WebsiteManagePage,
+        props: true,
         meta: { requiresAuth: true },
-    },
+        children: [
+            { path: "", redirect: "dashboard" }, // default tab
+
+            { path: "dashboard", name: "WebsiteDashboardTab", component: DashboardTab },
+            { path: "information", name: "WebsiteInformationTab", component: InformationSheetTab },
+            { path: "content", name: "WebsiteContentTab", component: ContentSheetTab },
+            { path: "domain", name: "WebsiteDomainTab", component: CustomDomainTab },
+            { path: "code", name: "WebsiteCodeTab", component: CustomCodeTab },
+            { path: "settings", name: "WebsiteSettingsTab", component: GeneralSettingsTab },
+            { path: "integrations", name: "WebsiteIntegrationsTab", component: IntegrationsTab },
+            { path: "navbar", name: "WebsiteNavbarTab", component: NavbarTab },
+            { path: "pages", name: "WebsitePagesTab", component: PagesTab },
+            { path: "emails", name: "WebsiteEmailsTab", component: EmailsTab },
+            { path: "orders", name: "WebsiteOrdersTab", component: OrdersTab },
+            { path: "feedbacks", name: "WebsiteFeedbacksTab", component: FeedbacksTab },
+            { path: "webhooks", name: "WebsiteWebhooksTab", component: WebhooksTab },
+            { path: "sitemap", name: "WebsiteSitemapTab", component: SitemapTab },
+            { path: "rss", name: "WebsiteRSSTab", component: RSSTab },
+        ]
+    }
 ];
 
 const router = createRouter({

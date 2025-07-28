@@ -1,88 +1,71 @@
 <template>
-    <div class="container-fluid">
+    <div class="container-fluid px-2 px-md-3">
         <!-- Notification Component -->
         <NotificationAlert ref="notification" />
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0">My workspaces ({{ workspaces.length }})</h4>
-            <div class="d-flex gap-2">
-                <div class="input-group" style="width: 300px;">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 mb-md-4 gap-2">
+            <h4 class="mb-0 fs-5 fs-md-4">My workspaces ({{ workspaces.length }})</h4>
+            <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto">
+                <div class="input-group" style="max-width: 300px;">
                     <span class="input-group-text">
                         <i class="bi bi-search"></i>
                     </span>
                     <input v-model="searchQuery" type="text" class="form-control" placeholder="Search...">
                 </div>
-                <button @click="showCreateModal = true" class="btn btn-success">
+                <button @click="showCreateModal = true" class="btn btn-success btn-sm btn-md-normal">
                     <i class="bi bi-plus me-1"></i>
-                    Create workspace
+                    <span class="d-none d-sm-inline">Create workspace</span>
+                    <span class="d-sm-none">Create</span>
                 </button>
             </div>
         </div>
 
         <!-- Workspaces List -->
-        <div v-if="filteredWorkspaces.length > 0" class="row">
-            <div v-for="workspace in filteredWorkspaces" :key="workspace.id" class="col-md-4 mb-4">
+        <div v-if="filteredWorkspaces.length > 0" class="row g-2 g-md-3">
+            <div v-for="workspace in filteredWorkspaces" :key="workspace.id" class="col-12 col-sm-6 col-lg-4 mb-3 mb-md-4">
                 <div class="card h-100">
-                    <div class="card-body">
+                    <div class="card-body p-3">
                         <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-success rounded d-flex align-items-center justify-content-center me-3" 
-                                     style="width: 40px; height: 40px;">
-                                    <i class="bi bi-briefcase text-white"></i>
+                            <div class="d-flex align-items-center flex-grow-1 min-width-0">
+                                <div class="bg-success rounded d-flex align-items-center justify-content-center me-2 me-md-3 flex-shrink-0" 
+                                     style="width: 35px; height: 35px;">
+                                    <i class="bi bi-briefcase text-white small"></i>
                                 </div>
-                                <div>
-                                    <h6 class="mb-1">{{ workspace.name }}</h6>
+                                <div class="min-width-0 flex-grow-1">
+                                    <h6 class="mb-1 text-truncate">{{ workspace.name }}</h6>
                                     <small class="text-muted">{{ workspace.users?.length || 0 }} members</small>
                                 </div>
                             </div>
-                            <!-- <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary" type="button" 
-                                        :id="'dropdown-' + workspace.id" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots"></i>
-                                </button>
-                                <ul class="dropdown-menu" :aria-labelledby="'dropdown-' + workspace.id">
-                                    <li><a class="dropdown-item" href="#" @click="editWorkspace(workspace)">
-                                        <i class="bi bi-pencil me-2"></i>Edit
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#" @click="manageMembers(workspace)">
-                                        <i class="bi bi-people me-2"></i>Manage Members
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="#" @click="deleteWorkspace(workspace)">
-                                        <i class="bi bi-trash me-2"></i>Delete
-                                    </a></li>
-                                </ul>
-                            </div> -->
-                            <div class="position-relative" @click.stop>
-                                <button class="btn btn-sm btn-outline-secondary" @click="toggleDropdown(workspace.id)">
+                            
+                            <div class="position-relative flex-shrink-0" @click.stop>
+                                <button class="btn btn-sm btn-outline-secondary p-1" @click="toggleDropdown(workspace.id)">
                                     <i class="bi bi-three-dots"></i>
                                 </button>
                                 <ul
                                     v-if="activeDropdownId === workspace.id"
                                     class="dropdown-menu show position-absolute"
-                                    style="right: 0; top: 100%; z-index: 1000;"
+                                    style="right: 0; top: 100%; z-index: 1000; min-width: 150px;"
                                 >
                                     <li>
-                                        <a class="dropdown-item" href="#" @click.prevent="editWorkspace(workspace)">
+                                        <a class="dropdown-item py-2" href="#" @click.prevent="editWorkspace(workspace)">
                                             <i class="bi bi-pencil me-2"></i>Edit
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="#" @click.prevent="manageMembers(workspace)">
-                                            <i class="bi bi-people me-2"></i>Manage Members
+                                        <a class="dropdown-item py-2" href="#" @click.prevent="manageMembers(workspace)">
+                                            <i class="bi bi-people me-2"></i>Members
                                         </a>
                                     </li>
                                     <li><hr class="dropdown-divider" /></li>
                                     <li>
-                                        <a class="dropdown-item text-danger" href="#" @click.prevent="deleteWorkspace(workspace)">
+                                        <a class="dropdown-item text-danger py-2" href="#" @click.prevent="deleteWorkspace(workspace)">
                                             <i class="bi bi-trash me-2"></i>Delete
                                         </a>
                                     </li>
                                 </ul>
                             </div>
-
                         </div>
-                        <p class="text-muted small mb-3">Created {{ formatDate(workspace.created_at) }}</p>
+                        <p class="text-muted small mb-2 mb-md-3">Created {{ formatDate(workspace.created_at) }}</p>
                         <div class="d-flex gap-2">
                             <button class="btn btn-outline-primary btn-sm flex-fill">
                                 <i class="bi bi-folder me-1"></i>
@@ -95,10 +78,10 @@
         </div>
 
         <!-- Empty State -->
-        <div v-else-if="workspaces.length === 0" class="bg-white rounded p-5 text-center">
+        <div v-else-if="workspaces.length === 0" class="bg-white rounded p-4 p-md-5 text-center">
             <i class="bi bi-briefcase fs-1 text-muted mb-3"></i>
-            <h5 class="mb-2">You don't have any workspaces</h5>
-            <p class="text-muted mb-4">Create a workspace with a list of websites and invite members to join today.</p>
+            <h5 class="mb-2 fs-6 fs-md-5">You don't have any workspaces</h5>
+            <p class="text-muted mb-3 mb-md-4 small">Create a workspace with a list of websites and invite members to join today.</p>
             <button @click="showCreateModal = true" class="btn btn-success">
                 <i class="bi bi-plus me-1"></i>
                 Create workspace
@@ -108,7 +91,7 @@
         <!-- Create/Edit Workspace Modal -->
         <div class="modal fade" :class="{ show: showCreateModal }" :style="{ display: showCreateModal ? 'block' : 'none' }" 
              tabindex="-1" @click.self="closeCreateModal">
-            <div class="modal-dialog">
+            <div class="modal-dialog mx-2 mx-md-auto">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">{{ editingWorkspace ? 'Edit' : 'Create' }} Workspace</h5>
@@ -138,7 +121,7 @@
         <!-- Manage Members Modal -->
         <div class="modal fade" :class="{ show: showMembersModal }" :style="{ display: showMembersModal ? 'block' : 'none' }" 
              tabindex="-1" @click.self="closeMembersModal">
-            <div class="modal-dialog">
+            <div class="modal-dialog mx-2 mx-md-auto">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Manage Members - {{ selectedWorkspace?.name }}</h5>
@@ -164,18 +147,20 @@
                             <h6>Current Members</h6>
                             <div class="list-group">
                                 <div v-for="user in selectedWorkspace.users" :key="user.id" 
-                                     class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>{{ user.name }}</strong>
-                                        <br>
-                                        <small class="text-muted">{{ user.email }}</small>
+                                     class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <div class="min-width-0 flex-grow-1">
+                                        <strong class="d-block text-truncate">{{ user.name }}</strong>
+                                        <small class="text-muted text-truncate d-block">{{ user.email }}</small>
                                     </div>
-                                    <button v-if="user.id !== selectedWorkspace.user_id" 
-                                            class="btn btn-sm btn-outline-danger" 
-                                            @click="removeMember(user.id)">
-                                        Remove
-                                    </button>
-                                    <span v-else class="badge bg-primary">Owner</span>
+                                    <div class="flex-shrink-0 ms-2">
+                                        <button v-if="user.id !== selectedWorkspace.user_id" 
+                                                class="btn btn-sm btn-outline-danger" 
+                                                @click="removeMember(user.id)">
+                                            <span class="d-none d-sm-inline">Remove</span>
+                                            <i class="bi bi-trash d-sm-none"></i>
+                                        </button>
+                                        <span v-else class="badge bg-primary">Owner</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -219,8 +204,6 @@ const filteredWorkspaces = computed(() => {
 
 const fetchWorkspaces = async () => {
     try {
-        // notification.value?.showInfo('Loading workspaces...', 'Please wait')
-        // const response = await axios.get('/api/workspaces')
         const response = await axios.get(ziggyRoute('api.workspaces.index'))
         workspaces.value = response.data
         notification.value?.clearNotifications()
@@ -245,7 +228,6 @@ const saveWorkspace = async () => {
     
     try {
         if (editingWorkspace.value) {
-            // const response = await axios.put(`/api/workspaces/${editingWorkspace.value.id}`, workspaceForm.value)
             const response = await axios.put(
                 ziggyRoute('api.workspaces.update', { workspace: editingWorkspace.value.id }),
                 workspaceForm.value
@@ -254,7 +236,6 @@ const saveWorkspace = async () => {
             workspaces.value[index] = response.data
             notification.value?.showSuccess(`Workspace "${response.data.name}" updated successfully!`, 'Success!')
         } else {
-            // const response = await axios.post('/api/workspaces', workspaceForm.value)
             const response = await axios.post(
                 ziggyRoute('api.workspaces.store'),
                 workspaceForm.value
@@ -284,13 +265,13 @@ const editWorkspace = (workspace) => {
     workspaceForm.value.name = workspace.name
     formErrors.value = {}
     showCreateModal.value = true
+    closeDropdown()
 }
 
 const deleteWorkspace = async (workspace) => {
     if (!confirm(`Are you sure you want to delete "${workspace.name}"? This action cannot be undone.`)) return
 
     try {
-        // await axios.delete(`/api/workspaces/${workspace.id}`)
         await axios.delete(
             ziggyRoute('api.workspaces.destroy', { workspace: workspace.id })
         )
@@ -306,6 +287,8 @@ const deleteWorkspace = async (workspace) => {
         } else {
             notification.value?.showError('Failed to delete workspace. Please try again.', 'Delete Error')
         }
+    } finally {
+        closeDropdown()
     }
 }
 
@@ -314,10 +297,9 @@ const manageMembers = async (workspace) => {
     memberEmail.value = ''
     formErrors.value = {}
     showMembersModal.value = true
+    closeDropdown()
     
-    // Fetch latest workspace data with members
     try {
-        // const response = await axios.get(`/api/workspaces/${workspace.id}`)
         const response = await axios.get(
             ziggyRoute('api.workspaces.show', { workspace: workspace.id })
         )
@@ -338,10 +320,6 @@ const addMember = async () => {
     loading.value = true
     
     try {
-        // await axios.post(`/api/workspaces/${selectedWorkspace.value.id}/users`, {
-        //     email: memberEmail.value
-        // })
-
         await axios.post(
             ziggyRoute('api.workspaces.users.add', { workspace: selectedWorkspace.value.id }),
             { email: memberEmail.value }
@@ -350,16 +328,12 @@ const addMember = async () => {
         memberEmail.value = ''
         notification.value?.showSuccess('Member added successfully!', 'Success!')
         
-        // Refresh workspace data
-        // const response = await axios.get(`/api/workspaces/${selectedWorkspace.value.id}`)
-        
         const response = await axios.get(
             ziggyRoute('api.workspaces.show', { workspace: selectedWorkspace.value.id })
         )
 
         selectedWorkspace.value = response.data
         
-        // Update in main list
         const index = workspaces.value.findIndex(w => w.id === selectedWorkspace.value.id)
         if (index > -1) {
             workspaces.value[index] = response.data
@@ -386,10 +360,6 @@ const removeMember = async (userId) => {
     if (!confirm('Are you sure you want to remove this member from the workspace?')) return
 
     try {
-        // await axios.delete(`/api/workspaces/${selectedWorkspace.value.id}/users`, {
-        //     data: { user_id: userId }
-        // })
-
         await axios.delete(
             ziggyRoute('api.workspaces.users.remove', { workspace: selectedWorkspace.value.id }),
             {
@@ -399,16 +369,12 @@ const removeMember = async (userId) => {
         
         notification.value?.showSuccess('Member removed successfully.', 'Success!')
         
-        // Refresh workspace data
-        // const response = await axios.get(`/api/workspaces/${selectedWorkspace.value.id}`)
-        
         const response = await axios.get(
             ziggyRoute('api.workspaces.show', { workspace: selectedWorkspace.value.id })
         )
 
         selectedWorkspace.value = response.data
         
-        // Update in main list
         const index = workspaces.value.findIndex(w => w.id === selectedWorkspace.value.id)
         if (index > -1) {
             workspaces.value[index] = response.data
@@ -452,7 +418,7 @@ const closeDropdown = () => {
     activeDropdownId.value = null
 }
 
-// Đóng dropdown khi click bên ngoài
+// Close dropdown when click outside
 document.addEventListener('click', closeDropdown)
 
 onMounted(() => {
@@ -467,5 +433,19 @@ onMounted(() => {
 
 .cursor-pointer {
     cursor: pointer;
+}
+
+.min-width-0 {
+    min-width: 0;
+}
+
+@media (max-width: 575.98px) {
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .modal-dialog {
+        margin: 1rem;
+    }
 }
 </style>
