@@ -1,5 +1,7 @@
 <template>
     <div>
+        <NotificationAlert ref="notificationAlert" />
+
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h4 class="mb-1">Navbar</h4>
@@ -11,7 +13,6 @@
             </button>
         </div>
 
-        <!-- Empty State -->
         <div v-if="navbarItems.length === 0" class="card border-1">
             <div class="card-body text-center py-5">
                 <i class="bi bi-menu-button-wide fs-1 text-muted mb-3"></i>
@@ -24,7 +25,6 @@
             </div>
         </div>
 
-        <!-- Navbar Items Table -->
         <div v-else class="card border-0 shadow-sm">
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -41,10 +41,10 @@
                                 <td class="py-3">
                                     <div class="d-flex gap-2">
                                         <span class="badge" :class="{
-                                            'bg-success': item.position === 'header',
-                                            'bg-primary': item.position === 'footer'
+                                            'bg-success': item.position === 1,
+                                            'bg-primary': item.position === 2
                                         }">
-                                            {{ item.position === 'header' ? 'Header' : 'Footer' }}
+                                            {{ item.position === 1 ? 'Header' : 'Footer' }}
                                         </span>
                                         <span v-if="item.target === 'new'" class="badge bg-info">
                                             New tab
@@ -69,139 +69,138 @@
             </div>
         </div>
 
-        <!-- Navbar Form Modal -->
         <NavbarForm :show="showForm" :navbar-item="editingItem" @close="closeForm" @submit="handleFormSubmit" />
 
-        <!-- Confirm Delete Dialog -->
         <ConfirmDialog :show="showDeleteDialog" title="Delete navbar item"
             message="Are you sure you want to delete this navbar item? This action cannot be undone."
             @confirm="confirmDelete" @cancel="cancelDelete" />
     </div>
 </template>
 
-<script>
-import axios from 'axios'
-import { route as ziggyRoute } from 'ziggy-js'
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router'
+import axios from 'axios';
+import { route as ziggyRoute } from 'ziggy-js';
 import NavbarForm from './NavbarForm.vue';
 import ConfirmDialog from '../ConfirmDialog.vue';
+import NotificationAlert from '@/components/NotificationAlert.vue'
 
-export default {
-    name: 'NavbarTab',
-    components: {
-        NavbarForm,
-        ConfirmDialog
-    },
-    data() {
-        return {
-            navbarItems: [],
-            showForm: false,
-            editingItem: null,
-            showDeleteDialog: false,
-            deletingItemId: null,
-            draggedIndex: null,
-            loading: false
-        }
-    },
-    mounted() {
-        this.loadNavbarItems();
-    },
-    methods: {
-        async loadNavbarItems() {
-            try {
-                // Mock API call - replace with actual API
-                const response = await axios.get(route('api.navbar.index'));
-                this.navbarItems = response.data;
-            } catch (error) {
-                console.error('Error loading navbar items:', error);
-                // Mock data for development
-                this.navbarItems = [];
-            }
-        },
+const notificationAlert = ref(null)
+const route = useRoute()
 
-        showCreateForm() {
-            this.editingItem = null;
-            this.showForm = true;
-        },
+const navbarItems = ref([]);
+const showForm = ref(false);
+const editingItem = ref(null);
+const showDeleteDialog = ref(false);
+const deletingItemId = ref(null);
+const draggedIndex = ref(null);
 
-        editNavbarItem(item) {
-            this.editingItem = { ...item };
-            this.showForm = true;
-        },
+const websiteId = ref(route.params.id) // Biến để lưu trữ websiteId
 
-        closeForm() {
-            this.showForm = false;
-            this.editingItem = null;
-        },
-
-        async handleFormSubmit(formData) {
-            try {
-                if (this.editingItem) {
-                    await axios.put(route('api.navbar.update', this.editingItem.id), formData);
-                } else {
-                    await axios.post(route('api.navbar.store'), formData);
-                }
-
-                await this.loadNavbarItems();
-                this.closeForm();
-            } catch (error) {
-                console.error('Error saving navbar item:', error);
-            }
-        },
-
-        deleteNavbarItem(itemId) {
-            this.deletingItemId = itemId;
-            this.showDeleteDialog = true;
-        },
-
-        async confirmDelete() {
-            try {
-                await axios.delete(route('api.navbar.destroy', this.deletingItemId));
-                await this.loadNavbarItems();
-            } catch (error) {
-                console.error('Error deleting navbar item:', error);
-            }
-            this.cancelDelete();
-        },
-
-        cancelDelete() {
-            this.showDeleteDialog = false;
-            this.deletingItemId = null;
-        },
-
-        // Drag and drop methods
-        dragStart(index) {
-            this.draggedIndex = index;
-        },
-
-        drop(dropIndex) {
-            if (this.draggedIndex !== null && this.draggedIndex !== dropIndex) {
-                const draggedItem = this.navbarItems[this.draggedIndex];
-
-                // Remove dragged item
-                this.navbarItems.splice(this.draggedIndex, 1);
-
-                // Insert at new position
-                this.navbarItems.splice(dropIndex, 0, draggedItem);
-
-                // Update order and save to API
-                this.updateItemsOrder();
-            }
-            this.draggedIndex = null;
-        },
-
-        async updateItemsOrder() {
-            try {
-                const orderedItems = this.navbarItems.map((item, index) => ({
-                    id: item.id,
-                    order: index + 1
-                }));
-                await axios.post(route('api.navbar.reorder'), { items: orderedItems });
-            } catch (error) {
-                console.error('Error updating items order:', error);
-            }
-        }
+const loadNavbarItems = async () => {
+    try {
+        const response = await axios.get(ziggyRoute('api.navbar.index', { site: websiteId.value }));
+        navbarItems.value = response.data;
+        notificationAlert.value?.showSuccess('Navbar loaded successfully')
+    } catch (error) {
+        console.error('Error loading navbar items:', error);
+        notificationAlert.value?.showError('Failed to load navbar', 'Loading Error')
+        navbarItems.value = [];
     }
-}
+};
+
+const showCreateForm = () => {
+    editingItem.value = null;
+    showForm.value = true;
+};
+
+const editNavbarItem = (item) => {
+    editingItem.value = { ...item };
+    showForm.value = true;
+};
+
+const closeForm = () => {
+    showForm.value = false;
+    editingItem.value = null;
+};
+
+const handleFormSubmit = async (formData) => {
+    try {
+        if (editingItem.value) {
+            await axios.put(
+                ziggyRoute('api.navbar.update', {
+                    site: websiteId.value,
+                    id: editingItem.value.id
+                }),
+                formData
+            );
+        } else {
+            await axios.post(ziggyRoute('api.navbar.store', { site: websiteId.value }), formData);
+        }
+
+        await loadNavbarItems();
+        closeForm();
+    } catch (error) {
+        console.error('Error saving navbar item:', error);
+    }
+};
+
+const deleteNavbarItem = (itemId) => {
+    deletingItemId.value = itemId;
+    showDeleteDialog.value = true;
+};
+
+const confirmDelete = async () => {
+    try {
+        // await axios.delete(ziggyRoute('api.navbar.destroy', deletingItemId.value));
+        await axios.delete(
+            ziggyRoute('api.navbar.destroy', {
+                site: websiteId.value,
+                id: deletingItemId.value
+            })
+        );
+        await loadNavbarItems();
+    } catch (error) {
+        console.error('Error deleting navbar item:', error);
+    }
+    cancelDelete();
+};
+
+const cancelDelete = () => {
+    showDeleteDialog.value = false;
+    deletingItemId.value = null;
+};
+
+const dragStart = (index) => {
+    draggedIndex.value = index;
+};
+
+const drop = (dropIndex) => {
+    if (draggedIndex.value !== null && draggedIndex.value !== dropIndex) {
+        const draggedItem = navbarItems.value[draggedIndex.value];
+        navbarItems.value.splice(draggedIndex.value, 1);
+        navbarItems.value.splice(dropIndex, 0, draggedItem);
+        updateItemsOrder();
+    }
+    draggedIndex.value = null;
+};
+
+const updateItemsOrder = async () => {
+    try {
+        const orderedItems = navbarItems.value.map((item, index) => ({
+            id: item.id,
+            order: index + 1
+        }));
+        await axios.post(ziggyRoute('api.navbar.reorder'), { items: orderedItems });
+    } catch (error) {
+        console.error('Error updating items order:', error);
+    }
+};
+
+onMounted(() => {
+    loadNavbarItems();
+});
 </script>
 
 <style scoped>

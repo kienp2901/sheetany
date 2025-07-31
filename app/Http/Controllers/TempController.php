@@ -38,8 +38,8 @@ class TempController extends Controller
                 ]);
             }
 
-            $code = Auth::id() . str_pad(rand(0, 9999999999999999), 16, '0', STR_PAD_LEFT);
-
+            // $code = Auth::id() . str_pad(rand(0, 9999999999999999), 16, '0', STR_PAD_LEFT);
+            $code = 'tenant_db_' . Auth::id() . '_' . str_pad(rand(0, 9999999999999999), 16, '0', STR_PAD_LEFT);;
             $temp = Temp::create([
                 'workspace_id' => $workspace->id,
                 'code' => $code,
@@ -165,6 +165,7 @@ class TempController extends Controller
                 'name' => $temp->site_name,
                 'code' => $temp->code,
                 'domain_name' => $domain_name,
+                'db_name' => $temp->code,
                 'google_sheet' => $temp->google_sheet,
             ]);
 
@@ -176,9 +177,9 @@ class TempController extends Controller
             }
 
             //create new database with name $domain_name
-            $createDatabase = $this->setupDefaultService->createDatabase($temp->site_domain);
+            $createDatabase = $this->setupDefaultService->createDatabase($temp->code);
             $path = 'database/migrations/blog';
-            migrateTenantDatabase($temp->site_domain, $path);
+            migrateTenantDatabase($temp->code, $path);
             $responseCreateDatabase = $createDatabase->getData(true); // Convert JsonResponse to array
             if (!$responseCreateDatabase['status']) {
                 throw new \Exception($responseCreateDatabase['message'] ?? 'Unknown error');
@@ -186,8 +187,7 @@ class TempController extends Controller
 
             $spreadsheetId = extractSheetIdFromUrl($temp->google_sheet);
 
-            $importFromGoogleSheetByApiKey = $this->databaseDefaultService->importFromGoogleSheetByApiKey(['spreadsheet_id' => $spreadsheetId, 'full_domain' => $temp->site_domain, 'sheet_url' => $temp->google_sheet]);
-
+            $importFromGoogleSheetByApiKey = $this->databaseDefaultService->importFromGoogleSheetByApiKey(['spreadsheet_id' => $spreadsheetId, 'full_domain' => $temp->site_domain, 'sheet_url' => $temp->google_sheet, 'db_name' => $temp->code]);
             $responseImportFromGoogleSheetByApiKey = $importFromGoogleSheetByApiKey->getData(true); // Convert JsonResponse to array
             if (!$responseImportFromGoogleSheetByApiKey['status']) {
                 throw new \Exception($responseImportFromGoogleSheetByApiKey['message'] ?? 'Unknown error');

@@ -102,6 +102,8 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { route as ziggyRoute } from 'ziggy-js'
 import NotificationAlert from '../components/NotificationAlert.vue'
+import sheetBlog from '@images/sheet-blog.png'
+import sheetEcommerce from '@images/sheet-ecommerce.png'
 
 const router = useRouter()
 const notification = ref(null)
@@ -115,19 +117,22 @@ const templates = ref([
         name: 'Blog',
         category: 'Blog',
         description: 'Perfect for personal or business blogs with clean design',
-        image: '/placeholder.svg?height=200&width=300&text=Blog+Template',
+        image: `${sheetBlog}`,
         site_type: 1,
-        google_sheet_url: 'https://docs.google.com/spreadsheets/d/1EPVH68GntuAK5-onj85ORQlWgbHf0VRjCN52_AoEJB8/edit?gid=0#gid=0'
+        // google_sheet_url: 'https://docs.google.com/spreadsheets/d/1EPVH68GntuAK5-onj85ORQlWgbHf0VRjCN52_AoEJB8/edit?gid=0#gid=0',
+        google_sheet_url: 'https://docs.google.com/spreadsheets/d/1YyeccCB0F4S7Es4-7WHfrPJuqsFRHdntfWITBMV4l_k/edit?gid=0#gid=0',
+        preview_url: 'https://sheetfe.microgem.io.vn/'
     },
-    {
-        id: 2,
-        name: 'E-commerce',
-        category: 'E-commerce',
-        description: 'Sell products online with this store template',
-        image: '/placeholder.svg?height=200&width=300&text=E-commerce+Template',
-        site_type: 2,
-        google_sheet_url: 'https://docs.google.com/spreadsheets/d/1TBQ4rDrwMIJhEBhNsFohP-HqvMZIKx8CZ-qrO6e0Zoc/edit?gid=679145369#gid=679145369'
-    }
+    // {
+    //     id: 2,
+    //     name: 'E-commerce',
+    //     category: 'E-commerce',
+    //     description: 'Sell products online with this store template',
+    //     image: `${sheetEcommerce}`,
+    //     site_type: 2,
+    //     google_sheet_url: 'https://docs.google.com/spreadsheets/d/1TBQ4rDrwMIJhEBhNsFohP-HqvMZIKx8CZ-qrO6e0Zoc/edit?gid=679145369#gid=679145369',
+    //     preview_url: ''
+    // }
 ])
 
 const loadTemplates = async () => {
@@ -191,11 +196,18 @@ const selectTemplate = async (template) => {
 }
 
 const previewTemplate = (template) => {
+    if (!template.preview_url || template.preview_url.trim() === '') {
+        notification.value?.showWarning(
+            `Preview URL is not available for ${template.name}.`,
+            'No Preview'
+        )
+        return
+    }
+
     notification.value?.showInfo(`Opening ${template.name} template preview...`, 'Preview')
-    
+
     try {
-        // Open Google Sheets template in new tab for preview
-        window.open(template.google_sheet_url, '_blank')
+        window.open(template.preview_url, '_blank')
         notification.value?.showSuccess('Template preview opened in new tab.', 'Preview Ready')
     } catch (error) {
         console.error('Error opening preview:', error)

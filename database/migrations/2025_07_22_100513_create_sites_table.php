@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->string('code');
             $table->string('domain_name');
+            $table->string('db_name');
             $table->string('google_sheet')->nullable();
             $table->timestamps();
 

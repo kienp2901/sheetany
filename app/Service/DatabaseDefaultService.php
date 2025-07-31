@@ -72,47 +72,14 @@ class DatabaseDefaultService
         }
     }
 
-    // public function importFromGoogleSheetByApiKey($request)
-    // {
-    //     $apiKey = env('GOOGLE_SHEETS_API_KEY');
-    //     $defaultSheetId = env('GOOGLE_SHEETS_ID_DEFAULT');
-    //     $sheetId = $request['spreadsheet_id'];
-    //     $domainSite =  $request['full_domain'];
-    //     $metaUrl = "https://sheets.googleapis.com/v4/spreadsheets/{$sheetId}?key={$apiKey}";
-    //     $metaResponse = json_decode(file_get_contents($metaUrl), true);
-
-    //     if (!isset($metaResponse['sheets'])) {
-    //         throw new \Exception("Không lấy được danh sách sheet từ Google Sheets.");
-    //     }
-    //     foreach ($metaResponse['sheets'] as $sheetInfo) {
-    //         $sheetName = $sheetInfo['properties']['title'];
-    //         $dataUrl = "https://sheets.googleapis.com/v4/spreadsheets/{$sheetId}/values/" . urlencode($sheetName) . "?key={$apiKey}";
-    //         $response = json_decode(file_get_contents($dataUrl), true);
-
-    //         if (!isset($response['values']) || count($response['values']) < 2) {
-    //             continue;
-    //         }
-    //         $rows = $response['values'];
-    //         if($sheetName == 'Information') {
-    //             //save table site_informations
-    //             $this->saveInformationSheet($rows, $domainSite, $apiKey, $defaultSheetId);
-    //         }
-    //         if($sheetName == 'Content') {
-    //             //save table site_informations
-    //             $this->saveContentSheet($rows, $domainSite, $apiKey, $defaultSheetId);
-    //         }
-    //     }
-    //     return true;
-    // }
-
     public function importFromGoogleSheetByApiKey($request)
     {
         try {
             $apiKey = env('GOOGLE_SHEETS_API_KEY');
             $defaultSheetId = env('GOOGLE_SHEETS_ID_DEFAULT');
             $sheetId = $request['spreadsheet_id'];
-            $domainSite =  $request['full_domain'];
-
+            $domainSite = $request['full_domain'];
+            $db_name = $request['db_name'];
             $metaUrl = "https://sheets.googleapis.com/v4/spreadsheets/{$sheetId}?key={$apiKey}";
             $metaResponse = json_decode(file_get_contents($metaUrl), true);
 
@@ -135,11 +102,11 @@ class DatabaseDefaultService
                 $rows = $response['values'];
 
                 if ($sheetName === 'Information') {
-                    $this->saveInformationSheet($rows, $domainSite, $apiKey, $defaultSheetId);
+                    $this->saveInformationSheet($rows, $db_name, $apiKey, $defaultSheetId);
                 }
 
                 if ($sheetName === 'Content') {
-                    $this->saveContentSheet($rows, $domainSite, $apiKey, $defaultSheetId);
+                    $this->saveContentSheet($rows, $db_name, $apiKey, $defaultSheetId);
                 }
             }
 
@@ -219,7 +186,43 @@ class DatabaseDefaultService
         return $res;
     }
 
-    public function saveContentSheet($rows, $domainSite, $apiKey, $defaultSheetId)
+    // public function saveContentSheet($rows, $db_name, $apiKey, $defaultSheetId)
+    // {
+    //     $arrayCheck = [
+    //         0 => "Title",
+    //         1 => "Slug",
+    //         2 => "Excerpt",
+    //         3 => "Thumbnail",
+    //         4 => "Categories",
+    //         5 => "Author",
+    //         6 => "Content",
+    //         7 => "Published Date",
+    //         8 => "Status"
+    //     ];
+    //     $checkContentSheetName = $this->checkColumnNameSheet($arrayCheck, $rows[0]);
+
+    //     if(!$checkContentSheetName) {
+    //         //todo: phải lấy default database về(lấy từ nội dung GOOGLE_SHEETS_ID_DEFAULT) -> $defaultSheetId
+    //         return false;
+    //     }
+    //     $categorySlug = $this->getSlugCategory($rows[0], CATEGORY_SHEET_NAME);
+    //     $productField = $this->convertTextToProductField();
+    //     // dd($productField);
+    //     unset($rows[0]);
+    //     $res = [];
+    //     foreach($rows as $key => $value) {
+    //         foreach($value as $k => $v)
+    //         {
+    //             $keyRes = $productField[$k];
+    //             $res[$key][$keyRes] = $v;
+    //         }
+    //     }
+    //     $connectionName = setupTenantConnection($db_name);
+    //     $this->saveProduct($connectionName, $res, $categorySlug);
+    //     return true;
+    // }
+
+    public function saveContentSheet($rows, $db_name, $apiKey, $defaultSheetId)
     {
         $arrayCheck = [
             0 => "Title",
@@ -233,14 +236,19 @@ class DatabaseDefaultService
             8 => "Status"
         ];
         $checkContentSheetName = $this->checkColumnNameSheet($arrayCheck, $rows[0]);
-        
+
         if(!$checkContentSheetName) {
-            //todo: phải lấy default database về(lấy từ nội dung GOOGLE_SHEETS_ID_DEFAULT)
-            return false;
+            // TODO: Get data from default sheet when column validation fails
+            $defaultSheetData = $this->getDefaultContentSheetData($defaultSheetId, $apiKey);
+            if ($defaultSheetData) {
+                $rows = $defaultSheetData;
+            } else {
+                return false;
+            }
         }
         $categorySlug = $this->getSlugCategory($rows[0], CATEGORY_SHEET_NAME);
         $productField = $this->convertTextToProductField();
-        // dd($productField);
+        
         unset($rows[0]);
         $res = [];
         foreach($rows as $key => $value) {
@@ -250,7 +258,7 @@ class DatabaseDefaultService
                 $res[$key][$keyRes] = $v;
             }
         }
-        $connectionName = setupTenantConnection($domainSite);
+        $connectionName = setupTenantConnection($db_name);
         $this->saveProduct($connectionName, $res, $categorySlug);
         return true;
     }
@@ -434,9 +442,10 @@ class DatabaseDefaultService
     {
         $productContentSlug = Str::slug(PRODUCT_CONTENT, '_');
         $productPublishedDateSlug = Str::slug(PRODUCT_PUBLISHED_DATE, '_');
-        $content = $this->getContentProduct($data[$productContentSlug]);
-        $data['content'] = $content;
+        // $content = $this->getContentProduct($data[$productContentSlug]);
+        // $data['content'] = $content;
         $data['published_date'] = Carbon::createFromFormat('m/d/Y', $data[$productPublishedDateSlug])->format('Y-m-d H:i:s');
+        $data['created_at'] = Carbon::now();
         $productId = DB::connection($connectionName)->table('products')->insertGetId($data);
         return $productId;
     }
@@ -448,7 +457,8 @@ class DatabaseDefaultService
         if(!$check) {
             return DB::connection($connectionName)->table('categories')->insertGetId([
                 'name' => $categoryName,
-                'code' => $slug
+                'code' => $slug,
+                'created_at' => Carbon::now(),
             ]);
         }
         return $check->id;
@@ -465,16 +475,60 @@ class DatabaseDefaultService
         return $res;
     }
 
-    public function saveInformationSheet($rows, $domainSite, $apiKey, $defaultSheetId)
+    // public function saveInformationSheet($rows, $db_name, $apiKey, $defaultSheetId)
+    // {
+    //     $arrayCheck = [
+    //         0 => "Property",
+    //         1 => "Value",
+    //     ];
+    //     $checkContentSheetName = $this->checkColumnNameSheet($arrayCheck, $rows[0]);
+    //     if(!$checkContentSheetName) {
+    //         //todo: phải lấy default database về(lấy từ nội dung GOOGLE_SHEETS_ID_DEFAULT) -> $defaultSheetId
+    //         return false;
+    //     }
+
+    //     if (trim($rows[0][0]) === 'Property' && trim($rows[0][1]) === 'Value') {
+    //         $fieldMap = $this->getFieldMapFromDefaultSheet($defaultSheetId, $apiKey);
+    //         foreach (array_slice($rows, 1) as $row) {
+    //             if (!isset($row[0]) || !isset($row[1])) continue;
+
+    //             $property = trim($row[0]);
+    //             $value = trim($row[1]);
+    //             $code = $fieldMap[$property] ?? Str::slug($property, '_');
+    //             // setupTenantConnection();
+    //             $connectionName = setupTenantConnection($db_name);
+
+    //             DB::connection($connectionName)->table('site_informations')->updateOrInsert(
+    //                 ['code' => $code],
+    //                 [
+    //                     'property'   => $property,
+    //                     'value'      => $value,
+    //                     'updated_at' => Carbon::now(),
+    //                     'created_at' => Carbon::now()
+    //                 ]
+    //             );
+    //         }
+    //     }
+
+    //     return true;
+    // }
+
+    public function saveInformationSheet($rows, $db_name, $apiKey, $defaultSheetId)
     {
         $arrayCheck = [
             0 => "Property",
             1 => "Value",
         ];
-        $checkContentSheetName = $this->checkColumnNameSheet($arrayCheck, $rows[0]);
-        if(!$checkContentSheetName) {
-            //todo: phải lấy default database về(lấy từ nội dung GOOGLE_SHEETS_ID_DEFAULT)
-            return false;
+        $checkColumnNameSheet = $this->checkColumnNameSheet($arrayCheck, $rows[0]);
+        
+        if(!$checkColumnNameSheet) {
+            // TODO: Get data from default sheet when column validation fails
+            $defaultSheetData = $this->getDefaultInformationSheetData($defaultSheetId, $apiKey);
+            if ($defaultSheetData) {
+                $rows = $defaultSheetData;
+            } else {
+                return false;
+            }
         }
 
         if (trim($rows[0][0]) === 'Property' && trim($rows[0][1]) === 'Value') {
@@ -485,16 +539,16 @@ class DatabaseDefaultService
                 $property = trim($row[0]);
                 $value = trim($row[1]);
                 $code = $fieldMap[$property] ?? Str::slug($property, '_');
-                // setupTenantConnection();
-                $connectionName = setupTenantConnection($domainSite);
+                
+                $connectionName = setupTenantConnection($db_name);
 
                 DB::connection($connectionName)->table('site_informations')->updateOrInsert(
                     ['code' => $code],
                     [
                         'property'   => $property,
                         'value'      => $value,
-                        'updated_at' => now(),
-                        'created_at' => now()
+                        'updated_at' => Carbon::now(),
+                        'created_at' => Carbon::now()
                     ]
                 );
             }
@@ -508,4 +562,43 @@ class DatabaseDefaultService
         return empty(array_diff($arrayNeedCheck, $arrayCheck));
     }
 
+    /**
+     * Get default Information sheet data from default Google Sheet
+     */
+    private function getDefaultInformationSheetData($defaultSheetId, $apiKey)
+    {
+        try {
+            $dataUrl = "https://sheets.googleapis.com/v4/spreadsheets/{$defaultSheetId}/values/" . urlencode('Information') . "?key={$apiKey}";
+            $response = json_decode(file_get_contents($dataUrl), true);
+            
+            if (isset($response['values']) && count($response['values']) >= 2) {
+                return $response['values'];
+            }
+            
+            return false;
+        } catch (\Exception $e) {
+            Log::error('Error getting default Information sheet data: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get default Content sheet data from default Google Sheet
+     */
+    private function getDefaultContentSheetData($defaultSheetId, $apiKey)
+    {
+        try {
+            $dataUrl = "https://sheets.googleapis.com/v4/spreadsheets/{$defaultSheetId}/values/" . urlencode('Content') . "?key={$apiKey}";
+            $response = json_decode(file_get_contents($dataUrl), true);
+            
+            if (isset($response['values']) && count($response['values']) >= 2) {
+                return $response['values'];
+            }
+            
+            return false;
+        } catch (\Exception $e) {
+            Log::error('Error getting default Content sheet data: ' . $e->getMessage());
+            return false;
+        }
+    }
 }

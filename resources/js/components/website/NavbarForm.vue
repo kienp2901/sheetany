@@ -18,27 +18,25 @@
                     <form @submit.prevent="submitForm">
                         <div class="mb-3">
                             <input type="text" class="form-control form-control-lg" placeholder="Title"
-                                v-model="form.title" required>
+                                v-model="form.title">
                         </div>
 
                         <div class="mb-3">
                             <input type="url" class="form-control form-control-lg" placeholder="https://domain.com"
-                                v-model="form.url" required>
+                                v-model="form.link">
                         </div>
 
                         <div class="mb-3">
                             <select class="form-select form-select-lg" v-model="form.position" required>
-                                <option value="">Select position</option>
-                                <option value="header">Header</option>
-                                <option value="footer">Footer</option>
+                                <option value="1">Header</option>
+                                <option value="2">Footer</option>
                             </select>
                         </div>
 
                         <div class="mb-4">
                             <select class="form-select form-select-lg" v-model="form.target" required>
-                                <option value="">Select target</option>
-                                <option value="same">Same tab</option>
-                                <option value="new">New tab</option>
+                                <option value="1">Same tab</option>
+                                <option value="2">New tab</option>
                             </select>
                         </div>
 
@@ -58,75 +56,63 @@
     <div v-if="show" class="modal-backdrop fade show"></div>
 </template>
 
-<script>
-export default {
-    name: 'NavbarForm',
-    props: {
-        show: {
-            type: Boolean,
-            default: false
-        },
-        navbarItem: {
-            type: Object,
-            default: null
-        }
+<script setup>
+import { ref, watch, computed, defineProps, defineEmits } from 'vue';
+
+const props = defineProps({
+    show: {
+        type: Boolean,
+        default: false
     },
-    emits: ['close', 'submit'],
-    data() {
-        return {
-            loading: false,
-            form: {
-                title: '',
-                url: '',
-                position: '',
-                target: ''
-            }
-        }
-    },
-    computed: {
-        isEdit() {
-            return this.navbarItem !== null;
-        }
-    },
-    watch: {
-        navbarItem: {
-            handler(newVal) {
-                if (newVal) {
-                    this.form = { ...newVal };
-                } else {
-                    this.resetForm();
-                }
-            },
-            immediate: true
-        },
-        show(newVal) {
-            if (!newVal) {
-                this.resetForm();
-            }
-        }
-    },
-    methods: {
-        closeForm() {
-            this.$emit('close');
-        },
-        resetForm() {
-            this.form = {
-                title: '',
-                url: '',
-                position: '',
-                target: ''
-            };
-        },
-        async submitForm() {
-            this.loading = true;
-            try {
-                this.$emit('submit', { ...this.form });
-            } finally {
-                this.loading = false;
-            }
-        }
+    navbarItem: {
+        type: Object,
+        default: null
     }
-}
+});
+
+const emit = defineEmits(['close', 'submit']);
+
+const loading = ref(false);
+const defaultForm = {
+    title: '',
+    url: '',
+    position: 1,
+    target: 1
+};
+const form = ref({ ...defaultForm });
+
+const isEdit = computed(() => props.navbarItem !== null);
+
+const resetForm = () => {
+    form.value = { ...defaultForm };
+};
+
+const closeForm = () => {
+    emit('close');
+};
+
+const submitForm = async () => {
+    loading.value = true;
+    try {
+        emit('submit', { ...form.value });
+    } finally {
+        loading.value = false;
+    }
+};
+
+watch(() => props.navbarItem, (newVal) => {
+    if (newVal) {
+        form.value = { ...newVal };
+    } else {
+        resetForm();
+    }
+}, { immediate: true });
+
+watch(() => props.show, (newVal) => {
+    if (!newVal) {
+        resetForm();
+    }
+});
 </script>
 
 <style scoped>

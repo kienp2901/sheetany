@@ -71,27 +71,28 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/sites/{site}', [SiteController::class, 'update'])->name('api.sites.update');
     Route::delete('/sites/{site}', [SiteController::class, 'destroy'])->name('api.sites.destroy');
     Route::post('/sites/{site}/subdomain', [SiteController::class, 'updateSubdomain'])->name('api.sites.subdomain.update');
+    Route::put('/sites/{site}/setting/update', [SiteController::class, 'settingUpdate'])->name('api.sites.setting.update');
     Route::post('/sites/{site}/sync', [SiteController::class, 'syncSheets'])->name('api.sites.sync');
 });
 
 // Page routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/pages', [PageController::class, 'index'])->name('api.pages.index');
-    Route::post('/pages', [PageController::class, 'store'])->name('api.pages.store');
-    Route::put('/pages/{page}', [PageController::class, 'update'])->name('api.pages.update');
-    Route::delete('/pages/{page}', [PageController::class, 'destroy'])->name('api.pages.destroy');
+    Route::get('/pages/{site}', [PageController::class, 'index'])->name('api.pages.index');
+    Route::post('/pages/{site}', [PageController::class, 'store'])->name('api.pages.store');
+    Route::put('/pages/{site}/update/{page}', [PageController::class, 'update'])->name('api.pages.update');
+    Route::delete('/pages/{site}/delete/{page}', [PageController::class, 'destroy'])->name('api.pages.destroy');
 });
 
 // Navbar routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/navbar-items', [NavbarController::class, 'index'])->name('api.navbar.index');
-    Route::post('/navbar-items', [NavbarController::class, 'store'])->name('api.navbar.store');
-    Route::put('/navbar-items/{id}', [NavbarController::class, 'update'])->name('api.navbar.update');
-    Route::delete('/navbar-items/{id}', [NavbarController::class, 'destroy'])->name('api.navbar.destroy');
+    Route::get('/navbar-items/{site}', [NavbarController::class, 'index'])->name('api.navbar.index');
+    Route::post('/navbar-items/{site}', [NavbarController::class, 'store'])->name('api.navbar.store');
+    Route::put('/navbar-items/{site}/update/{id}', [NavbarController::class, 'update'])->name('api.navbar.update');
+    Route::delete('/navbar-items/{site}/delete/{id}', [NavbarController::class, 'destroy'])->name('api.navbar.destroy');
     Route::post('/navbar-items/reorder', [NavbarController::class, 'reorder'])->name('api.navbar.reorder');
 });
 
 // Domain test routes
 Route::post('/domain/test', [ApiTestController::class, 'index'])->name('api.domain.test.index');
-Route::post('/domain/test/getdata', [ApiTestController::class, 'getDataFromSheet'])->name('api.domain.test.getdata');
+Route::post('/domain/test/import_data', [ApiTestController::class, 'importData'])->name('api.domain.test.getdata');
 Route::post('/domain/test/delete', [ApiTestController::class, 'deleteDomain'])->name('api.domain.test.delete');

@@ -70,11 +70,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { route as ziggyRoute } from 'ziggy-js'
 import NotificationAlert from '@/components/NotificationAlert.vue'
+
+const props = defineProps({
+    syncTrigger: Number, // Define the new prop
+})
 
 const route = useRoute()
 const notificationAlert = ref(null)
@@ -138,6 +142,15 @@ const fetchWebsiteInfo = async (id) => {
         loading.value = false
     }
 }
+
+watch(() => props.syncTrigger, (newValue, oldValue) => {
+    // Check if the trigger value has changed and it's not the initial render
+    if (newValue !== oldValue) {
+        const websiteId = route.params.id
+        fetchWebsiteInfo(websiteId)
+        console.log('Information sheet data synced successfully')
+    }
+})
 
 onMounted(() => {
     const websiteId = route.params.id

@@ -18,20 +18,19 @@
                                     placeholder="Add a page title" required>
                             </div>
 
-                            <div class="mb-3">
+                            <!-- <div class="mb-3">
                                 <label class="form-label">Content Type <span class="text-danger">*</span></label>
                                 <select v-model="formData.content_type" class="form-select" required>
                                     <option value="text">Text</option>
                                     <option value="google_doc">Google Doc</option>
                                 </select>
-                            </div>
+                            </div> -->
 
                             <div class="mb-3">
-                                <label class="form-label">Content <span class="text-danger">*</span></label>
-                                <input v-if="formData.content_type === 'google_doc'" v-model="formData.content"
-                                    type="url" class="form-control" placeholder="Link to public your Google Docs"
-                                    required>
-                                <textarea v-else v-model="formData.content" class="form-control" rows="8" placeholder="<!-- ✅ Meta Title -->
+                                <label class="form-label">Content (text, HTML, or a link to publish your Google Docs)
+                                    <span class="text-danger">*</span></label>
+                                <textarea v-if="formData.content_type === 'google_doc'" v-model="formData.content"
+                                    class="form-control" rows="8" placeholder="<!-- ✅ Meta Title -->
 <title>Khóa học Lập trình Web từ A đến Z | Hocmai</title>
 
 <!-- ✅ Meta Description -->
@@ -51,6 +50,9 @@
 <meta name=&quot;twitter:description&quot; content=&quot;Tham gia khóa học lập trình web từ cơ bản đến nâng cao, hướng dẫn chi tiết HTML, CSS, JavaScript và PHP.&quot; />
 <meta name=&quot;twitter:image&quot; content=&quot;https://yourdomain.com/images/seo-thumbnail.jpg&quot; />"
                                     required></textarea>
+
+                                <input v-else v-model="formData.content" type="text" class="form-control"
+                                    placeholder="Link to public your Google Docs">
                             </div>
 
                             <div class="mb-3">
@@ -62,11 +64,11 @@
                             <div class="mb-3">
                                 <label class="form-label">Page width</label>
                                 <select v-model="formData.page_width" class="form-select">
-                                    <option value="2XL">2XL</option>
-                                    <option value="XL">XL</option>
-                                    <option value="L">L</option>
-                                    <option value="M">M</option>
-                                    <option value="S">S</option>
+                                    <option value="max-w-xl">XL</option>
+                                    <option value="max-w-2xl">2XL</option>
+                                    <option value="max-w-4xl">3XL</option>
+                                    <option value="max-w-screen-lg">4XL</option>
+                                    <option value="max-w-7xl">5XL</option>
                                 </select>
                             </div>
                         </div>
@@ -83,16 +85,16 @@
                             <div class="mb-3">
                                 <label class="form-label">Menu type</label>
                                 <select v-model="formData.menu_type" class="form-select">
-                                    <option value="link">Link</option>
-                                    <option value="button">Button</option>
+                                    <option value="1">Link</option>
+                                    <option value="2">Button</option>
                                 </select>
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label">Open page in</label>
-                                <select v-model="formData.open_page_in" class="form-select">
-                                    <option value="same_tab">Same tab</option>
-                                    <option value="new_tab">New tab</option>
+                                <select v-model="formData.target" class="form-select">
+                                    <option value="1">Same tab</option>
+                                    <option value="2">New tab</option>
                                 </select>
                             </div>
 
@@ -121,7 +123,7 @@
 
                             <div class="mb-3">
                                 <label class="form-label">Image for social media sharing</label>
-                                <input v-model="formData.social_image" type="url" class="form-control"
+                                <input v-model="formData.image_share_url" type="url" class="form-control"
                                     placeholder="Direct link to image">
                             </div>
 
@@ -172,14 +174,14 @@ const defaultFormData = {
     content_type: 'text',
     content: '',
     page_address: '',
-    page_width: '2XL',
+    page_width: 'max-w-2xl',
     menu_title: '',
-    menu_type: 'link',
-    open_page_in: 'same_tab',
+    menu_type: '1',
+    target: '1',
     show_in_header: true,
     meta_title: '',
     meta_description: '',
-    social_image: '',
+    image_share_url: '',
     show_in_search: true
 }
 
@@ -189,7 +191,11 @@ const formData = ref({ ...defaultFormData })
 // If editing, populate form with page data
 onMounted(() => {
     if (props.isEdit && props.page) {
-        formData.value = { ...props.page }
+        formData.value = {
+            ...props.page,
+            show_in_header: props.page.show_in_header === 1,
+            show_in_search: props.page.show_in_search === 1
+        };
     }
 })
 

@@ -22,7 +22,7 @@ class SetupDefaultService
             if (!$zoneId) {
                 return response()->json([
                     'status' => false,
-                    'message' => "Không tìm thấy Zone ID cho {$domain}"
+                    'message' => "Could not find Zone ID for {$domain}"
                 ]);
             }
 
@@ -32,25 +32,26 @@ class SetupDefaultService
 
             return response()->json([
                 'status' => true,
-                'message' => 'Tạo subdomain và VirtualHost thành công.',
+                'message' => 'Subdomain and VirtualHost created successfully.',
                 'data' => [
                     'cloudflare_response' => json_decode($response, true),
                     'vhost_result' => $vhostResult
                 ]
             ]);
         } catch (Exception $e) {
-            Log::error('Lỗi khi tạo subdomain: ' . $e->getMessage());
+            Log::error('Error while creating subdomain: ' . $e->getMessage());
 
             return response()->json([
                 'status' => false,
-                'message' => 'Lỗi: ' . $e->getMessage()
+                'message' => 'Error: ' . $e->getMessage()
             ]);
         }
     }
 
-    public function extractSubdomainAndDomain($fullDomain, $domainRoot = 'microgem.io.vn') {
+    public function extractSubdomainAndDomain($fullDomain, $domainRoot = 'microgem.io.vn')
+    {
         if (!str_ends_with($fullDomain, $domainRoot)) {
-            throw new Exception("Tên miền không khớp với domain chính ({$domainRoot})");
+            throw new Exception("The domain name does not match the root domain ({$domainRoot})");
         }
 
         $subdomain = str_replace(".$domainRoot", '', $fullDomain);
@@ -100,105 +101,106 @@ class SetupDefaultService
 
     public function addApacheVirtualHost($domain, $projectPath)
     {
-        $confPath = "/etc/apache2/sites-available/{$domain}.conf";
+        try {
+            $confPath = "/etc/apache2/sites-available/{$domain}.conf";
+            $vhostConfig = <<<EOL
+                <VirtualHost *:80>
+                    ServerName {$domain}
+                    ErrorLog \${APACHE_LOG_DIR}/{$domain}_error.log
+                    CustomLog \${APACHE_LOG_DIR}/{$domain}_access.log combined
+                    ProxyPreserveHost On
+                    ProxyRequests Off
+                    ProxyPass / http://localhost:3001/
+                    ProxyPassReverse / http://localhost:3001/
+                    RewriteEngine on
+                    RewriteCond %{HTTP:Upgrade} =websocket [NC]
+                    RewriteRule /(.*) ws://localhost:3001/\$1 [P,L]
+                </VirtualHost>
+                EOL;
 
-        // $vhostConfig = <<<EOL
-        //     <VirtualHost *:80>
-        //         ServerName {$domain}
-        //         DocumentRoot {$projectPath}
+            // Create the virtual host configuration file
+            $command = "echo " . escapeshellarg($vhostConfig) . " | sudo tee {$confPath} > /dev/null";
+            exec($command, $output1, $code1);
+            if ($code1 !== 0) {
+                return [
+                    'status' => false,
+                    'message' => "Unable to create configuration file (possibly due to missing sudo permissions)."
+                ];
+            }
 
-        //         <Directory {$projectPath}>
-        //             Options Indexes FollowSymLinks
-        //             AllowOverride All
-        //             Require all granted
-        //         </Directory>
+            // Enable the virtual host
+            exec("sudo a2ensite {$domain}.conf", $out1, $c1);
 
-        //         ErrorLog \${APACHE_LOG_DIR}/{$domain}_error.log
-        //         CustomLog \${APACHE_LOG_DIR}/{$domain}_access.log combined
-        //     </VirtualHost>
-        //     EOL;
+            // Ensure SSL configuration exists
+            $this->ensureSSLConfig($domain);
 
-        $vhostConfig = <<<EOL
-            <VirtualHost *:80>
-                ServerName {$domain}
+            // Reload Apache
+            exec("sudo systemctl reload apache2", $out3, $c2);
 
-                ErrorLog \${APACHE_LOG_DIR}/{$domain}_error.log
-                CustomLog \${APACHE_LOG_DIR}/{$domain}_access.log combined
+            if ($c1 === 0 && $c2 === 0) {
+                return [
+                    'status' => true,
+                    'message' => "Successfully created and enabled VirtualHost for {$domain}.",
+                    'output' => [$out1, $out3]
+                ];
+            }
 
-                ProxyPreserveHost On
-                ProxyRequests Off
-
-                # Proxy for HTTP
-                ProxyPass / http://localhost:3001/
-                ProxyPassReverse / http://localhost:3001/
-
-                # Proxy for WebSocket
-                RewriteEngine on
-                RewriteCond %{HTTP:Upgrade} =websocket [NC]
-                RewriteRule /(.*) ws://localhost:3001/\$1 [P,L]
-            </VirtualHost>
-            EOL;
-
-        $command = "echo " . escapeshellarg($vhostConfig) . " | sudo tee {$confPath} > /dev/null";
-        exec($command, $output1, $code1);
-
-        if ($code1 !== 0) {
             return [
                 'status' => false,
-                'message' => "Không thể tạo file cấu hình (có thể do thiếu quyền sudo)."
+                'message' => 'An error occurred while enabling the VirtualHost.',
+                'output' => [$out1 ?? '', $out3 ?? '']
             ];
-        }
-
-        exec("sudo a2ensite {$domain}.conf", $out1, $c1);
-        exec("sudo a2enmod ssl", $out2);
-        exec("sudo systemctl reload apache2", $out3, $c2);
-
-        if ($c1 === 0 && $c2 === 0) {
+        } catch (\Exception $e) {
+            Log::error("Error while creating VirtualHost: " . $e->getMessage());
             return [
-                'status' => true,
-                'message' => "Đã tạo và kích hoạt VirtualHost cho {$domain}.",
-                'output' => [$out1, $out3]
+                'status' => false,
+                'message' => 'Error: ' . $e->getMessage()
             ];
         }
-
-        return [
-            'status' => false,
-            'message' => 'Có lỗi xảy ra khi kích hoạt VirtualHost.',
-            'output' => [$out1 ?? '', $out3 ?? '']
-        ];
     }
 
-    public function enableSSL($domain)
+    public function ensureSSLConfig($domain)
     {
         try {
-            $cmd = "sudo certbot --apache --non-interactive --agree-tos -m your-email@example.com -d {$domain}";
-            exec($cmd, $output, $return_var);
+            $sslConfPath = "/etc/apache2/sites-available/{$domain}-le-ssl.conf";
+            $certbotCmd = "sudo certbot --apache -d {$domain} --non-interactive --agree-tos -m admin@{$domain} --redirect";
+            $reloadCmd = "sudo systemctl reload apache2";
+            
+            if (file_exists($sslConfPath)) {
+                return;
+            }
+            exec($certbotCmd, $output, $code);
+            // dd($output, $code);
+            if ($code === 0 && file_exists($sslConfPath)) {
+                exec($reloadCmd, $reloadOutput, $reloadCode);
+            }
 
-            return [
-                'status' => $return_var === 0,
-                'message' => $return_var === 0
-                    ? "SSL đã được cài đặt thành công cho {$domain}"
-                    : "Cài đặt SSL thất bại. Vui lòng kiểm tra log Certbot.",
-                'output' => $output
-            ];
-        } catch (Exception $e) {
-            return [
-                'status' => false,
-                'message' => 'Lỗi khi cài SSL: ' . $e->getMessage()
-            ];
+        } catch (\Exception $e) {
+            Log::error("Error when create SSL: " . $e->getMessage());
         }
     }
 
     //delete domain
-    public function deleteDomain(Request $request)
+    public function deleteDomain($request)
     {
-        $apiToken = getenv('CLOUD_FLARE_API_TOKEN');
-        $ip = getenv('SERVER_IP_ADDRESS');
-        $fullDomain = $request->full_domain;
-        [$sub, $domain] = $this->extractSubdomainAndDomain($fullDomain, 'microgem.io.vn');
-        $zoneId = $this->getZoneIdByDomain($apiToken, $domain);
-        $check = $this->deleteApacheVirtualHostAndCloudflare($fullDomain, $apiToken, $zoneId);
-        dd($check);
+        try {
+            $apiToken = getenv('CLOUD_FLARE_API_TOKEN');
+            $fullDomain = $request['full_domain'];
+            [$sub, $domain] = $this->extractSubdomainAndDomain($fullDomain, 'microgem.io.vn');
+            $zoneId = $this->getZoneIdByDomain($apiToken, $domain);
+            $result = $this->deleteApacheVirtualHostAndCloudflare($fullDomain, $apiToken, $zoneId);
+            return response()->json([
+                'status' => true,
+                'message' => 'Delete domain successfully',
+                'data' => $result
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error when delete domain: " . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
     }
 
     public function deleteApacheVirtualHostAndCloudflare($domain, $cloudflareToken, $zoneId)
@@ -206,29 +208,54 @@ class SetupDefaultService
         $confFile = "{$domain}.conf";
         $confPath = "/etc/apache2/sites-available/{$confFile}";
         $enabledPath = "/etc/apache2/sites-enabled/{$confFile}";
+
+        // Disable the Apache site
         exec("sudo a2dissite {$confFile}", $out1, $code1);
+
+        // Remove symlink if exists
         if (file_exists($enabledPath)) {
             exec("sudo rm -f {$enabledPath}", $outSymlink, $codeSymlink);
         } else {
             $codeSymlink = 0;
         }
+
+        // Remove the actual config file if it exists
         if (file_exists($confPath)) {
             exec("sudo rm -f {$confPath}", $out2, $code2);
         } else {
             $code2 = 0;
         }
+
+        // Delete SSL certificate using certbot
+        $command = "sudo certbot delete --cert-name " . escapeshellarg($domain) . " 2>&1";
+        exec($command, $output, $returnCode);
+
+        // Remove auto-generated SSL config file
+        $commandRemoveSSL = "sudo rm -f {$domain}-le-ssl.conf";
+        exec($commandRemoveSSL, $outputSSL, $returnCodeSSL);
+
+        // Reload Apache
         exec("sudo systemctl reload apache2", $outReload, $codeReload);
+
+        // Get DNS record ID from Cloudflare
         $recordId = $this->getCloudflareDNSRecordId($domain, $cloudflareToken, $zoneId);
         $deleted = false;
+
+        // Attempt to delete DNS record
         if ($recordId) {
             $deleted = $this->deleteCloudflareDNSRecord($recordId, $cloudflareToken, $zoneId);
         }
+
         return [
             'apache' => $code1 === 0 && $code2 === 0 && $codeSymlink === 0,
             'cloudflare_deleted' => $deleted,
             'messages' => [
-                'apache' => ($code1 === 0 && $code2 === 0 && $codeSymlink === 0) ? "Đã xóa VirtualHost cho {$domain}." : "Lỗi khi xóa VirtualHost.",
-                'cloudflare' => $deleted ? "Đã xóa DNS trên Cloudflare." : "Không thể tìm hoặc xóa DNS record trên Cloudflare."
+                'apache' => ($code1 === 0 && $code2 === 0 && $codeSymlink === 0)
+                    ? "Successfully deleted VirtualHost for {$domain}."
+                    : "Failed to delete VirtualHost.",
+                'cloudflare' => $deleted
+                    ? "DNS record deleted from Cloudflare."
+                    : "Could not find or delete DNS record from Cloudflare."
             ]
         ];
     }
@@ -275,28 +302,27 @@ class SetupDefaultService
     public function createDatabase($databaseName)
     {
         try {
-            // Escape tên database để tránh injection
+            // Escape the database name to avoid injection
             $safeDatabaseName = escapeshellarg($databaseName);
             $dbUser = escapeshellarg(env('DB_USERNAME'));
             $dbPassword = escapeshellarg(env('DB_PASSWORD'));
 
-            // Lệnh tạo database
+            // Command to create the database
             $command = "mysql -u {$dbUser} -p{$dbPassword} -e \"CREATE DATABASE IF NOT EXISTS {$databaseName};\"";
 
             exec($command, $output, $returnVar);
-
             if ($returnVar !== 0) {
-                throw new Exception("Lỗi khi tạo cơ sở dữ liệu: " . implode("\n", $output));
+                throw new Exception("Error creating database: " . implode("\n", $output));
             }
 
             return response()->json([
                 'status' => true,
-                'message' => "Cơ sở dữ liệu {$databaseName} đã được tạo thành công."
+                'message' => "Database {$safeDatabaseName} has been created successfully."
             ]);
         } catch (Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'Lỗi: ' . $e->getMessage()
+                'message' => 'Error: ' . $e->getMessage()
             ]);
         }
     }

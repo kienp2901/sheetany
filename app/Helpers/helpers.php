@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\DB;
 define('CATEGORY_SHEET_NAME', 'Categories');
 define('PRODUCT_CONTENT', 'Content');
 define('PRODUCT_PUBLISHED_DATE', 'Published Date');
+define('DOMAIN_BASE', 'microgem.io.vn');
+
+define('BLOG_SHEET_INFORMATION_TAB_ID', 0);
+define('BLOG_SHEET_CONTENT_TAB_ID', 1);
 
 if (!function_exists('format_date')) {
     function format_date($date)
@@ -49,7 +53,7 @@ if (!function_exists('migrateTenantDatabase')) {
  * @return string The connection name (default is 'tenant')
  */
 if (!function_exists('setupTenantConnection')) {
-    function setupTenantConnection(string $domainSite)
+    function setupTenantConnection(string $dbName)
     {
         $connectionName = 'tenant';
 
@@ -58,7 +62,7 @@ if (!function_exists('setupTenantConnection')) {
             'driver'    => 'mysql',
             'host'      => env('DB_HOST', '127.0.0.1'),
             'port'      => env('DB_PORT', 3306),
-            'database'  => $domainSite,
+            'database'  => $dbName,
             'username'  => env('DB_USERNAME'),
             'password'  => env('DB_PASSWORD'),
             'charset'   => 'utf8mb4',

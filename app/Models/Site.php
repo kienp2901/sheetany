@@ -15,6 +15,7 @@ class Site extends Model
         'name',
         'code',
         'domain_name',
+        'db_name',
         'google_sheet',
     ];
 

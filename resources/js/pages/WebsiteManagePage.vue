@@ -5,6 +5,7 @@
             :linkGoogleSheet="linkGoogleSheet" 
             :linkWebsite="linkWebsite" 
             :websiteId="websiteId"
+            @sync-success="handleSyncSuccess"
         />
 
         <div class="d-flex flex-grow-1">
@@ -18,8 +19,8 @@
 
             <main class="flex-fill p-4 overflow-auto main-content-mobile-padding" style="background-color: #f8f9fa;">
                 <DashboardTab v-if="activeTab === 'dashboard'" @change-tab="setActiveTab" />
-                <InformationSheetTab v-if="activeTab === 'information'" />
-                <ContentSheetTab v-if="activeTab === 'content'" />
+                <InformationSheetTab v-if="activeTab === 'information'" :syncTrigger="syncTrigger" />
+                <ContentSheetTab v-if="activeTab === 'content'" :syncTrigger="syncTrigger" />
                 <CustomDomainTab v-if="activeTab === 'domain'" />
                 <CustomCodeTab v-if="activeTab === 'code'" />
                 <GeneralSettingsTab v-if="activeTab === 'settings'" />
@@ -84,6 +85,8 @@ const linkWebsite = ref('')
 const websiteData = ref(null)
 const isLoading = ref(true)
 const error = ref(null)
+
+const syncTrigger = ref(0)
 
 let websiteId = route.params.id
 
@@ -158,6 +161,10 @@ const fetchWebsiteInfo = async (id) => {
     } finally {
         isLoading.value = false
     }
+}
+
+const handleSyncSuccess = () => {
+    syncTrigger.value++
 }
 
 watch(() => route.params.id, (newId) => {

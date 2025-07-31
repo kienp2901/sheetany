@@ -345,20 +345,20 @@ const fetchWebsiteInfo = async () => {
 
         if (response.data) {
             websiteName.value = response.data.name || '';
-            showDarkMode.value = response.data.dark_mode || false;
-            hideFooter.value = response.data.hide_footer || false;
-            hideHeader.value = response.data.hide_header || false;
-            hideHero.value = response.data.disable_hero || false; // Dựa trên response.data.disable_hero
-            showCollectedEmails.value = response.data.collect_email || false;
-            disableAutoSync.value = response.data.disable_auto_sync || false;
-            textCenter.value = response.data.text_center || false;
-            showAboutUs.value = response.data.about_us || false;
-            showFeedbackForm.value = response.data.feedback_form || false;
-            fontSize.value = response.data.small_hero || false; // Dựa trên response.data.small_hero
+            showDarkMode.value = response.data.dark_mode == 1 || false;
+            hideFooter.value = response.data.hide_footer == 1 || false;
+            hideHeader.value = response.data.hide_footer == 1 || false;
+            hideHero.value = response.data.disable_hero == 1 || false; // Dựa trên response.data.disable_hero
+            showCollectedEmails.value = response.data.collect_email == 1 || false;
+            disableAutoSync.value = response.data.disable_auto_sync == 1 || false;
+            textCenter.value = response.data.text_center == 1 || false;
+            showAboutUs.value = response.data.about_us == 1 || false;
+            showFeedbackForm.value = response.data.feedback_form == 1 || false;
+            fontSize.value = response.data.small_hero == 1 || false; // Dựa trên response.data.small_hero
             fontFamily.value = response.data.font_family || 'Poppins';
             paginationSize.value = response.data.pagination_size || 10;
-            publishWebsite.value = response.data.published || false;
-            buildOnSheetany.value = response.data.build_on_sheetany || false; // Thêm vào đây nếu có trong API response
+            publishWebsite.value = response.data.published == 1 || false;
+            buildOnSheetany.value = response.data.build_on_sheetany == 1 || false; // Thêm vào đây nếu có trong API response
             gridContent.value = response.data.grid_content || 3;
 
             notificationAlert.value?.showSuccess('Website information loaded successfully.');
@@ -390,24 +390,24 @@ const updateSettings = async () => {
     try {
         const payload = {
             name: websiteName.value,
-            dark_mode: showDarkMode.value,
-            hide_footer: hideFooter.value,
-            hide_header: hideHeader.value,
-            disable_hero: hideHero.value, // Mapping to disable_hero
-            collect_email: showCollectedEmails.value,
-            disable_auto_sync: disableAutoSync.value,
-            text_center: textCenter.value,
-            about_us: showAboutUs.value,
-            feedback_form: showFeedbackForm.value,
-            small_hero: fontSize.value, // Mapping to small_hero
+            dark_mode: showDarkMode.value ? 1 : 2,
+            hide_footer: hideFooter.value ? 1 : 2,
+            hide_header: hideHeader.value ? 1 : 2,
+            disable_hero: hideHero.value ? 1 : 2, // Mapping to disable_hero
+            collect_email: showCollectedEmails.value ? 1 : 2,
+            disable_auto_sync: disableAutoSync.value ? 1 : 2,
+            text_center: textCenter.value ? 1 : 2,
+            about_us: showAboutUs.value ? 1 : 2,
+            feedback_form: showFeedbackForm.value ? 1 : 2,
+            small_hero: fontSize.value ? 1 : 2, // Mapping to small_hero
             font_family: fontFamily.value,
             pagination_size: paginationSize.value,
-            published: publishWebsite.value,
-            build_on_sheetany: buildOnSheetany.value,
+            published: publishWebsite.value ? 1 : 2,
+            build_on_sheetany: buildOnSheetany.value ? 1 : 2,
             grid_content: gridContent.value,
         };
 
-        const response = await axios.put(ziggyRoute('api.sites.update', { site: websiteId.value }), payload);
+        const response = await axios.put(ziggyRoute('api.sites.setting.update', { site: websiteId.value }), payload);
 
         if (response.data.success) {
             notificationAlert.value?.showSuccess(response.data.message || 'Website settings updated successfully!');

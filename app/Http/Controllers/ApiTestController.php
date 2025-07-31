@@ -304,9 +304,9 @@ class ApiTestController extends Controller
         }
     }
 
-    public function getDataFromSheet(Request $request)
+    public function importData(Request $request)
     {
-        $tempId = $request->temp_id;
+        // $tempId = $request->temp_id;
         return $this->databaseDefaultService->importFromGoogleSheetByApiKey($request);
     }
 

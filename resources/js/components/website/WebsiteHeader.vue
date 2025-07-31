@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, defineEmits } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { route as ziggyRoute } from 'ziggy-js'
@@ -71,6 +71,8 @@ const props = defineProps({
         required: true
     }
 })
+
+const emit = defineEmits(['sync-success'])
 
 const isSyncing = ref(false)
 const lastSyncedAt = ref(null)
@@ -109,6 +111,7 @@ const syncSheets = async () => {
 
         if (response.data.success) {
             notificationAlert.value?.showSuccess('Sheets synced successfully!');
+            emit('sync-success')
             lastSyncedAt.value = new Date();
         } else {
             notificationAlert.value?.showWarning(response.data.message || 'Failed to sync sheets.');

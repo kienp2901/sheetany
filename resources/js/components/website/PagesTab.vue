@@ -33,18 +33,18 @@
                                 <button @click="editPage(page)" class="btn btn-sm btn-outline-secondary" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <button @click="refreshPage(page)" class="btn btn-sm btn-outline-secondary" title="Refresh">
+                                <!-- <button @click="refreshPage(page)" class="btn btn-sm btn-outline-secondary" title="Refresh">
                                     <i class="bi bi-arrow-clockwise"></i>
                                 </button>
                                 <button @click="duplicatePage(page)" class="btn btn-sm btn-outline-secondary"
                                     title="Duplicate">
                                     <i class="bi bi-files"></i>
-                                </button>
+                                </button> -->
                                 <button @click="confirmDeletePage(page)" class="btn btn-sm btn-outline-secondary"
                                     title="Delete">
                                     <i class="bi bi-trash"></i>
                                 </button>
-                                <a :href="`/page/${page.page_address}`" target="_blank"
+                                <a :href="`${linkWebsite}/pages/${page.page_address}`" target="_blank"
                                     class="btn btn-sm btn-outline-primary" title="View page">
                                     View page <i class="bi bi-box-arrow-up-right ms-1"></i>
                                 </a>
@@ -96,12 +96,15 @@ const isEditing = ref(false)
 const selectedPage = ref(null)
 const showDeleteConfirm = ref(false)
 const pageToDelete = ref(null)
+const linkWebsite = ref('')
+
+const websiteId = ref(route.params.id) // Biến để lưu trữ websiteId
 
 const fetchPages = async () => {
     try {
         loading.value = true
         // const response = await axios.get('/api/pages')
-        const response = await axios.get(ziggyRoute('api.pages.index'))
+        const response = await axios.get(ziggyRoute('api.pages.index', { site: websiteId.value }))
         
         pages.value = response.data
         notificationAlert.value?.showSuccess('Pages loaded successfully')
@@ -110,6 +113,26 @@ const fetchPages = async () => {
         notificationAlert.value?.showError('Failed to load pages', 'Loading Error')
     } finally {
         loading.value = false
+    }
+}
+
+const fetchWebsiteInfo = async (id) => {
+    try {
+        const response = await axios.get(ziggyRoute('api.sites.show', { id: websiteId.value }))
+
+        if (response.data) {
+            linkWebsite.value = 'https://' + response.data.domain_name || ''
+        }
+    } catch (error) {
+        console.error('Failed to fetch website info:', error)
+
+        // if (error.response?.status === 403) {
+        //     notificationAlert.value?.showError('You do not have permission to access this website', 'Access Denied')
+        // } else if (error.response?.status === 404) {
+        //     notificationAlert.value?.showError('Website not found', 'Not Found')
+        // } else {
+        //     notificationAlert.value?.showError('Failed to load data', 'Loading Error')
+        // }
     }
 }
 
@@ -136,20 +159,40 @@ const submitForm = async (formData) => {
             // Update existing page
             // const response = await axios.put(`/api/pages/${formData.id}`, formData)
             const pageIdVal = formData.id
-            const response = await axios.put(ziggyRoute('api.pages.update', { page: pageIdVal }), formData)
+            // const response = await axios.put(ziggyRoute('api.pages.update', { page: pageIdVal }), formData)
 
-            // Update the page in the list
-            const index = pages.value.findIndex(p => p.id === formData.id)
-            if (index !== -1) {
-                pages.value[index] = response.data
+            const response = await axios.put(
+                ziggyRoute('api.pages.update', {
+                    site: websiteId.value,
+                    page: pageIdVal
+                }),
+                formData
+            );
+
+            if(response.data.status){
+                // Update the page in the list
+                // const index = pages.value.findIndex(p => p.id === formData.id)
+                // if (index !== -1) {
+                //     pages.value[index] = response.data.data
+                // }
+
+                fetchPages();
+
+                notificationAlert.value?.showSuccess('Page updated successfully', 'Success!')
+            }else{
+                notificationAlert.value?.showError(response.data.message, 'Error')
             }
-
-            notificationAlert.value?.showSuccess('Page updated successfully', 'Success!')
         } else {
             // Create new page
-            const response = await axios.post('/api/pages', formData)
-            pages.value.unshift(response.data)
-            notificationAlert.value?.showSuccess('Page created successfully', 'Success!')
+            const response = await axios.post(ziggyRoute('api.pages.store', { site: websiteId.value }), formData)
+
+            if(response.data.status){
+                // pages.value.unshift(response.data.data)
+                fetchPages();
+                notificationAlert.value?.showSuccess('Page created successfully', 'Success!')
+            }else{
+                notificationAlert.value?.showError(response.data.message, 'Error')
+            }
         }
 
         closeForm()
@@ -175,10 +218,18 @@ const deletePage = async () => {
     try {
         // await axios.delete(`/api/pages/${pageToDelete.value.id}`)
         const pageIdVal = pageToDelete.value.id
-        await axios.delete(ziggyRoute('api.pages.destroy', { page: pageIdVal }))
+        // await axios.delete(ziggyRoute('api.pages.destroy', { page: pageIdVal }))
+
+        await axios.delete(
+            ziggyRoute('api.pages.destroy', {
+                site: websiteId.value,
+                page: pageIdVal
+            })
+        );
 
         // Remove the page from the list
-        pages.value = pages.value.filter(p => p.id !== pageToDelete.value.id)
+        // pages.value = pages.value.filter(p => p.id !== pageToDelete.value.id)
+        fetchPages();
 
         notificationAlert.value?.showSuccess('Page deleted successfully', 'Success!')
         showDeleteConfirm.value = false
@@ -222,5 +273,6 @@ const duplicatePage = async (page) => {
 
 onMounted(() => {
     fetchPages()
+    fetchWebsiteInfo(websiteId.value)
 })
 </script>
