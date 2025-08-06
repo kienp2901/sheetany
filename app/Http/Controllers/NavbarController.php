@@ -60,7 +60,7 @@ class NavbarController extends Controller
     {
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
-            'url' => 'nullable|url',
+            'link' => 'nullable|url',
             'position' => 'required|in:1,2',
             'target' => 'required|in:1,2'
         ]);
@@ -77,7 +77,7 @@ class NavbarController extends Controller
         // Mock creation - replace with actual database insertion
         $navbarItem = [
             'title' => $validated['title'],
-            'link' => $validated['link'],
+            'link' => $validated['link'] ?? null,
             'position' => $validated['position'],
             'target' => $validated['target'],
             'order' => 999,
@@ -96,7 +96,7 @@ class NavbarController extends Controller
     {
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
-            'url' => 'nullable|url',
+            'link' => 'nullable|url',
             'position' => 'required|in:1,2',
             'target' => 'required|in:1,2'
         ]);
@@ -114,7 +114,7 @@ class NavbarController extends Controller
         $navbarItem = [
             'id' => $id,
             'title' => $validated['title'],
-            'link' => $validated['link'],
+            'link' => $validated['link'] ?? null,
             'position' => $validated['position'],
             'target' => $validated['target'],
             'order' => 1,

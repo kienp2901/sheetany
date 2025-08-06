@@ -10,7 +10,7 @@
         <div class="row g-3 g-md-4">
             <!-- Google Analytics -->
             <div class="col-12 col-sm-6 col-lg-4">
-                <div class="card h-100 border-1 integration-card" @click="openIntegrationDialog('google-analytics')">
+                <div class="card h-100 border-1 integration-card" @click="openTrialLimitDialog('google-analytics')">
                     <div class="card-body p-3 p-md-4">
                         <div class="d-flex align-items-start mb-3">
                             <img :src="googleAnalytics" alt="Google Analytics" class="me-3 flex-shrink-0" style="width: 40px; height: 40px;" />
@@ -27,7 +27,7 @@
 
             <!-- Google Adsense -->
             <div class="col-12 col-sm-6 col-lg-4">
-                <div class="card h-100 border-1 integration-card" @click="openIntegrationDialog('google-adsense')">
+                <div class="card h-100 border-1 integration-card" @click="openTrialLimitDialog('google-adsense')">
                     <div class="card-body p-3 p-md-4">
                         <div class="d-flex align-items-start mb-3">
                             <img :src="googleAdsense" alt="Google Adsense" class="me-3 flex-shrink-0" style="width: 40px; height: 40px;" />
@@ -44,7 +44,7 @@
 
             <!-- Crisp Chat -->
             <div class="col-12 col-sm-6 col-lg-4">
-                <div class="card h-100 border-1 integration-card" @click="openIntegrationDialog('crisp-chat')">
+                <div class="card h-100 border-1 integration-card" @click="openTrialLimitDialog('crisp-chat')">
                     <div class="card-body p-3 p-md-4">
                         <div class="d-flex align-items-start mb-3">
                             <img :src="crispLogo" alt="Crisp Chat" class="me-3 flex-shrink-0" style="width: 40px; height: 40px;" />
@@ -61,7 +61,7 @@
 
             <!-- Google Tag Manager -->
             <div class="col-12 col-sm-6 col-lg-4">
-                <div class="card h-100 border-1 integration-card" @click="openIntegrationDialog('google-tag-manager')">
+                <div class="card h-100 border-1 integration-card" @click="openTrialLimitDialog('google-tag-manager')">
                     <div class="card-body p-3 p-md-4">
                         <div class="d-flex align-items-start mb-3">
                             <img :src="googleTag" alt="Google Tag Manager" class="me-3 flex-shrink-0" style="width: 40px; height: 40px;" />
@@ -78,7 +78,7 @@
 
             <!-- Mailchimp -->
             <div class="col-12 col-sm-6 col-lg-4">
-                <div class="card h-100 border-1 integration-card" @click="openIntegrationDialog('mailchimp')">
+                <div class="card h-100 border-1 integration-card" @click="openTrialLimitDialog('mailchimp')">
                     <div class="card-body p-3 p-md-4">
                         <div class="d-flex align-items-start mb-3">
                             <img :src="mailchimpLogo" alt="Mailchimp" class="me-3 flex-shrink-0" style="width: 40px; height: 40px;" />
@@ -98,7 +98,7 @@
 
             <!-- Disqus -->
             <div class="col-12 col-sm-6 col-lg-4">
-                <div class="card h-100 border-1 integration-card" @click="openIntegrationDialog('disqus')">
+                <div class="card h-100 border-1 integration-card" @click="openTrialLimitDialog('disqus')">
                     <div class="card-body p-3 p-md-4">
                         <div class="d-flex align-items-start mb-3">
                             <img :src="disqusLogo" alt="Disqus" class="me-3 flex-shrink-0" style="width: 40px; height: 40px;" />
@@ -118,12 +118,21 @@
         </div>
 
         <!-- Integration Dialog -->
-        <IntegrationDialog :show="showDialog" :integration="selectedIntegration" @close="closeIntegrationDialog" />
+        <!-- <TrialLimitDialog :show="showDialog" :integration="selectedIntegration" @close="closeTrialLimitDialog" @change-tab="setActiveTab" /> -->
+         <TrialLimitDialog
+            :show="showDialog"
+            :integration="selectedIntegration"
+            :showAlert="true"
+            :closable="true"
+            alertMessage="Paid feature 😊"
+            @close="closeTrialLimitDialog"
+            @change-tab="setActiveTab"
+        />
     </div>
 </template>
 
 <script>
-import IntegrationDialog from './IntegrationDialog.vue';
+import TrialLimitDialog from '../TrialLimitDialog.vue';
 import googleAnalytics from '@images/google-analytics.png'
 import googleAdsense from '@images/google-adsense.png'
 import crispLogo from '@images/crisp_logo.svg'
@@ -134,7 +143,7 @@ import disqusLogo from '@images/disqus.svg'
 export default {
     name: 'IntegrationsTab',
     components: {
-        IntegrationDialog
+        TrialLimitDialog
     },
     data() {
         return {
@@ -149,13 +158,16 @@ export default {
         }
     },
     methods: {
-        openIntegrationDialog(integrationId) {
+        openTrialLimitDialog(integrationId) {
             this.selectedIntegration = integrationId;
             this.showDialog = true;
         },
-        closeIntegrationDialog() {
+        closeTrialLimitDialog() {
             this.showDialog = false;
             this.selectedIntegration = null;
+        },
+        setActiveTab() {
+           this.$emit('change-tab-dashboard', 'pricing')
         }
     }
 }

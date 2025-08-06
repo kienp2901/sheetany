@@ -248,8 +248,9 @@ const canFinish = computed(() => {
 const makeACopy = () => {
     // This will be populated based on the template type
     const templateUrls = {
-        1: 'https://docs.google.com/spreadsheets/d/1EPVH68GntuAK5-onj85ORQlWgbHf0VRjCN52_AoEJB8/copy',
-        2: 'https://docs.google.com/spreadsheets/d/1TBQ4rDrwMIJhEBhNsFohP-HqvMZIKx8CZ-qrO6e0Zoc/copy'
+        // 1: 'https://docs.google.com/spreadsheets/d/1EPVH68GntuAK5-onj85ORQlWgbHf0VRjCN52_AoEJB8/edit?gid=0#gid=0',
+        1: 'https://docs.google.com/spreadsheets/d/1YyeccCB0F4S7Es4-7WHfrPJuqsFRHdntfWITBMV4l_k/edit?gid=0#gid=0',
+        2: 'https://docs.google.com/spreadsheets/d/1TBQ4rDrwMIJhEBhNsFohP-HqvMZIKx8CZ-qrO6e0Zoc/edit?gid=0#gid=0'
     }
     
     // For now, open the first template

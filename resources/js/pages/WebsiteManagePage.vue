@@ -24,7 +24,7 @@
                 <CustomDomainTab v-if="activeTab === 'domain'" />
                 <CustomCodeTab v-if="activeTab === 'code'" />
                 <GeneralSettingsTab v-if="activeTab === 'settings'" />
-                <IntegrationsTab v-if="activeTab === 'integrations'" />
+                <IntegrationsTab v-if="activeTab === 'integrations'" @change-tab-dashboard="setActiveTabDashboard" />
                 <NavbarTab v-if="activeTab === 'navbar'" />
                 <PagesTab v-if="activeTab === 'pages'" />
                 <EmailsTab v-if="activeTab === 'emails'" />
@@ -112,6 +112,14 @@ const baseTabs = [
 const setActiveTab = (tab) => {
     activeTab.value = tab
     const newPath = `/website/${websiteId}/manage/${tab}`
+    if (router.currentRoute.value.path !== newPath) {
+        router.replace(newPath)
+    }
+}
+
+const setActiveTabDashboard = (tab) => {
+    activeTab.value = tab
+    const newPath = `/dashboard/${tab}`
     if (router.currentRoute.value.path !== newPath) {
         router.replace(newPath)
     }

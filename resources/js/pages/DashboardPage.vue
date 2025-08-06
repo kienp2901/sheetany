@@ -1,17 +1,17 @@
 <template>
-  <DashboardLayout v-model:activeTab="activeTab">
-    <ProfileTab v-if="activeTab === 'profile'" />
-    <WebsitesTab v-if="activeTab === 'websites'" />
-    <FilesTab v-if="activeTab === 'files'" />
-    <APITab v-if="activeTab === 'api'" />
-    <WorkspacesTab v-if="activeTab === 'workspaces'" />
-    <PricingTab v-if="activeTab === 'pricing'" />
-  </DashboardLayout>
+    <DashboardLayout v-model:activeTab="activeTab">
+        <ProfileTab v-if="activeTab === 'profile'" />
+        <WebsitesTab v-if="activeTab === 'websites'" />
+        <FilesTab v-if="activeTab === 'files'" @change-tab="setActiveTab" />
+        <APITab v-if="activeTab === 'api'" />
+        <WorkspacesTab v-if="activeTab === 'workspaces'" />
+        <PricingTab v-if="activeTab === 'pricing'" />
+    </DashboardLayout>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 
@@ -23,10 +23,16 @@ import WorkspacesTab from '@/components/dashboard/WorkspacesTab.vue'
 import PricingTab from '@/components/dashboard/PricingTab.vue'
 
 const route = useRoute()
+const router = useRouter()
 const activeTab = ref('websites')
 
+const setActiveTab = (tab) => {
+  activeTab.value = tab
+  router.push(`/dashboard/${tab}`)
+}
+
 onMounted(() => {
-  activeTab.value = route.meta?.tab || 'websites'
+    activeTab.value = route.meta?.tab || 'websites'
 })
 </script>
 
@@ -67,7 +73,7 @@ onMounted(() => {
         padding-left: 0.5rem;
         padding-right: 0.5rem;
     }
-    
+
     /* Ensure content doesn't overlap with mobile bottom navigation */
     :deep(.container-fluid) {
         padding-bottom: 1rem;
@@ -119,11 +125,11 @@ onMounted(() => {
     :deep(h4) {
         font-size: 1.1rem;
     }
-    
+
     :deep(h5) {
         font-size: 1rem;
     }
-    
+
     :deep(.fs-1) {
         font-size: 2rem !important;
     }

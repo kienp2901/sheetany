@@ -163,22 +163,59 @@ class SetupDefaultService
     {
         try {
             $sslConfPath = "/etc/apache2/sites-available/{$domain}-le-ssl.conf";
-            $certbotCmd = "sudo certbot --apache -d {$domain} --non-interactive --agree-tos -m admin@{$domain} --redirect";
+            $certbotCmd = escapeshellcmd("sudo certbot --apache -d {$domain} --non-interactive --agree-tos -m admin@{$domain} --redirect");
             $reloadCmd = "sudo systemctl reload apache2";
-            
+
+            // Nếu SSL đã tồn tại, không cần tạo lại
             if (file_exists($sslConfPath)) {
+                Log::info("SSL already exists for {$domain}");
                 return;
             }
-            exec($certbotCmd, $output, $code);
-            // dd($output, $code);
-            if ($code === 0 && file_exists($sslConfPath)) {
+
+            // Kiểm tra domain đã được public DNS resolve chưa
+            $maxAttempts = 10;
+            $delaySeconds = 10;
+            $resolved = false;
+
+            for ($i = 0; $i < $maxAttempts; $i++) {
+                $dns = dns_get_record($domain, DNS_A);
+                if (!empty($dns)) {
+                    $resolved = true;
+                    Log::info("DNS resolved for {$domain}: " . json_encode($dns));
+                    break;
+                } else {
+                    Log::info("Waiting for DNS to resolve for {$domain}... attempt " . ($i + 1));
+                    sleep($delaySeconds);
+                }
+            }
+
+            if (!$resolved) {
+                Log::error("DNS not resolved for {$domain} after {$maxAttempts} attempts");
+                return;
+            }
+
+            // Thử chạy certbot để cấp SSL
+            exec($certbotCmd . " 2>&1", $output, $code);
+            Log::info("Certbot output for {$domain}:", $output);
+
+            if ($code !== 0) {
+                Log::error("Certbot failed for {$domain} with code {$code}");
+                return;
+            }
+
+            // Nếu file ssl config được tạo thành công, reload Apache
+            if (file_exists($sslConfPath)) {
                 exec($reloadCmd, $reloadOutput, $reloadCode);
+                Log::info("Apache reloaded for {$domain}");
+            } else {
+                Log::warning("SSL config not found after certbot for {$domain}");
             }
 
         } catch (\Exception $e) {
-            Log::error("Error when create SSL: " . $e->getMessage());
+            Log::error("Exception when creating SSL for {$domain}: " . $e->getMessage());
         }
     }
+
 
     //delete domain
     public function deleteDomain($request)
@@ -206,19 +243,26 @@ class SetupDefaultService
     public function deleteApacheVirtualHostAndCloudflare($domain, $cloudflareToken, $zoneId)
     {
         $confFile = "{$domain}.conf";
+        $confFileSSL = "{$domain}.-le-ssl.conf";
         $confPath = "/etc/apache2/sites-available/{$confFile}";
         $enabledPath = "/etc/apache2/sites-enabled/{$confFile}";
-
+        $confPathSSL = "/etc/apache2/sites-available/{$confFileSSL}";
+        $enabledPathSSL = "/etc/apache2/sites-enabled/{$confFileSSL}";
         // Disable the Apache site
         exec("sudo a2dissite {$confFile}", $out1, $code1);
-
+        exec("sudo a2dissite {$confFileSSL}", $out11, $code11);
         // Remove symlink if exists
         if (file_exists($enabledPath)) {
             exec("sudo rm -f {$enabledPath}", $outSymlink, $codeSymlink);
         } else {
             $codeSymlink = 0;
         }
-
+        if (file_exists($enabledPathSSL)) {
+            exec("sudo rm -f {$enabledPathSSL}", $outSymlink1, $codeSymlink1);
+        } else {
+            $codeSymlink1 = 0;
+        }
+      
         // Remove the actual config file if it exists
         if (file_exists($confPath)) {
             exec("sudo rm -f {$confPath}", $out2, $code2);
@@ -226,6 +270,11 @@ class SetupDefaultService
             $code2 = 0;
         }
 
+        if (file_exists($confPathSSL)) {
+            exec("sudo rm -f {$confPathSSL}", $out22, $code22);
+        } else {
+            $code22 = 0;
+        }
         // Delete SSL certificate using certbot
         $command = "sudo certbot delete --cert-name " . escapeshellarg($domain) . " 2>&1";
         exec($command, $output, $returnCode);

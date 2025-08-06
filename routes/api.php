@@ -11,6 +11,7 @@ use App\Http\Controllers\SiteController;
 use App\Http\Controllers\ApiTestController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\NavbarController;
+use App\Http\Controllers\EmailController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -90,6 +91,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/navbar-items/{site}/update/{id}', [NavbarController::class, 'update'])->name('api.navbar.update');
     Route::delete('/navbar-items/{site}/delete/{id}', [NavbarController::class, 'destroy'])->name('api.navbar.destroy');
     Route::post('/navbar-items/reorder', [NavbarController::class, 'reorder'])->name('api.navbar.reorder');
+});
+
+// Email management routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/emails/{site}', [EmailController::class, 'index'])->name('api.emails.index');
+    Route::get('/emails/stats/{site}', [EmailController::class, 'stats'])->name('api.emails.stats');
 });
 
 // Domain test routes

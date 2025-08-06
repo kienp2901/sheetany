@@ -5,13 +5,17 @@
             <div class="modal-content border-0 shadow">
                 <div class="modal-header border-0 pb-3 bg-light">
                     <h5 class="mb-0">Unlock unlimited potential <i class="bi bi-unlock text-success"></i></h5>
-                    <button type="button" class="btn-close" @click="closeDialog"></button>
+                    <button v-if="closable" type="button" class="btn-close" @click="closeDialog"></button>
                 </div>
                 <div class="modal-body text-center px-4 pb-4">
-                    <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+                    <div
+                        v-if="showAlert"
+                        class="alert alert-warning d-flex align-items-center mb-4"
+                        role="alert"
+                    >
                         <i class="bi bi-emoji-smile me-2"></i>
                         <div>
-                            <strong>Paid feature 😊</strong>
+                            <strong>{{ alertMessage }}</strong>
                         </div>
                     </div>
 
@@ -32,7 +36,7 @@
 
 <script>
 export default {
-    name: 'IntegrationDialog',
+    name: 'TrialLimitDialog',
     props: {
         show: {
             type: Boolean,
@@ -41,16 +45,27 @@ export default {
         integration: {
             type: Object,
             default: () => ({})
+        },
+        showAlert: {
+            type: Boolean,
+            default: true
+        },
+        alertMessage: {
+            type: String,
+            default: 'Paid feature 😊'
+        },
+        closable: {
+            type: Boolean,
+            default: true
         }
     },
-    emits: ['close'],
+    emits: ['close', 'change-tab'],
     methods: {
         closeDialog() {
             this.$emit('close');
         },
         upgradeNow() {
-            // Handle upgrade logic here
-            this.$emit('change-tab', 'pricing')
+            this.$emit('change-tab', 'pricing');
             this.closeDialog();
         }
     }

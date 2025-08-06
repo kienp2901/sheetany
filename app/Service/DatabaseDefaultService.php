@@ -200,9 +200,9 @@ class DatabaseDefaultService
     //         8 => "Status"
     //     ];
     //     $checkContentSheetName = $this->checkColumnNameSheet($arrayCheck, $rows[0]);
-
+        
     //     if(!$checkContentSheetName) {
-    //         //todo: phải lấy default database về(lấy từ nội dung GOOGLE_SHEETS_ID_DEFAULT) -> $defaultSheetId
+    //         //todo: phải lấy default database về(lấy từ nội dung GOOGLE_SHEETS_ID_DEFAULT)
     //         return false;
     //     }
     //     $categorySlug = $this->getSlugCategory($rows[0], CATEGORY_SHEET_NAME);
@@ -291,10 +291,11 @@ class DatabaseDefaultService
     public function getContentProduct($content)
     {
         if ($this->isGoogleDocUrl($content)) {
-            $docId = $this->getGoogleDocId($content);
-            $serviceAccountPath = storage_path('google-service-account.json');
-            $contentData = $this->getGoogleDocContentWithImages($docId, $serviceAccountPath);
-            return $contentData;
+            if (preg_match('#/document/d/([a-zA-Z0-9_-]+)#', $content, $matches)) {
+                $docId = $matches[1];
+                return "https://docs.google.com/document/d/$docId";
+            }
+            return null;
         }
 
         return $content;
@@ -442,8 +443,8 @@ class DatabaseDefaultService
     {
         $productContentSlug = Str::slug(PRODUCT_CONTENT, '_');
         $productPublishedDateSlug = Str::slug(PRODUCT_PUBLISHED_DATE, '_');
-        // $content = $this->getContentProduct($data[$productContentSlug]);
-        // $data['content'] = $content;
+        $content = $this->getContentProduct($data[$productContentSlug]);
+        $data['content'] = $content;
         $data['published_date'] = Carbon::createFromFormat('m/d/Y', $data[$productPublishedDateSlug])->format('Y-m-d H:i:s');
         $data['created_at'] = Carbon::now();
         $productId = DB::connection($connectionName)->table('products')->insertGetId($data);
@@ -483,7 +484,7 @@ class DatabaseDefaultService
     //     ];
     //     $checkContentSheetName = $this->checkColumnNameSheet($arrayCheck, $rows[0]);
     //     if(!$checkContentSheetName) {
-    //         //todo: phải lấy default database về(lấy từ nội dung GOOGLE_SHEETS_ID_DEFAULT) -> $defaultSheetId
+    //         //todo: phải lấy default database về(lấy từ nội dung GOOGLE_SHEETS_ID_DEFAULT)
     //         return false;
     //     }
 

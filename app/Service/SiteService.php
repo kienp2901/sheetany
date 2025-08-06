@@ -59,20 +59,20 @@ class SiteService
     
     public function formatSite($connectionName, $siteData)
     {
-        $siteData['dark_mode'] = true; // Show dark mode
-        $siteData['hide_header'] = true; // Hide header
-        $siteData['hide_footer'] = true; // Hide footer
-        $siteData['disable_hero'] = false; // Hide hero
-        $siteData['collect_email'] = false; // Show collected emails
-        $siteData['about_us'] = false; // Show the About Us page
-        $siteData['disable_auto_sync'] = false; // Disable auto-sync
-        $siteData['feedback_form'] = false; // Show feedback form
-        $siteData['text_center'] = false; // Text center
-        $siteData['small_hero'] = true; // Font size
+        $siteData['dark_mode'] = 1; // Show dark mode
+        $siteData['hide_header'] = 1; // Hide header
+        $siteData['hide_footer'] = 1; // Hide footer
+        $siteData['disable_hero'] = 2; // Hide hero
+        $siteData['collect_email'] = 2; // Show collected emails
+        $siteData['about_us'] = 2; // Show the About Us page
+        $siteData['disable_auto_sync'] = 2; // Disable auto-sync
+        $siteData['feedback_form'] = 2; // Show feedback form
+        $siteData['text_center'] = 2; // Text center
+        $siteData['small_hero'] = 1; // Font size
         $siteData['grid_content'] = 2; // Grid content
         $siteData['pagination_size'] = 3; // Pagination Size
         $siteData['font_family'] = "Poppins"; // Font Family
-        $siteData['published'] = true; // Publish website
+        $siteData['published'] = 1; // Publish website
         $check = DB::connection($connectionName)->table('configs')->first();
         if($check)
         {
@@ -82,6 +82,7 @@ class SiteService
             $siteData['disable_hero'] = $check->hero_section_is_show; // Hide hero
             $siteData['collect_email'] = $check->email_subscribed; // Show collected emails
             $siteData['about_us'] = $check->about_us_is_show; // Show the About Us page
+            $siteData['disable_auto_sync'] = $check->disable_auto_sync; // Disable auto-sync
             $siteData['feedback_form'] = $check->feedback_is_show; // Show feedback form
             $siteData['text_center'] = $check->text_center; // Text center
             $siteData['small_hero'] = $check->font_size; // Font size
@@ -105,6 +106,7 @@ class SiteService
                 "email_subscribed" => $data['collect_email'],
                 "text_center" => $data['text_center'],
                 "about_us_is_show" => $data['about_us'],
+                "disable_auto_sync" => $data['disable_auto_sync'],
                 "feedback_is_show" => $data['feedback_form'],
                 "font_size" => $data['small_hero'],
                 "font_family" => $data['font_family'],
@@ -123,6 +125,7 @@ class SiteService
                 "email_subscribed" => $data['collect_email'],
                 "text_center" => $data['text_center'],
                 "about_us_is_show" => $data['about_us'],
+                "disable_auto_sync" => $data['disable_auto_sync'],
                 "feedback_is_show" => $data['feedback_form'],
                 "font_size" => $data['small_hero'],
                 "font_family" => $data['font_family'],
