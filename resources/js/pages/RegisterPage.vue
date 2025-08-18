@@ -11,7 +11,7 @@
                         <div class="bg-primary text-white px-3 py-2 rounded mb-2 d-inline-block">
                             <h2 class="mb-0 fs-5 fw-bold">Sign up for free</h2>
                         </div>
-                        <p class="text-muted">Welcome To Sheetany</p>
+                        <p class="text-muted">Welcome To SheetExpress</p>
                     </div>
 
                     <form @submit.prevent="handleRegister" class="bg-white p-4 rounded shadow">

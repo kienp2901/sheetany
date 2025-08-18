@@ -18,7 +18,7 @@
                 </h1>
 
                 <p class="lead text-muted mb-5 mx-auto" style="max-width: 600px;">
-                    Sheetany is a website builder that helps you quickly create websites
+                    SheetExpress is a website builder that helps you quickly create websites
                     directly from your Google Sheets without design or development skills, for
                     <strong>Blogs, Directories, Job boards, E-commerce sites</strong>, and more.
                 </p>
@@ -55,24 +55,24 @@
                 <!-- Customer avatars and rating -->
                 <div class="d-flex flex-column align-items-center">
                     <div class="d-flex mb-3" style="margin-left: -8px;">
-                        <!-- <img class="rounded-circle border border-white border-3"
-                            src="/placeholder.svg?height=40&width=40" alt="Customer 1"
+                        <img class="rounded-circle border border-white border-3"
+                            :src="doan" alt="Customer 1"
                             style="width: 40px; height: 40px; margin-left: -8px;">
                         <img class="rounded-circle border border-white border-3"
-                            src="/placeholder.svg?height=40&width=40" alt="Customer 2"
+                            :src="doan" alt="Customer 2"
                             style="width: 40px; height: 40px; margin-left: -8px;">
                         <img class="rounded-circle border border-white border-3"
-                            src="/placeholder.svg?height=40&width=40" alt="Customer 3"
+                            :src="doan" alt="Customer 3"
                             style="width: 40px; height: 40px; margin-left: -8px;">
                         <img class="rounded-circle border border-white border-3"
-                            src="/placeholder.svg?height=40&width=40" alt="Customer 4"
+                            :src="doan" alt="Customer 4"
                             style="width: 40px; height: 40px; margin-left: -8px;">
                         <img class="rounded-circle border border-white border-3"
-                            src="/placeholder.svg?height=40&width=40" alt="Customer 5"
+                            :src="doan" alt="Customer 5"
                             style="width: 40px; height: 40px; margin-left: -8px;">
                         <img class="rounded-circle border border-white border-3"
-                            src="/placeholder.svg?height=40&width=40" alt="Customer 6"
-                            style="width: 40px; height: 40px; margin-left: -8px;"> -->
+                            :src="doan" alt="Customer 6"
+                            style="width: 40px; height: 40px; margin-left: -8px;">
                     </div>
                     <div class="d-flex align-items-center">
                         <div class="text-warning me-2">
@@ -91,5 +91,6 @@
 </template>
 
 <script setup>
+import doan from '@images/doan.webp'
 // Hero section component
 </script>

@@ -6,7 +6,7 @@
                     Frequently asked questions
                 </h2>
                 <p class="lead text-muted mx-auto" style="max-width: 600px;">
-                    Discover all the answers to your most frequently asked questions about using Sheetany.
+                    Discover all the answers to your most frequently asked questions about using SheetExpress.
                 </p>
             </div>
 
@@ -42,16 +42,16 @@ const faqs = [
         answer: "Yes, we offer a free trial that allows you to explore all features before committing to a paid plan."
     },
     {
-        question: "Do I need any coding skills to use Sheetany?",
-        answer: "No coding skills required! Sheetany is designed to be user-friendly and accessible to everyone, regardless of technical background."
+        question: "Do I need any coding skills to use SheetExpress?",
+        answer: "No coding skills required! SheetExpress is designed to be user-friendly and accessible to everyone, regardless of technical background."
     },
     {
-        question: "Do I need to worry about hosting with Sheetany?",
+        question: "Do I need to worry about hosting with SheetExpress?",
         answer: "Not at all! We handle all the hosting for you. Your websites are automatically deployed and maintained on our secure infrastructure."
     },
     {
         question: "How can I setup and manage blog posts?",
-        answer: "Simply add your blog content to your Google Sheet, and Sheetany will automatically generate and update your blog posts on your website."
+        answer: "Simply add your blog content to your Google Sheet, and SheetExpress will automatically generate and update your blog posts on your website."
     },
     {
         question: "Is the data updated continuously?",
@@ -66,7 +66,7 @@ const faqs = [
         answer: "Yes, you can cancel your subscription at any time from your account dashboard. No long-term commitments required."
     },
     {
-        question: "Is there a development roadmap for Sheetany?",
+        question: "Is there a development roadmap for SheetExpress?",
         answer: "Yes, we regularly update our roadmap based on user feedback and feature requests. You can view our upcoming features on our roadmap page."
     },
     {

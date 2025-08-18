@@ -11,7 +11,7 @@
                         style="width: 32px; height: 32px;">
                         <i class="bi bi-pause-fill text-white"></i>
                     </div>
-                    <span class="fw-bold text-success fs-5">Sheetany</span>
+                    <span class="fw-bold text-success fs-5">SheetExpress</span>
                 </div>
 
                 <button @click="exitFlow" class="btn btn-outline-secondary">
@@ -177,7 +177,7 @@
                     <div class="text-center mb-5">
                         <h3 class="fw-bold mb-3">You're all set to go!</h3>
                         <p class="text-muted">
-                            Choose a sheetany.site subdomain for your site. Don't worry,<br>
+                            Choose a sheetexpress.site subdomain for your site. Don't worry,<br>
                             you can change and add your own domain later.
                         </p>
                     </div>
@@ -236,6 +236,7 @@ const siteName = ref('')
 const subdomain = ref('')
 const loading = ref(false)
 const notification = ref(null)
+const siteType = ref(1)
 
 const canProceedStep2 = computed(() => {
     return isConnected.value && selectedInfoSheet.value && selectedContentSheet.value
@@ -250,11 +251,13 @@ const makeACopy = () => {
     const templateUrls = {
         // 1: 'https://docs.google.com/spreadsheets/d/1EPVH68GntuAK5-onj85ORQlWgbHf0VRjCN52_AoEJB8/edit?gid=0#gid=0',
         1: 'https://docs.google.com/spreadsheets/d/1YyeccCB0F4S7Es4-7WHfrPJuqsFRHdntfWITBMV4l_k/edit?gid=0#gid=0',
-        2: 'https://docs.google.com/spreadsheets/d/1TBQ4rDrwMIJhEBhNsFohP-HqvMZIKx8CZ-qrO6e0Zoc/edit?gid=0#gid=0'
+        2: 'https://docs.google.com/spreadsheets/d/1vD7btlKwh00lhEmHhhKLVkafp8VhGrQYEYYyOuZozoQ/edit?gid=679145369#gid=679145369'
     }
     
-    // For now, open the first template
-    window.open(templateUrls[1], '_blank')
+    // Open template sheet based on selected site type (template id)
+    const chosenType = Number(siteType.value) || 1
+    const url = templateUrls[chosenType] || templateUrls[1]
+    window.open(url, '_blank')
 }
 
 const connectGoogleSheets = async () => {
@@ -404,6 +407,16 @@ const exitFlow = () => {
 
 onMounted(() => {
     tempId.value = route.params.templateId
+    // Receive template id (site_type) from NewWebsitePage via query param
+    // Supported query keys: templateId | site_type | type
+    const q = route.query
+    const incomingType = q?.templateId || q?.site_type || q?.type
+    if (incomingType) {
+        const parsed = Number(incomingType)
+        if (!Number.isNaN(parsed) && parsed > 0) {
+            siteType.value = parsed
+        }
+    }
     notification.value?.showInfo('Welcome to the website creation wizard!', 'Getting Started')
 })
 </script>

@@ -124,11 +124,11 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h6 class="card-title mb-1">
-                                    Build on Sheetany
+                                    Build on SheetExpress
                                     <!-- Thay số 3 bằng icon khóa -->
                                     <span class="badge bg-dark ms-2"><i class="bi bi-lock-fill text-white"></i> </span>
                                 </h6>
-                                <p class="text-muted small mb-0">Display the Build on Sheetany badge on your website</p>
+                                <p class="text-muted small mb-0">Display the Build on SheetExpress badge on your website</p>
                             </div>
                             <div class="form-check form-switch">
                                 <input 
@@ -346,8 +346,8 @@ const fetchWebsiteInfo = async () => {
         if (response.data) {
             websiteName.value = response.data.name || '';
             showDarkMode.value = response.data.dark_mode == 1 || false;
-            hideFooter.value = response.data.hide_footer == 1 || false;
-            hideHeader.value = response.data.hide_footer == 1 || false;
+            hideFooter.value = response.data.hide_footer == 2 || false;
+            hideHeader.value = response.data.hide_header == 2 || false;
             hideHero.value = response.data.disable_hero == 1 || false; // Dựa trên response.data.disable_hero
             showCollectedEmails.value = response.data.collect_email == 1 || false;
             disableAutoSync.value = response.data.disable_auto_sync == 1 || false;
@@ -391,8 +391,8 @@ const updateSettings = async () => {
         const payload = {
             name: websiteName.value,
             dark_mode: showDarkMode.value ? 1 : 2,
-            hide_footer: hideFooter.value ? 1 : 2,
-            hide_header: hideHeader.value ? 1 : 2,
+            hide_footer: hideFooter.value ? 2 : 1,
+            hide_header: hideHeader.value ? 2 : 1,
             disable_hero: hideHero.value ? 1 : 2, // Mapping to disable_hero
             collect_email: showCollectedEmails.value ? 1 : 2,
             disable_auto_sync: disableAutoSync.value ? 1 : 2,

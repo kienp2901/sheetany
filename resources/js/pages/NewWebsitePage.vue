@@ -11,7 +11,7 @@
                         style="width: 32px; height: 32px;">
                         <i class="bi bi-pause-fill text-white"></i>
                     </div>
-                    <span class="fw-bold text-success fs-5">Sheetany</span>
+                    <span class="fw-bold text-success fs-5">SheetExpress</span>
                 </div>
 
                 <button @click="exitWithConfirmation" class="btn btn-outline-secondary">
@@ -123,16 +123,16 @@ const templates = ref([
         google_sheet_url: 'https://docs.google.com/spreadsheets/d/1YyeccCB0F4S7Es4-7WHfrPJuqsFRHdntfWITBMV4l_k/edit?gid=0#gid=0',
         preview_url: 'https://sheetfe.microgem.io.vn/'
     },
-    // {
-    //     id: 2,
-    //     name: 'E-commerce',
-    //     category: 'E-commerce',
-    //     description: 'Sell products online with this store template',
-    //     image: `${sheetEcommerce}`,
-    //     site_type: 2,
-    //     google_sheet_url: 'https://docs.google.com/spreadsheets/d/1TBQ4rDrwMIJhEBhNsFohP-HqvMZIKx8CZ-qrO6e0Zoc/edit?gid=679145369#gid=679145369',
-    //     preview_url: ''
-    // }
+    {
+        id: 2,
+        name: 'E-commerce',
+        category: 'E-commerce',
+        description: 'Sell products online with this store template',
+        image: `${sheetEcommerce}`,
+        site_type: 2,
+        google_sheet_url: 'https://docs.google.com/spreadsheets/d/1vD7btlKwh00lhEmHhhKLVkafp8VhGrQYEYYyOuZozoQ/edit?gid=679145369#gid=679145369',
+        preview_url: 'https://sheetshop.microgem.io.vn/'
+    }
 ])
 
 const loadTemplates = async () => {
@@ -172,7 +172,8 @@ const selectTemplate = async (template) => {
         
         // Small delay to show success message
         setTimeout(() => {
-            router.push(`/website/add/${response.data.temp_id}`)
+            // router.push(`/website/add/${response.data.temp_id}`)
+            router.push(`/website/add/${response.data.temp_id}?site_type=${template.site_type}`)
         }, 1000)
 
     } catch (error) {

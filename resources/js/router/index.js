@@ -7,6 +7,16 @@ import NewWebsitePage from "../pages/NewWebsitePage.vue";
 import WebsiteAddPage from "../pages/WebsiteAddPage.vue";
 import WebsiteManagePage from "../pages/WebsiteManagePage.vue"
 import GoogleCallbackPage from "../pages/GoogleCallbackPage.vue"
+import TemplatesPage from "../pages/TemplatesPage.vue"
+
+// Marketing pages
+const FeaturesPage = () => import('../pages/FeaturesPage.vue')
+const PricingPage = () => import('../pages/PricingPage.vue')
+const ShowcasePage = () => import('../pages/ShowcasePage.vue')
+const BlogPage = () => import('../pages/BlogPage.vue')
+const RoadmapPage = () => import('../pages/RoadmapPage.vue')
+const ChangelogPage = () => import('../pages/ChangelogPage.vue')
+const ContactPage = () => import('../pages/ContactPage.vue')
 
 import DashboardTab from '../components/website/DashboardTab.vue'
 import InformationSheetTab from '../components/website/InformationSheetTab.vue'
@@ -36,6 +46,15 @@ const routes = [
         component: LoginPage,
         meta: { requiresGuest: true },
     },
+    // Marketing routes
+    { path: "/templates", name: "Templates", component: TemplatesPage },
+    { path: "/features", name: "Features", component: FeaturesPage },
+    { path: "/pricing", name: "Pricing", component: PricingPage },
+    { path: "/showcase", name: "Showcase", component: ShowcasePage },
+    { path: "/blog", name: "Blog", component: BlogPage },
+    { path: "/roadmap", name: "Roadmap", component: RoadmapPage },
+    { path: "/changelog", name: "Changelog", component: ChangelogPage },
+    { path: "/contact", name: "Contact", component: ContactPage },
     {
         path: "/register",
         name: "Register",
@@ -139,6 +158,19 @@ const routes = [
 const router = createRouter({
     history: createWebHistory(),
     routes,
+    scrollBehavior(to, from, savedPosition) {
+        // Keep native back/forward behavior
+        if (savedPosition) return savedPosition
+        // Hash anchor scrolling (e.g., /#showcase)
+        if (to.hash) {
+            return {
+                el: to.hash,
+                behavior: 'smooth',
+                top: 80 // offset for sticky header
+            }
+        }
+        return { top: 0 }
+    }
 });
 
 // Navigation guards

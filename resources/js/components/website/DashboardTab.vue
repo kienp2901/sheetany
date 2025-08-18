@@ -33,7 +33,7 @@
                     <div class="card-body p-3 p-md-4 d-flex flex-column">
                         <h6 class="card-title mb-2">Customize your domain</h6>
                         <p class="card-text text-muted small flex-grow-1 mb-3">
-                            Personalize your domain by connecting it to Sheetany.
+                            Personalize your domain by connecting it to SheetExpress.
                         </p>
                         <button class="btn btn-outline-secondary btn-sm mt-auto" @click="$emit('change-tab', 'domain')">
                             <span class="d-none d-sm-inline">Connect domain</span>

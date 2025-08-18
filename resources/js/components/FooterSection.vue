@@ -1,7 +1,7 @@
 <template>
     <footer class="bg-white border-top">
         <!-- CTA Section -->
-        <section class="bg-dark text-white py-5">
+        <!-- <section class="bg-dark text-white py-5">
             <div class="container py-4 text-center">
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
@@ -18,7 +18,7 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </section> -->
 
         <!-- Footer Links -->
         <div class="bg-white py-5">
@@ -30,7 +30,7 @@
                             style="width: 32px; height: 32px;">
                             <i class="bi bi-lightning text-white"></i>
                         </div>
-                        <span class="fs-4 fw-bold text-dark">Sheetany</span>
+                        <span class="fs-4 fw-bold text-dark">SheetExpress</span>
                     </div>
 
                     <!-- Footer Links -->
@@ -51,7 +51,7 @@
 
                     <!-- Copyright -->
                     <div class="text-center">
-                        <p class="text-muted mb-0">© 2024 Sheetany. All rights reserved.</p>
+                        <p class="text-muted mb-0">© 2024 SheetExpress. All rights reserved.</p>
                     </div>
                 </div>
             </div>

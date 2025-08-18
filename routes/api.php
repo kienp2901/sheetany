@@ -12,6 +12,7 @@ use App\Http\Controllers\ApiTestController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\NavbarController;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\OrderController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -97,6 +98,13 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/emails/{site}', [EmailController::class, 'index'])->name('api.emails.index');
     Route::get('/emails/stats/{site}', [EmailController::class, 'stats'])->name('api.emails.stats');
+});
+
+// Orders management routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/orders/{site}', [OrderController::class, 'index'])->name('api.orders.index');
+    Route::get('/orders/{site}/show/{id}', [OrderController::class, 'show'])->name('api.orders.show');
+    Route::get('/orders/{site}/export/excel', [OrderController::class, 'export'])->name('api.orders.export');
 });
 
 // Domain test routes
