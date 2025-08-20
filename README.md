@@ -37,7 +37,7 @@ Trang quản trị tra cứu tài khoản, sản phẩm và bài thi cho hệ th
    ```
    NEXTAUTH_URL=http://localhost:3000
    NEXTAUTH_SECRET=your-secret-key
-   GOOGLE_CLIENT_ID=205267800819-ofng9ddkontcjqsms3hlnjo3ge7u9btr.apps.googleusercontent.com
+   GOOGLE_CLIENT_ID=your-google-client-id
    GOOGLE_CLIENT_SECRET=your-google-client-secret
    API_BASE_URL=https://apiemsdev.hocmai.net
    ```
