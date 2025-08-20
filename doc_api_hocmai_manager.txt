@@ -1,0 +1,230 @@
+staging
+BASE_URL=https://apiemsdev.hocmai.net
+
+gửi em email hocmai để em thêm vào hệ thống
+CLIENT_ID_GOOGLE = 205267800819-ofng9ddkontcjqsms3hlnjo3ge7u9btr.apps.googleusercontent.com
+
+- api login gmail
+curl --location 'https://apiemsdev.hocmai.net/hocmaiadmin/adminHocmaiManager/loginGoogle' \
+--header 'Content-Type: application/json' \
+--data '{
+    "token": "abc123"
+}'
+
+
+- api thêm admin
+curl --location 'https://apiemsdev.hocmai.net/hocmaiadmin/adminHocmaiManager' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer eyJhb...' \
+--data-raw '{
+    "email": "duynh@hocmai.vn"
+}'
+
+
+- api sửa admin
+curl --location --request PATCH 'https://apiemsdev.hocmai.net/hocmaiadmin/adminHocmaiManager/2' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer eyJhb...' \
+--data-raw '{
+    "email" : "duynh@hocmai.vn",
+    "firstName" : "Nguyễn",
+    "lastName" : "Duy"
+}'
+
+
+- api xóa admin
+curl --location --request DELETE 'https://apiemsdev.hocmai.net/hocmaiadmin/adminHocmaiManager/2' \
+--header 'Authorization: Bearer eyJhb...'
+
+
+- api get list các admin
+curl --location 'https://apiemsdev.hocmai.net/hocmaiadmin/adminHocmaiManager' \
+--header 'Authorization: Bearer eyJhb...'
+
+response:
+{
+    "status": true,
+    "data": [
+        {
+            "email": "duynh@hocmai.vn",
+            "idAdminHocmaiManager": 2
+        }
+    ]
+}
+
+
+- api get list học sinh HOCMAI
+curl --location 'https://apiemsdev.hocmai.net/hocmaiadmin/api/listStudent?idOriginal=5449936&email=nguyenhaiduy1995%40gmail.com&limit=10&page=1' \
+--header 'Authorization: Bearer eyJhb...'
+
+response:
+{
+    "status": true,
+    "total": 1,
+    "data": [
+        {
+            "idStudent": "5449936",
+            "idOriginal": "5449936",
+            "email": "nguyenhaiduy1995@gmail.com",
+            "name": "Duy Rùa"
+        }
+    ]
+}
+
+
+- api danh sách sản phẩm mà student đã đăng ký
+curl --location 'https://apiemsdev.hocmai.net/hocmaiadmin/student/productByStudent?idOriginal=5515594&limit=10&page=2' \
+--header 'Authorization: Bearer eyJhb...'
+
+response:
+{
+    "status": true,
+    "total": 20,
+    "data": [
+        {
+            "timeFinish": "2023-07-11T02:23:50.347Z",
+            "timeStart": "2023-07-01T02:23:50.347Z",
+            "idPackage": 22,
+            "idProduct": 33,
+            "idHistoryPackage": 92,
+            "product_name": "Sản phẩm Liên test ",
+            "list_active_source_ids": [
+                "2511"
+            ]
+        },
+        {
+            "timeFinish": "2023-09-26T02:35:09.785Z",
+            "timeStart": "2023-06-28T02:35:09.785Z",
+            "idPackage": 14,
+            "idProduct": 17,
+            "idHistoryPackage": 79,
+            "product_name": "Luyện đề TSA --> HSA",
+            "list_active_source_ids": [
+                "1234567"
+            ]
+        },
+        ...
+    ]
+}
+
+
+- api lịch sử làm bài thi trong các phòng luyện đề/Topclass:
+truyền type = 0: lịch sử đề thi bình thường | type = 1: lịch sử đề thi topclass 
+curl --location 'https://apiemsdev.hocmai.net/hocmaiadmin/student/historyByStudent?idOriginal=5515594&type=0&limit=10&page=1' \
+--header 'Authorization: Bearer eyJhb...'
+
+response:
+{
+    "status": true,
+    "total": 11,
+    "data": [
+        {
+            "idMockContest": 574,
+            "timeStart": "2024-06-05T03:22:24.596Z",
+            "timeFinish": "2024-06-05T03:26:37.073Z",
+            "idHistoryContest": "665fd9f08c8c8e3ae9c3489b",
+            "mockcontests": {
+                "name": "Đề thi TN THPT Môn Toán ",
+                "contest_type": 15,
+                "idMockContest": 574
+            },
+            "products": {
+                "name": "PEN TEST 2025",
+                "idProduct": 82
+            },
+            "scoreMockContest": 0// điểm 
+        },
+        ...
+    ]
+}
+
+
+- api List toàn bộ sản phẩm/phòng luyện có trong hệ thống
+curl --location 'https://apiemsdev.hocmai.net/hocmaiadmin/student/listProduct?limit=10&page=1' \
+--header 'Authorization: Bearer eyJhb...'
+
+response:
+{
+    "status": true,
+    "total": 80,
+    "data": [
+        {
+            "name": "dev test 0001 update",
+            "idProduct": 1
+        },
+        ...
+    ]
+}
+
+
+- api danh sách student đã đăng kí sản phẩm: lọc được theo id user HOCMAI hoặc email
+curl --location 'https://apiemsdev.hocmai.net/hocmaiadmin/student/studentByProduct?idProduct=82&idOriginal=5515594&email=chiennguyen%40yopmail.com&limit=10&page=1' \
+--header 'Authorization: Bearer eyJhb...'
+
+response:
+{
+    "status": true,
+    "total": 1,
+    "data": [
+        {
+            "timeFinish": "2035-06-30T23:59:59.999Z",
+            "timeStart": "2024-06-04T10:37:35.006Z",
+            "idProduct": 82,
+            "name": "Tài khoản test",
+            "status": "Còn hạn",
+            "idOriginal": "5515594",
+            "email": "chiennguyen@yopmail.com",
+            "product_name": "PEN TEST 2025"
+        }
+    ]
+}
+
+
+- api xuất CSV full danh sách student đã đăng kí sản phẩm
+curl --location 'https://apiemsdev.hocmai.net/hocmaiadmin/student/studentByProduct/csv?idProduct=82&idOriginal=5515594&email=chiennguyen%40yopmail.com' \
+--header 'Authorization: Bearer eyJhb...'
+
+
+- api lịch sử làm bài theo id đề, cuộc thi
+curl --location 'https://apiemsdev.hocmai.net/hocmaiadmin/student/historyByMockContest?contest_type=15&idMockContest=581&limit=10&page=1' \
+--header 'Authorization: Bearer eyJhb...'
+
+response:
+{
+    "status": true,
+    "total": 50,
+    "data": [
+        {
+            "idMockContest": 581,
+            "timeStart": "2025-06-04T10:57:04.404Z",
+            "timeFinish": "2025-06-04T11:47:04.404Z",
+            "idHistoryContest": "68402680ec180855ef42457e",
+            "students": {
+                "email": "test@hocmai.vn",
+                "idOriginal": "2655122",
+                "name": "test hm"
+            },
+            "mockcontests": {
+                "name": "ĐỀ TEST DROPDOWN TIẾNG ANH",
+                "contest_type": 15,
+                "idMockContest": 581
+            },
+            "scoreMockContest": 0
+        },
+        ...
+    ]
+}
+
+
+- api xuất CSV full lịch sử làm bài theo id đề, cuộc thi
+curl --location 'https://apiemsdev.hocmai.net/hocmaiadmin/student/historyByMockContest/csv?contest_type=15&idMockContest=581' \
+--header 'Authorization: Bearer eyJhbG...'
+
+
+
+
+
+
+
+
+
