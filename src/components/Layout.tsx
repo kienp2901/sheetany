@@ -2,9 +2,9 @@
 
 import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
-import Image from 'next/image';
+// import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { LogOut, Search, Package, FileText, Settings, User, Menu, X, Palette } from 'lucide-react';
+import { LogOut, Search, Package, FileText, Settings, User, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
 interface LayoutProps {
@@ -21,7 +21,6 @@ export default function Layout({ children }: LayoutProps) {
     { name: 'Tra cứu sản phẩm', href: '/products', icon: Package },
     { name: 'Tra cứu đề thi', href: '/exams', icon: FileText },
     { name: 'Quản trị Admin', href: '/admin', icon: Settings },
-    // { name: 'Demo Components', href: '/demo', icon: Palette },
   ];
 
   // Extract user info from auth context

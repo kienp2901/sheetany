@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import Script from 'next/script';
@@ -12,37 +12,19 @@ declare global {
 }
 
 export default function SignIn() {
-  const [googleLoaded, setGoogleLoaded] = useState(false);
   const router = useRouter();
   const { isAuthenticated, login, isLoading } = useAuth();
+
+  // div chứa nút google
+  const btnRef = useRef<HTMLDivElement | null>(null);
+  // tránh init nhiều lần
+  const initializedRef = useRef(false);
 
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
       router.push('/students');
     }
   }, [isAuthenticated, isLoading, router]);
-
-  useEffect(() => {
-    if (googleLoaded && window.google) {
-      window.google.accounts.id.initialize({
-        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
-        callback: handleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
-
-      // Render button vào div #googleSignInDiv
-      window.google.accounts.id.renderButton(
-        document.getElementById('googleSignInDiv')!,
-        {
-          type: 'standard',
-          theme: 'outline',
-          size: 'large',
-          width: 280,
-        }
-      );
-    }
-  }, [googleLoaded]);
 
   const handleCredentialResponse = async (response: google.accounts.id.CredentialResponse) => {
     try {
@@ -53,13 +35,63 @@ export default function SignIn() {
     }
   };
 
+  // Hàm init + render button. Gọi lại được nhiều lần an toàn.
+  const initGoogle = () => {
+    if (!window.google || !btnRef.current) return;
+
+    // (Re)initialize mỗi lần vào trang để đảm bảo callback mới nhất
+    window.google.accounts.id.initialize({
+      client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+      callback: handleCredentialResponse,
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
+
+    // Xóa nội dung cũ rồi render lại nút
+    btnRef.current.innerHTML = '';
+    window.google.accounts.id.renderButton(btnRef.current, {
+      type: 'standard',
+      theme: 'outline',
+      size: 'large',
+      width: 280,
+    });
+
+    // Tùy chọn: hiển thị prompt chọn account nếu có session
+    // window.google.accounts.id.prompt();
+
+    initializedRef.current = true;
+  };
+
+  // 1) Khi component mount, nếu script đã có sẵn => init ngay
+  useEffect(() => {
+    initGoogle();
+
+    // 2) Thêm cơ chế "đợi" script (nếu chưa sẵn) trong vài giây
+    let tries = 0;
+    const timer = setInterval(() => {
+      if (initializedRef.current) {
+        clearInterval(timer);
+        return;
+      }
+      tries += 1;
+      initGoogle();
+      if (tries > 20) clearInterval(timer); // ~6s (20 * 300ms) là đủ
+    }, 300);
+
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <>
-      {/* Google Identity Services Script */}
+      {/* Google Identity Services Script – chỉ load 1 lần cho cả app */}
       <Script
         src="https://accounts.google.com/gsi/client"
-        onLoad={() => setGoogleLoaded(true)}
         strategy="afterInteractive"
+        onLoad={() => {
+          // 3) Khi script báo đã load, thử init ngay (trường hợp lần đầu)
+          initGoogle();
+        }}
       />
 
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -104,7 +136,7 @@ export default function SignIn() {
             </div>
 
             {/* Google Sign-In button */}
-            <div id="googleSignInDiv" className="flex justify-center"></div>
+            <div ref={btnRef} id="googleSignInDiv" className="flex justify-center"></div>
 
             <div className="border-t border-gray-200 pt-4">
               <div className="bg-amber-50 border border-amber-200 rounded-md p-3">

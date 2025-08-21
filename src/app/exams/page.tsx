@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import Layout from '@/components/Layout';
 import DataTable from '@/components/DataTable';
@@ -30,16 +30,9 @@ export default function ExamsPage() {
     }
   }, [accessToken]);
 
-  // Load data immediately when component mounts or when pagination changes
-  useEffect(() => {
-    if (accessToken) {
-      loadInitialData();
-    }
-  }, [accessToken, pagination.page, pagination.limit]);
-
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     setLoading(true);
-    setIsInitialLoad(true); // <-- đánh dấu load lần đầu
+    setIsInitialLoad(true);
     try {
       const result = await apiClient.getExamHistory(undefined, undefined, {
         limit: pagination.limit,
@@ -52,9 +45,15 @@ export default function ExamsPage() {
       toast.error('Lỗi khi tải dữ liệu ban đầu');
     } finally {
       setLoading(false);
-      setIsInitialLoad(false); // <-- load lần đầu xong
+      setIsInitialLoad(false);
     }
-  };
+  }, [pagination.limit, pagination.page]); // 👈 dependencies
+  
+  useEffect(() => {
+    if (accessToken) {
+      loadInitialData();
+    }
+  }, [accessToken, loadInitialData]);
 
   const loadExamHistory = async (contestType?: number, mockContestId?: number) => {
     setLoading(true);

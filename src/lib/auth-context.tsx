@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { apiClient } from './api';
 import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 export interface User {
   email?: string;
@@ -29,6 +30,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  const router = useRouter();
   const [state, setState] = useState<AuthState>({
     user: null,
     accessToken: null,
@@ -145,6 +147,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     toast.success('Đã đăng xuất thành công!');
+    
+    // Redirect to signin page
+    router.push('/auth/signin');
   };
 
   const contextValue: AuthContextType = {
