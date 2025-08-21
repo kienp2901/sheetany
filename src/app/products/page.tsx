@@ -4,142 +4,139 @@ import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import SearchBar from '@/components/SearchBar';
 import DataTable from '@/components/DataTable';
-import { Package, Calendar, DollarSign, Users } from 'lucide-react';
-
-// Dummy Product interface (extend this based on actual API)
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  totalStudents: number;
-  startDate: string;
-  endDate: string;
-  category: string;
-  status: 'active' | 'inactive' | 'coming_soon';
-}
-
-// Dummy data for demonstration
-const dummyProducts: Product[] = [
-  {
-    id: 'PRD001',
-    name: 'Khóa học Toán THPT',
-    description: 'Khóa học Toán học cấp 3 toàn diện',
-    price: 2500000,
-    totalStudents: 1250,
-    startDate: '2024-01-15',
-    endDate: '2024-12-15',
-    category: 'THPT',
-    status: 'active'
-  },
-  {
-    id: 'PRD002',
-    name: 'Luyện thi Đại học',
-    description: 'Khóa luyện thi Đại học 2024',
-    price: 3500000,
-    totalStudents: 2100,
-    startDate: '2024-02-01',
-    endDate: '2024-06-30',
-    category: 'Luyện thi',
-    status: 'active'
-  },
-  {
-    id: 'PRD003',
-    name: 'Tiếng Anh giao tiếp',
-    description: 'Khóa học Tiếng Anh giao tiếp cơ bản',
-    price: 1800000,
-    totalStudents: 850,
-    startDate: '2024-03-01',
-    endDate: '2024-08-31',
-    category: 'Ngoại ngữ',
-    status: 'active'
-  },
-  {
-    id: 'PRD004',
-    name: 'Lập trình Python',
-    description: 'Khóa học lập trình Python từ cơ bản đến nâng cao',
-    price: 2200000,
-    totalStudents: 450,
-    startDate: '2024-04-15',
-    endDate: '2024-10-15',
-    category: 'CNTT',
-    status: 'coming_soon'
-  }
-];
+import { useAuth } from '@/lib/auth-context';
+import { apiClient, Product, StudentByProduct } from '@/lib/api';
+import { Package, Calendar, Users, ArrowLeft } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(dummyProducts);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(dummyProducts);
+  const { accessToken } = useAuth();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [productStudents, setProductStudents] = useState<StudentByProduct[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+  });
+  const [studentsPagination, setStudentsPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+  });
 
-  const categories = [
-    { value: 'all', label: 'Tất cả' },
-    { value: 'THPT', label: 'THPT' },
-    { value: 'Luyện thi', label: 'Luyện thi' },
-    { value: 'Ngoại ngữ', label: 'Ngoại ngữ' },
-    { value: 'CNTT', label: 'CNTT' },
-  ];
+
+  useEffect(() => {
+    if (accessToken) {
+      apiClient.setAuthToken(accessToken);
+      loadProducts();
+    }
+  }, [accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (accessToken) {
+      loadProducts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.page, accessToken]);
+
+  // Load students when pagination changes for product detail
+  useEffect(() => {
+    if (selectedProduct && accessToken) {
+      loadProductStudents();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentsPagination.page, selectedProduct?.idProduct, accessToken]);
+
+  const loadProducts = async () => {
+    setLoading(true);
+    try {
+      const result = await apiClient.getProducts({
+        limit: pagination.limit,
+        page: pagination.page,
+      });
+      setProducts(result.data);
+      setFilteredProducts(result.data);
+      setPagination(prev => ({ ...prev, total: result.total }));
+    } catch (error) {
+      console.error('Error loading products:', error);
+      toast.error('Lỗi khi tải danh sách sản phẩm');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadProductStudents = async (searchParams?: { idOriginal?: string; email?: string }) => {
+    if (!selectedProduct) return;
+    
+    setLoadingStudents(true);
+    try {
+      const result = await apiClient.getStudentsByProduct(selectedProduct.idProduct, {
+        ...searchParams,
+        limit: studentsPagination.limit,
+        page: studentsPagination.page,
+      });
+      setProductStudents(result.data);
+      setStudentsPagination(prev => ({ ...prev, total: result.total }));
+    } catch (error) {
+      console.error('Error loading product students:', error);
+      toast.error('Lỗi khi tải danh sách học sinh');
+    } finally {
+      setLoadingStudents(false);
+    }
+  };
 
   const handleSearch = (query: string) => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      const filtered = products.filter(product =>
-        product.name.toLowerCase().includes(query.toLowerCase()) ||
-        product.description.toLowerCase().includes(query.toLowerCase()) ||
-        product.id.toLowerCase().includes(query.toLowerCase())
-      );
-      setFilteredProducts(filtered);
-      setLoading(false);
-    }, 500);
+    const filtered = products.filter(product =>
+      product.name.toLowerCase().includes(query.toLowerCase()) ||
+      product.idProduct.toString().includes(query)
+    );
+    setFilteredProducts(filtered);
   };
 
-  const handleCategoryFilter = (category: string) => {
-    setSelectedCategory(category);
-    if (category === 'all') {
-      setFilteredProducts(products);
-    } else {
-      setFilteredProducts(products.filter(product => product.category === category));
+  const handleStudentSearch = (query: string) => {
+    const searchParams: { idOriginal?: string; email?: string } = {};
+    
+    // Check if query is email or ID
+    if (query.includes('@')) {
+      searchParams.email = query;
+    } else if (query.trim()) {
+      searchParams.idOriginal = query;
     }
+
+    loadProductStudents(searchParams);
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(price);
+  const handleProductDetails = (product: Product) => {
+    setSelectedProduct(product);
+    setShowDetail(true);
+    setProductStudents([]);
+    setStudentsPagination({ page: 1, limit: 10, total: 0 });
+    loadProductStudents();
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'inactive':
-        return 'bg-red-100 text-red-800';
-      case 'coming_soon':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const handleBackToList = () => {
+    setShowDetail(false);
+    setSelectedProduct(null);
+    setProductStudents([]);
+    setStudentsPagination({ page: 1, limit: 10, total: 0 });
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'Đang hoạt động';
-      case 'inactive':
-        return 'Ngưng hoạt động';
-      case 'coming_soon':
-        return 'Sắp ra mắt';
-      default:
-        return 'Không xác định';
-    }
+  const handlePageChange = (page: number) => {
+    setPagination(prev => ({ ...prev, page }));
+  };
+
+  const handleStudentsPageChange = (page: number) => {
+    setStudentsPagination(prev => ({ ...prev, page }));
   };
 
   const productColumns = [
     {
-      key: 'id',
+      key: 'idProduct',
       label: 'Mã sản phẩm',
     },
     {
@@ -147,29 +144,45 @@ export default function ProductsPage() {
       label: 'Tên sản phẩm',
     },
     {
-      key: 'category',
-      label: 'Danh mục',
-    },
-    {
-      key: 'price',
-      label: 'Giá',
-      render: (value: unknown) => formatPrice(value as number),
-    },
-    {
-      key: 'totalStudents',
-      label: 'Số học sinh',
-      render: (value: unknown) => (
-        <span className="font-semibold">{(value as number).toLocaleString()}</span>
+      key: 'actions',
+      label: 'Thao tác',
+      render: (_: unknown, row: Product) => (
+        <button
+          onClick={() => handleProductDetails(row)}
+          className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+        >
+          Xem chi tiết
+        </button>
       ),
+    },
+  ];
+
+  const studentColumns = [
+    {
+      key: 'idOriginal',
+      label: 'ID học sinh',
+    },
+    {
+      key: 'name',
+      label: 'Tên học sinh',
+    },
+    {
+      key: 'email',
+      label: 'Email',
     },
     {
       key: 'status',
       label: 'Trạng thái',
-      render: (value: unknown) => (
-        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(value as string)}`}>
-          {getStatusText(value as string)}
-        </span>
-      ),
+    },
+    {
+      key: 'timeStart',
+      label: 'Ngày bắt đầu',
+      render: (value: unknown) => new Date(value as string).toLocaleDateString('vi-VN'),
+    },
+    {
+      key: 'timeFinish',
+      label: 'Ngày kết thúc',
+      render: (value: unknown) => new Date(value as string).toLocaleDateString('vi-VN'),
     },
   ];
 
@@ -182,24 +195,90 @@ export default function ProductsPage() {
       color: 'bg-blue-500',
     },
     {
-      name: 'Đang hoạt động',
-      value: products.filter(p => p.status === 'active').length.toString(),
+      name: 'Sản phẩm được tìm thấy',
+      value: filteredProducts.length.toString(),
       icon: Calendar,
       color: 'bg-green-500',
     },
     {
-      name: 'Tổng học sinh',
-      value: products.reduce((sum, p) => sum + p.totalStudents, 0).toLocaleString(),
+      name: 'Đang xem chi tiết',
+      value: selectedProduct ? '1' : '0',
       icon: Users,
       color: 'bg-purple-500',
     },
-    {
-      name: 'Doanh thu trung bình',
-      value: formatPrice(products.reduce((sum, p) => sum + p.price, 0) / products.length),
-      icon: DollarSign,
-      color: 'bg-yellow-500',
-    },
   ];
+
+  if (showDetail && selectedProduct) {
+    return (
+      <Layout>
+        <div className="space-y-4 sm:space-y-6">
+          {/* Back Button and Header */}
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={handleBackToList}
+              className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Quay lại danh sách
+            </button>
+            <div className="flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                Chi tiết sản phẩm: {selectedProduct.name}
+              </h1>
+              <p className="mt-1 text-sm text-gray-600">
+                Danh sách học sinh đã đăng ký sản phẩm này
+              </p>
+            </div>
+          </div>
+
+          {/* Product Info Card */}
+          <div className="bg-blue-50 p-4 sm:p-6 rounded-lg border border-blue-200">
+            <h2 className="text-lg sm:text-xl font-semibold text-blue-900 mb-4">
+              Thông tin sản phẩm
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-white p-4 rounded-md shadow-sm">
+                <span className="font-medium text-blue-700 block mb-1">ID sản phẩm:</span>
+                <span className="text-gray-900 text-lg">{selectedProduct.idProduct}</span>
+              </div>
+              <div className="bg-white p-4 rounded-md shadow-sm">
+                <span className="font-medium text-blue-700 block mb-1">Tên sản phẩm:</span>
+                <span className="text-gray-900 text-lg">{selectedProduct.name}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Search Section for Students */}
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Tìm kiếm học sinh
+            </h3>
+            <SearchBar
+              placeholder="Nhập ID học sinh hoặc email để tìm kiếm..."
+              onSearch={handleStudentSearch}
+              loading={loadingStudents}
+            />
+          </div>
+
+          {/* Students Table */}
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Danh sách học sinh đã đăng ký ({studentsPagination.total.toLocaleString()})
+            </h3>
+            <DataTable<StudentByProduct>
+              columns={studentColumns}
+              data={productStudents}
+              loading={loadingStudents}
+              pagination={{
+                ...studentsPagination,
+                onPageChange: handleStudentsPageChange,
+              }}
+            />
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -213,7 +292,7 @@ export default function ProductsPage() {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
@@ -230,32 +309,15 @@ export default function ProductsPage() {
               </div>
             );
           })}
-        </div>
+        </div> */}
 
-        {/* Search and Filter Section */}
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm space-y-4">
+        {/* Search Section */}
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
           <SearchBar
-            placeholder="Tìm kiếm sản phẩm theo tên, mô tả hoặc mã..."
+            placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
             onSearch={handleSearch}
             loading={loading}
           />
-          
-          {/* Category Filter */}
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <button
-                key={category.value}
-                onClick={() => handleCategoryFilter(category.value)}
-                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  selectedCategory === category.value
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {category.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Products Table/Cards */}
@@ -272,37 +334,21 @@ export default function ProductsPage() {
               </div>
             ) : (
               filteredProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-lg shadow-sm p-4 space-y-3">
+                <div key={product.idProduct} className="bg-white rounded-lg shadow-sm p-4 space-y-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg font-semibold text-gray-900 truncate">
                         {product.name}
                       </h3>
-                      <p className="text-sm text-gray-600 truncate">Mã: {product.id}</p>
-                    </div>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>
-                      {getStatusText(product.status)}
-                    </span>
-                  </div>
-                  
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Danh mục:</span>
-                      <span className="font-medium">{product.category}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Giá:</span>
-                      <span className="font-medium text-green-600">{formatPrice(product.price)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Học sinh:</span>
-                      <span className="font-medium">{product.totalStudents.toLocaleString()}</span>
+                      <p className="text-sm text-gray-600 truncate">Mã: {product.idProduct}</p>
                     </div>
                   </div>
-                  
-                  <div className="text-sm text-gray-600">
-                    <p className="line-clamp-2">{product.description}</p>
-                  </div>
+                  <button
+                    onClick={() => handleProductDetails(product)}
+                    className="w-full px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Xem chi tiết
+                  </button>
                 </div>
               ))
             )}
@@ -314,6 +360,10 @@ export default function ProductsPage() {
               columns={productColumns}
               data={filteredProducts}
               loading={loading}
+              pagination={{
+                ...pagination,
+                onPageChange: handlePageChange,
+              }}
             />
           </div>
         </div>

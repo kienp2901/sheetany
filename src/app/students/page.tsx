@@ -6,6 +6,7 @@ import Layout from '@/components/Layout';
 import SearchBar from '@/components/SearchBar';
 import DataTable from '@/components/DataTable';
 import { apiClient, Student, StudentProduct, StudentHistory } from '@/lib/api';
+import { ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function StudentsPage() {
@@ -17,7 +18,18 @@ export default function StudentsPage() {
   const [loading, setLoading] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
   const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+  });
+  const [productsPagination, setProductsPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+  });
+  const [historyPagination, setHistoryPagination] = useState({
     page: 1,
     limit: 10,
     total: 0,
@@ -51,18 +63,34 @@ export default function StudentsPage() {
 
   const loadStudentDetails = async (student: Student) => {
     setSelectedStudent(student);
+    setShowDetail(true);
     setLoadingProducts(true);
     setLoadingHistory(true);
 
     try {
       // Load student products
-      const productsResult = await apiClient.getStudentProducts(student.idOriginal);
+      const productsResult = await apiClient.getStudentProducts(
+        student.idOriginal,
+        {
+          limit: productsPagination.limit,
+          page: productsPagination.page,
+        }
+      );
       setStudentProducts(productsResult.data);
+      setProductsPagination(prev => ({ ...prev, total: productsResult.total }));
       setLoadingProducts(false);
 
       // Load student history (both types)
-      const historyResult = await apiClient.getStudentHistory(student.idOriginal, 0);
+      const historyResult = await apiClient.getStudentHistory(
+        student.idOriginal,
+        0,
+        {
+          limit: historyPagination.limit,
+          page: historyPagination.page,
+        }
+      );
       setStudentHistory(historyResult.data);
+      setHistoryPagination(prev => ({ ...prev, total: historyResult.total }));
       setLoadingHistory(false);
     } catch (error) {
       console.error('Error loading student details:', error);
@@ -70,6 +98,23 @@ export default function StudentsPage() {
       setLoadingProducts(false);
       setLoadingHistory(false);
     }
+  };
+
+  const handleBackToList = () => {
+    setShowDetail(false);
+    setSelectedStudent(null);
+    setStudentProducts([]);
+    setStudentHistory([]);
+    setProductsPagination({ page: 1, limit: 10, total: 0 });
+    setHistoryPagination({ page: 1, limit: 10, total: 0 });
+  };
+
+  const handleProductsPageChange = (page: number) => {
+    setProductsPagination(prev => ({ ...prev, page }));
+  };
+
+  const handleHistoryPageChange = (page: number) => {
+    setHistoryPagination(prev => ({ ...prev, page }));
   };
 
   const handleSearch = (query: string) => {
@@ -95,6 +140,61 @@ export default function StudentsPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.page, accessToken]);
+
+  // Load products when pagination changes
+  useEffect(() => {
+    if (selectedStudent && accessToken) {
+      const loadProducts = async () => {
+        setLoadingProducts(true);
+        try {
+          const productsResult = await apiClient.getStudentProducts(
+            selectedStudent.idOriginal,
+            {
+              limit: productsPagination.limit,
+              page: productsPagination.page,
+            }
+          );
+          setStudentProducts(productsResult.data);
+          setProductsPagination(prev => ({ ...prev, total: productsResult.total }));
+        } catch (error) {
+          console.error('Error loading products:', error);
+          toast.error('Lỗi khi tải danh sách sản phẩm');
+        } finally {
+          setLoadingProducts(false);
+        }
+      };
+      loadProducts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productsPagination.page, selectedStudent?.idOriginal, accessToken]);
+
+  // Load history when pagination changes
+  useEffect(() => {
+    if (selectedStudent && accessToken) {
+      const loadHistory = async () => {
+        setLoadingHistory(true);
+        try {
+          const historyResult = await apiClient.getStudentHistory(
+            selectedStudent.idOriginal,
+            0,
+            {
+              limit: historyPagination.limit,
+              page: historyPagination.page,
+            }
+          );
+          setStudentHistory(historyResult.data);
+          setHistoryPagination(prev => ({ ...prev, total: historyResult.total }));
+        } catch (error) {
+          console.error('Error loading history:', error);
+          toast.error('Lỗi khi tải lịch sử làm bài');
+        } finally {
+          setLoadingHistory(false);
+        }
+      };
+      loadHistory();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [historyPagination.page, selectedStudent?.idOriginal, accessToken]);
 
   const studentColumns = [
     {
@@ -171,6 +271,86 @@ export default function StudentsPage() {
     },
   ];
 
+  if (showDetail && selectedStudent) {
+    return (
+      <Layout>
+        <div className="space-y-4 sm:space-y-6">
+          {/* Back Button and Header */}
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={handleBackToList}
+              className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Quay lại danh sách
+            </button>
+            <div className="flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                Chi tiết học sinh: {selectedStudent.name}
+              </h1>
+              <p className="mt-1 text-sm text-gray-600">
+                Thông tin chi tiết và lịch sử hoạt động
+              </p>
+            </div>
+          </div>
+
+          {/* Student Info Card */}
+          <div className="bg-blue-50 p-4 sm:p-6 rounded-lg border border-blue-200">
+            <h2 className="text-lg sm:text-xl font-semibold text-blue-900 mb-4">
+              Thông tin cơ bản
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-white p-4 rounded-md shadow-sm">
+                <span className="font-medium text-blue-700 block mb-1">ID học sinh:</span>
+                <span className="text-gray-900 text-lg">{selectedStudent.idOriginal}</span>
+              </div>
+              <div className="bg-white p-4 rounded-md shadow-sm">
+                <span className="font-medium text-blue-700 block mb-1">Email:</span>
+                <span className="text-gray-900 break-all">{selectedStudent.email}</span>
+              </div>
+              <div className="bg-white p-4 rounded-md shadow-sm sm:col-span-2 lg:col-span-1">
+                <span className="font-medium text-blue-700 block mb-1">Họ tên:</span>
+                <span className="text-gray-900 text-lg">{selectedStudent.name}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Products Section */}
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Sản phẩm đã đăng ký
+            </h3>
+            <DataTable<StudentProduct>
+              columns={productColumns}
+              data={studentProducts}
+              loading={loadingProducts}
+              pagination={{
+                ...productsPagination,
+                onPageChange: handleProductsPageChange,
+              }}
+            />
+          </div>
+
+          {/* History Section */}
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Lịch sử làm bài
+            </h3>
+            <DataTable<StudentHistory>
+              columns={historyColumns}
+              data={studentHistory}
+              loading={loadingHistory}
+              pagination={{
+                ...historyPagination,
+                onPageChange: handleHistoryPageChange,
+              }}
+            />
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="space-y-4 sm:space-y-6">
@@ -241,56 +421,6 @@ export default function StudentsPage() {
             />
           </div>
         </div>
-
-        {/* Selected Student Details */}
-        {selectedStudent && (
-          <div className="space-y-4 sm:space-y-6">
-            {/* Student Info Card */}
-            <div className="bg-blue-50 p-4 sm:p-6 rounded-lg border border-blue-200">
-              <h2 className="text-lg sm:text-xl font-semibold text-blue-900 mb-3">
-                Thông tin học sinh: {selectedStudent.name}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 text-sm">
-                <div className="bg-white p-3 rounded-md">
-                  <span className="font-medium text-blue-700 block">ID học sinh:</span>
-                  <span className="text-gray-900">{selectedStudent.idOriginal}</span>
-                </div>
-                <div className="bg-white p-3 rounded-md">
-                  <span className="font-medium text-blue-700 block">Email:</span>
-                  <span className="text-gray-900 break-all">{selectedStudent.email}</span>
-                </div>
-                <div className="bg-white p-3 rounded-md sm:col-span-2 lg:col-span-1">
-                  <span className="font-medium text-blue-700 block">Họ tên:</span>
-                  <span className="text-gray-900">{selectedStudent.name}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Products Section */}
-            <div className="space-y-3 sm:space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Sản phẩm đã đăng ký
-              </h3>
-              <DataTable<StudentProduct>
-                columns={productColumns}
-                data={studentProducts}
-                loading={loadingProducts}
-              />
-            </div>
-
-            {/* History Section */}
-            <div className="space-y-3 sm:space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Lịch sử làm bài
-              </h3>
-              <DataTable<StudentHistory>
-                columns={historyColumns}
-                data={studentHistory}
-                loading={loadingHistory}
-              />
-            </div>
-          </div>
-        )}
       </div>
     </Layout>
   );
