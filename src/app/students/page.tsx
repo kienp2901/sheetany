@@ -19,6 +19,7 @@ export default function StudentsPage() {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
+  const [activeHistoryTab, setActiveHistoryTab] = useState<'normal' | 'topclass'>('normal');
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -66,6 +67,7 @@ export default function StudentsPage() {
     setShowDetail(true);
     setLoadingProducts(true);
     setLoadingHistory(true);
+    setActiveHistoryTab('normal'); // Reset to normal tab when loading new student
 
     try {
       // Load student products
@@ -80,7 +82,7 @@ export default function StudentsPage() {
       setProductsPagination(prev => ({ ...prev, total: productsResult.total }));
       setLoadingProducts(false);
 
-      // Load student history (both types)
+      // Load student history for normal exams (type = 0)
       const historyResult = await apiClient.getStudentHistory(
         student.idOriginal,
         0,
@@ -107,6 +109,7 @@ export default function StudentsPage() {
     setStudentHistory([]);
     setProductsPagination({ page: 1, limit: 10, total: 0 });
     setHistoryPagination({ page: 1, limit: 10, total: 0 });
+    setActiveHistoryTab('normal');
   };
 
   const handleProductsPageChange = (page: number) => {
@@ -115,6 +118,42 @@ export default function StudentsPage() {
 
   const handleHistoryPageChange = (page: number) => {
     setHistoryPagination(prev => ({ ...prev, page }));
+  };
+
+  const handleHistoryTabChange = (tab: 'normal' | 'topclass') => {
+    if (tab === activeHistoryTab) return;
+    
+    setActiveHistoryTab(tab);
+    setHistoryPagination(prev => ({ ...prev, page: 1 })); // Reset to first page
+    setLoadingHistory(true);
+    
+    // Load history data for the selected tab
+    if (selectedStudent) {
+      const type = tab === 'normal' ? 0 : 1;
+      loadHistoryData(type, 1);
+    }
+  };
+
+  const loadHistoryData = async (type: 0 | 1, page: number) => {
+    if (!selectedStudent) return;
+    
+    try {
+      const historyResult = await apiClient.getStudentHistory(
+        selectedStudent.idOriginal,
+        type,
+        {
+          limit: historyPagination.limit,
+          page: page,
+        }
+      );
+      setStudentHistory(historyResult.data);
+      setHistoryPagination(prev => ({ ...prev, total: historyResult.total }));
+    } catch (error) {
+      console.error('Error loading history:', error);
+      toast.error('Lỗi khi tải lịch sử làm bài');
+    } finally {
+      setLoadingHistory(false);
+    }
   };
 
   const handleSearch = (query: string) => {
@@ -171,30 +210,11 @@ export default function StudentsPage() {
   // Load history when pagination changes
   useEffect(() => {
     if (selectedStudent && accessToken) {
-      const loadHistory = async () => {
-        setLoadingHistory(true);
-        try {
-          const historyResult = await apiClient.getStudentHistory(
-            selectedStudent.idOriginal,
-            0,
-            {
-              limit: historyPagination.limit,
-              page: historyPagination.page,
-            }
-          );
-          setStudentHistory(historyResult.data);
-          setHistoryPagination(prev => ({ ...prev, total: historyResult.total }));
-        } catch (error) {
-          console.error('Error loading history:', error);
-          toast.error('Lỗi khi tải lịch sử làm bài');
-        } finally {
-          setLoadingHistory(false);
-        }
-      };
-      loadHistory();
+      const type = activeHistoryTab === 'normal' ? 0 : 1;
+      loadHistoryData(type, historyPagination.page);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [historyPagination.page, selectedStudent?.idOriginal, accessToken]);
+  }, [historyPagination.page, selectedStudent?.idOriginal, accessToken, activeHistoryTab]);
 
   const studentColumns = [
     {
@@ -271,6 +291,11 @@ export default function StudentsPage() {
     },
   ];
 
+  const historyTabs = [
+    { id: 'normal', name: 'Phòng luyện đề', type: 0 },
+    { id: 'topclass', name: 'Phòng luyện Topclass', type: 1 }
+  ];
+
   if (showDetail && selectedStudent) {
     return (
       <Layout>
@@ -331,11 +356,32 @@ export default function StudentsPage() {
             />
           </div>
 
-          {/* History Section */}
+          {/* History Section with Tabs */}
           <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Lịch sử làm bài
             </h3>
+            
+            {/* Tab Navigation */}
+            <div className="border-b border-gray-200 mb-4">
+              <nav className="flex overflow-x-auto">
+                {historyTabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleHistoryTabChange(tab.id as 'normal' | 'topclass')}
+                    className={`flex items-center px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                      activeHistoryTab === tab.id
+                        ? 'border-indigo-500 text-indigo-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {tab.name}
+                  </button>
+                ))}
+              </nav>
+            </div>
+
+            {/* Tab Content */}
             <DataTable<StudentHistory>
               columns={historyColumns}
               data={studentHistory}

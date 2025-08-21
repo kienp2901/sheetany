@@ -177,9 +177,9 @@ export default function AdminPage() {
   };
 
   const adminTabs = [
-    { id: 'overview', name: 'Tổng quan', icon: Activity },
+    // { id: 'overview', name: 'Tổng quan', icon: Activity },
     { id: 'users', name: 'Quản lý quyền truy cập', icon: Users },
-    { id: 'system', name: 'Hệ thống', icon: Settings }
+    // { id: 'system', name: 'Hệ thống', icon: Settings }
   ];
 
   const adminColumns = [
