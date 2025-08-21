@@ -283,16 +283,23 @@ class ApiClient {
 
   // Exam Management
   async getExamHistory(
-    contestType: number,
-    idMockContest: number,
+    contestType?: number,
+    idMockContest?: number,
     params?: { limit?: number; page?: number }
   ): Promise<{ data: ExamHistory[]; total: number }> {
     const queryParams = new URLSearchParams();
-    queryParams.append('contest_type', contestType.toString());
-    queryParams.append('idMockContest', idMockContest.toString());
+  
+    // Chỉ append nếu có contestType và idMockContest
+    if (contestType && contestType > 0) {
+      queryParams.append('contest_type', contestType.toString());
+    }
+    if (idMockContest && idMockContest > 0) {
+      queryParams.append('idMockContest', idMockContest.toString());
+    }
+  
     queryParams.append('limit', (params?.limit || 10).toString());
     queryParams.append('page', (params?.page || 1).toString());
-
+  
     const response = await this.makeRequest<ExamHistory[]>(
       `/hocmaiadmin/student/historyByMockContest?${queryParams.toString()}`
     );

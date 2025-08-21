@@ -1,24 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth-context';
 import Layout from '@/components/Layout';
+import DataTable from '@/components/DataTable';
+import Modal from '@/components/Modal';
+import { Button } from '@/components/Button';
+import { apiClient, Admin } from '@/lib/api';
 import { 
   Users, 
   Package, 
-  FileText, 
-  TrendingUp, 
-  Calendar,
   DollarSign,
   UserCheck,
   Activity,
   Settings,
   Shield,
   Database,
-  AlertTriangle
+  AlertTriangle,
+  Plus,
+  Edit,
+  Trash2
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'system'>('overview');
+  const { accessToken } = useAuth();
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'system'>('users');
+  
+  // Admin management state
+  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
+  const [formData, setFormData] = useState({
+    email: '',
+    firstName: '',
+    lastName: ''
+  });
 
   // Dummy statistics data
   const systemStats = {
@@ -68,10 +87,136 @@ export default function AdminPage() {
     { name: 'Email Service', status: 'healthy', uptime: '99.7%' }
   ];
 
+  useEffect(() => {
+    if (accessToken) {
+      apiClient.setAuthToken(accessToken);
+      loadAdmins();
+    }
+  }, [accessToken]);
+
+  const loadAdmins = async () => {
+    setLoading(true);
+    try {
+      const adminsData = await apiClient.getAdmins();
+      setAdmins(adminsData);
+    } catch (error) {
+      console.error('Error loading admins:', error);
+      toast.error('Lỗi khi tải danh sách quản trị viên');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const validateEmail = (email: string) => {
+    if (!email.endsWith('@hocmai.vn')) {
+      toast.error('Email phải thuộc domain @hocmai.vn');
+      return false;
+    }
+    return true;
+  };
+
+  const handleAddAdmin = async () => {
+    if (!validateEmail(formData.email)) return;
+    
+    try {
+      await apiClient.addAdmin(formData.email);
+      toast.success('Thêm quản trị viên thành công');
+      setShowAddModal(false);
+      setFormData({ email: '', firstName: '', lastName: '' });
+      loadAdmins();
+    } catch (error) {
+      console.error('Error adding admin:', error);
+      toast.error('Lỗi khi thêm quản trị viên');
+    }
+  };
+
+  const handleEditAdmin = async () => {
+    if (!selectedAdmin) return;
+    if (formData.email && !validateEmail(formData.email)) return;
+    
+    try {
+      await apiClient.updateAdmin(selectedAdmin.idAdminHocmaiManager, {
+        ...(formData.email && { email: formData.email }),
+        ...(formData.firstName && { firstName: formData.firstName }),
+        ...(formData.lastName && { lastName: formData.lastName })
+      });
+      toast.success('Cập nhật thông tin thành công');
+      setShowEditModal(false);
+      setSelectedAdmin(null);
+      setFormData({ email: '', firstName: '', lastName: '' });
+      loadAdmins();
+    } catch (error) {
+      console.error('Error updating admin:', error);
+      toast.error('Lỗi khi cập nhật thông tin');
+    }
+  };
+
+  const handleDeleteAdmin = async (admin: Admin) => {
+    if (!confirm(`Bạn có chắc chắn muốn xóa quản trị viên ${admin.email}?`)) {
+      return;
+    }
+    
+    try {
+      await apiClient.deleteAdmin(admin.idAdminHocmaiManager);
+      toast.success('Xóa quản trị viên thành công');
+      loadAdmins();
+    } catch (error) {
+      console.error('Error deleting admin:', error);
+      toast.error('Lỗi khi xóa quản trị viên');
+    }
+  };
+
+  const openEditModal = (admin: Admin) => {
+    setSelectedAdmin(admin);
+    setFormData({
+      email: admin.email,
+      firstName: admin.firstName || '',
+      lastName: admin.lastName || ''
+    });
+    setShowEditModal(true);
+  };
+
   const adminTabs = [
     { id: 'overview', name: 'Tổng quan', icon: Activity },
-    { id: 'users', name: 'Quản lý người dùng', icon: Users },
+    { id: 'users', name: 'Quản lý quyền truy cập', icon: Users },
     { id: 'system', name: 'Hệ thống', icon: Settings }
+  ];
+
+  const adminColumns = [
+    {
+      key: 'email',
+      label: 'Email',
+    },
+    {
+      key: 'firstName',
+      label: 'Họ',
+      render: (value: unknown) => (value as string) || '-',
+    },
+    {
+      key: 'lastName',
+      label: 'Tên',
+      render: (value: unknown) => (value as string) || '-',
+    },
+    {
+      key: 'actions',
+      label: 'Thao tác',
+      render: (_: unknown, row: Admin) => (
+        <div className="flex space-x-2">
+          <button
+            onClick={() => openEditModal(row)}
+            className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+          >
+            <Edit className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => handleDeleteAdmin(row)}
+            className="text-red-600 hover:text-red-900 text-sm font-medium"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      ),
+    },
   ];
 
   const formatCurrency = (amount: number) => {
@@ -175,7 +320,7 @@ export default function AdminPage() {
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
+                    onClick={() => setActiveTab(tab.id as 'overview' | 'users' | 'system')}
                     className={`flex items-center px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                       activeTab === tab.id
                         ? 'border-indigo-500 text-indigo-600'
@@ -241,30 +386,41 @@ export default function AdminPage() {
             {/* Users Tab */}
             {activeTab === 'users' && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-gray-50 p-6 rounded-lg text-center">
-                    <Users className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900">Quản lý người dùng</h3>
-                    <p className="text-sm text-gray-600 mt-2">
-                      Tính năng đang được phát triển
-                    </p>
+                {/* Admin Access Info */}
+                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                  <div className="flex items-start">
+                    <Shield className="h-5 w-5 text-blue-600 mt-0.5 mr-3" />
+                    <div>
+                      <h3 className="text-sm font-medium text-blue-900">Quản lý quyền truy cập</h3>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Chỉ email có domain @hocmai.vn mới được phép truy cập hệ thống. 
+                        Quản lý danh sách người dùng được phép đăng nhập vào trang quản trị.
+                      </p>
+                    </div>
                   </div>
-                  
-                  <div className="bg-gray-50 p-6 rounded-lg text-center">
-                    <Shield className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900">Phân quyền</h3>
-                    <p className="text-sm text-gray-600 mt-2">
-                      Quản lý quyền truy cập hệ thống
-                    </p>
-                  </div>
-                  
-                  <div className="bg-gray-50 p-6 rounded-lg text-center">
-                    <Activity className="h-12 w-12 text-purple-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900">Hoạt động</h3>
-                    <p className="text-sm text-gray-600 mt-2">
-                      Theo dõi hoạt động người dùng
-                    </p>
-                  </div>
+                </div>
+
+                {/* Add Admin Button */}
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Danh sách quản trị viên ({admins.length})
+                  </h3>
+                  <Button
+                    onClick={() => setShowAddModal(true)}
+                    className="flex items-center space-x-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Thêm quản trị viên</span>
+                  </Button>
+                </div>
+
+                {/* Admins Table */}
+                <div className="bg-white rounded-lg shadow-sm">
+                  <DataTable<Admin>
+                    columns={adminColumns}
+                    data={admins}
+                    loading={loading}
+                  />
                 </div>
               </div>
             )}
@@ -318,6 +474,125 @@ export default function AdminPage() {
             )}
           </div>
         </div>
+
+        {/* Add Admin Modal */}
+        <Modal
+          isOpen={showAddModal}
+          onClose={() => {
+            setShowAddModal(false);
+            setFormData({ email: '', firstName: '', lastName: '' });
+          }}
+          title="Thêm quản trị viên mới"
+        >
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="example@hocmai.vn"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Chỉ chấp nhận email có domain @hocmai.vn
+              </p>
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowAddModal(false);
+                  setFormData({ email: '', firstName: '', lastName: '' });
+                }}
+              >
+                Hủy
+              </Button>
+              <Button
+                onClick={handleAddAdmin}
+                disabled={!formData.email}
+              >
+                Thêm quản trị viên
+              </Button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Edit Admin Modal */}
+        <Modal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedAdmin(null);
+            setFormData({ email: '', firstName: '', lastName: '' });
+          }}
+          title="Chỉnh sửa thông tin quản trị viên"
+        >
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="edit-email" className="block text-sm font-medium text-gray-700 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                id="edit-email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="example@hocmai.vn"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="edit-firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                Họ
+              </label>
+              <input
+                type="text"
+                id="edit-firstName"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Nhập họ..."
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="edit-lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                Tên
+              </label>
+              <input
+                type="text"
+                id="edit-lastName"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Nhập tên..."
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setSelectedAdmin(null);
+                  setFormData({ email: '', firstName: '', lastName: '' });
+                }}
+              >
+                Hủy
+              </Button>
+              <Button onClick={handleEditAdmin}>
+                Cập nhật
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </Layout>
   );

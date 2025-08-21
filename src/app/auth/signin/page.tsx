@@ -35,6 +35,7 @@ export default function SignIn() {
       window.google.accounts.id.renderButton(
         document.getElementById('googleSignInDiv')!,
         {
+          type: 'standard',
           theme: 'outline',
           size: 'large',
           width: 280,

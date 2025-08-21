@@ -6,7 +6,7 @@ import SearchBar from '@/components/SearchBar';
 import DataTable from '@/components/DataTable';
 import { useAuth } from '@/lib/auth-context';
 import { apiClient, Product, StudentByProduct } from '@/lib/api';
-import { Package, Calendar, Users, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function ProductsPage() {
@@ -134,6 +134,28 @@ export default function ProductsPage() {
     setStudentsPagination(prev => ({ ...prev, page }));
   };
 
+  const handleExportStudents = async () => {
+    if (!selectedProduct) return;
+    
+    try {
+      const blob = await apiClient.exportStudentsByProduct(
+        selectedProduct.idProduct
+      );
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `students_product_${selectedProduct.idProduct}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success('Xuất file CSV thành công');
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      toast.error('Lỗi khi xuất file CSV');
+    }
+  };
+
   const productColumns = [
     {
       key: 'idProduct',
@@ -186,27 +208,7 @@ export default function ProductsPage() {
     },
   ];
 
-  // Statistics cards data
-  const stats = [
-    {
-      name: 'Tổng sản phẩm',
-      value: products.length.toString(),
-      icon: Package,
-      color: 'bg-blue-500',
-    },
-    {
-      name: 'Sản phẩm được tìm thấy',
-      value: filteredProducts.length.toString(),
-      icon: Calendar,
-      color: 'bg-green-500',
-    },
-    {
-      name: 'Đang xem chi tiết',
-      value: selectedProduct ? '1' : '0',
-      icon: Users,
-      color: 'bg-purple-500',
-    },
-  ];
+
 
   if (showDetail && selectedProduct) {
     return (
@@ -273,6 +275,8 @@ export default function ProductsPage() {
                 ...studentsPagination,
                 onPageChange: handleStudentsPageChange,
               }}
+              onExport={handleExportStudents}
+              exportLabel="Xuất CSV"
             />
           </div>
         </div>
