@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/lib/auth-context';
 import Layout from '@/components/Layout';
 import DataTable from '@/components/DataTable';
 import { apiClient, ExamHistory } from '@/lib/api';
 import toast from 'react-hot-toast';
 
 export default function ExamsPage() {
-  const { data: session } = useSession();
+  const { accessToken } = useAuth();
   const [examHistory, setExamHistory] = useState<ExamHistory[]>([]);
   const [loading, setLoading] = useState(false);
   const [contestType, setContestType] = useState(15);
@@ -24,10 +24,10 @@ export default function ExamsPage() {
   } | null>(null);
 
   useEffect(() => {
-    if (session?.accessToken) {
-      apiClient.setAuthToken(session.accessToken);
+    if (accessToken) {
+      apiClient.setAuthToken(accessToken);
     }
-  }, [session]);
+  }, [accessToken]);
 
   const loadExamHistory = async (contestType: number, mockContestId: number) => {
     setLoading(true);
@@ -86,11 +86,11 @@ export default function ExamsPage() {
   };
 
   useEffect(() => {
-    if (currentSearch && session?.accessToken) {
+    if (currentSearch && accessToken) {
       loadExamHistory(currentSearch.contestType, currentSearch.mockContestId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.page, currentSearch, session?.accessToken]);
+  }, [pagination.page, currentSearch, accessToken]);
 
   const examColumns = [
     {

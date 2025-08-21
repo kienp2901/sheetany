@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
 import Layout from '@/components/Layout';
 import { 
   Users, 
@@ -19,7 +18,6 @@ import {
 } from 'lucide-react';
 
 export default function AdminPage() {
-  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'system'>('overview');
 
   // Dummy statistics data

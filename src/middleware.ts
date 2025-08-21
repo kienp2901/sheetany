@@ -1,30 +1,35 @@
-import { withAuth } from 'next-auth/middleware';
+import { NextRequest, NextResponse } from 'next/server';
 
-export default withAuth(
-  function middleware() {
-    // Additional middleware logic can go here
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => {
-        // Check if user has valid session and is from @hocmai.vn domain
-        // return (
-        //   !!token &&
-        //   !!token.email &&
-        //   token.email.endsWith('@hocmai.vn')
-        // );
-        console.log(token);
-        return (
-          !!token &&
-          !!token.email
-        );
-      },
-    },
+export function middleware(request: NextRequest) {
+  // Get the auth token from localStorage via the cookie (we'll set this from the client)
+  const authToken = request.cookies.get('auth_token')?.value;
+  
+  // List of public paths that don't require authentication
+  const publicPaths = ['/auth/signin', '/auth/error'];
+  const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path));
+  
+  // Allow access to public paths
+  if (isPublicPath) {
+    return NextResponse.next();
   }
-);
+  
+  // Check if user is authenticated
+  if (!authToken) {
+    // Redirect to signin page if not authenticated
+    const signInUrl = new URL('/auth/signin', request.url);
+    return NextResponse.redirect(signInUrl);
+  }
+  
+  // User is authenticated, allow access
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
-    '/((?!api/auth|auth|_next/static|_next/image|favicon.ico|public).*)',
+    '/students/:path*',
+    '/products/:path*', 
+    '/exams/:path*',
+    '/admin/:path*',
+    '/'
   ],
 };

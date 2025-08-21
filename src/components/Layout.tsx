@@ -1,6 +1,6 @@
 'use client';
 
-import { signOut, useSession } from 'next-auth/react';
+import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -12,7 +12,7 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const { data: session } = useSession();
+  const { user, logout } = useAuth();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -24,10 +24,10 @@ export default function Layout({ children }: LayoutProps) {
     // { name: 'Demo Components', href: '/demo', icon: Palette },
   ];
 
-  // Extract user info from session
-  const userEmail = session?.user?.email || '';
-  const userName = session?.user?.name || userEmail.split('@')[0] || 'Admin';
-  const userImage = session?.user?.image;
+  // Extract user info from auth context
+  const userEmail = user?.email || '';
+  const userName = user?.name || userEmail.split('@')[0] || 'Admin';
+  const userImage = user?.picture;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -121,7 +121,7 @@ export default function Layout({ children }: LayoutProps) {
         {/* Logout Button - Mobile */}
         <div className="p-4 border-t border-gray-200">
           <button
-            onClick={() => signOut()}
+            onClick={logout}
             className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
           >
             <LogOut className="w-5 h-5 mr-2" />
@@ -198,7 +198,7 @@ export default function Layout({ children }: LayoutProps) {
         {/* Logout Button - Desktop */}
         <div className="p-4 border-t border-gray-200">
           <button
-            onClick={() => signOut()}
+            onClick={logout}
             className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
           >
             <LogOut className="w-5 h-5 mr-2" />

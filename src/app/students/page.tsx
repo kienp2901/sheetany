@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/lib/auth-context';
 import Layout from '@/components/Layout';
 import SearchBar from '@/components/SearchBar';
 import DataTable from '@/components/DataTable';
@@ -9,7 +9,7 @@ import { apiClient, Student, StudentProduct, StudentHistory } from '@/lib/api';
 import toast from 'react-hot-toast';
 
 export default function StudentsPage() {
-  const { data: session } = useSession();
+  const { accessToken } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [studentProducts, setStudentProducts] = useState<StudentProduct[]>([]);
@@ -24,12 +24,12 @@ export default function StudentsPage() {
   });
 
   useEffect(() => {
-    if (session?.accessToken) {
-      apiClient.setAuthToken(session.accessToken);
+    if (accessToken) {
+      apiClient.setAuthToken(accessToken);
       // Load initial data
       loadStudents();
     }
-  }, [session?.accessToken]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [accessToken]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadStudents = async (searchParams?: { idOriginal?: string; email?: string }) => {
     setLoading(true);
@@ -90,11 +90,11 @@ export default function StudentsPage() {
   };
 
   useEffect(() => {
-    if (session?.accessToken) {
+    if (accessToken) {
       loadStudents();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.page, session?.accessToken]);
+  }, [pagination.page, accessToken]);
 
   const studentColumns = [
     {

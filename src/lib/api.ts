@@ -1,11 +1,12 @@
 // API client for HOCMAI EMS
 
-const API_BASE_URL = process.env.API_BASE_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 interface ApiResponse<T> {
   status: boolean;
   data: T;
   total?: number;
+  token?: string;
 }
 
 interface Student {
@@ -86,7 +87,7 @@ interface Admin {
 class ApiClient {
   private authToken: string | null = null;
 
-  setAuthToken(token: string) {
+  setAuthToken(token: string | null) {
     this.authToken = token;
   }
 
@@ -115,14 +116,19 @@ class ApiClient {
 
   // Authentication
   async loginGoogle(token: string): Promise<{ token: string }> {
-    const response = await this.makeRequest<{ token: string }>(
+    const response = await this.makeRequest<unknown>(
       '/hocmaiadmin/adminHocmaiManager/loginGoogle',
       {
         method: 'POST',
         body: JSON.stringify({ token }),
       }
     );
-    return response.data;
+  
+    if (!response.token) {
+      throw new Error("Login failed: token not found");
+    }
+  
+    return { token: response.token };
   }
 
   // Admin Management

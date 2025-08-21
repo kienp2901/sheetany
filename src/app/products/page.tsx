@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import Layout from '@/components/Layout';
 import SearchBar from '@/components/SearchBar';
 import DataTable from '@/components/DataTable';
@@ -69,7 +68,6 @@ const dummyProducts: Product[] = [
 ];
 
 export default function ProductsPage() {
-  const { data: session } = useSession();
   const [products, setProducts] = useState<Product[]>(dummyProducts);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(dummyProducts);
   const [loading, setLoading] = useState(false);
