@@ -127,14 +127,16 @@ export default function DataTable<T = unknown>({
               <button
                 onClick={() => pagination.onPageChange(pagination.page - 1)}
                 disabled={pagination.page <= 1}
-                className="relative inline-flex items-center px-3 py-2 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative inline-flex items-center px-3 py-2 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                title="Trang trước"
               >
                 Trước
               </button>
               <button
                 onClick={() => pagination.onPageChange(pagination.page + 1)}
                 disabled={pagination.page >= totalPages}
-                className="relative inline-flex items-center px-3 py-2 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative inline-flex items-center px-3 py-2 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                title="Trang sau"
               >
                 Sau
               </button>
@@ -162,7 +164,8 @@ export default function DataTable<T = unknown>({
                 <button
                   onClick={() => pagination.onPageChange(pagination.page - 1)}
                   disabled={pagination.page <= 1}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  title="Trang trước"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
@@ -172,7 +175,8 @@ export default function DataTable<T = unknown>({
                 <button
                   onClick={() => pagination.onPageChange(pagination.page + 1)}
                   disabled={pagination.page >= totalPages}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  title="Trang sau"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>

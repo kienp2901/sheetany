@@ -121,7 +121,8 @@ export default function Layout({ children }: LayoutProps) {
         <div className="p-4 border-t border-gray-200">
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
+            title="Đăng xuất"
           >
             <LogOut className="w-5 h-5 mr-2" />
             Đăng xuất
@@ -198,7 +199,8 @@ export default function Layout({ children }: LayoutProps) {
         <div className="p-4 border-t border-gray-200">
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
+            title="Đăng xuất"
           >
             <LogOut className="w-5 h-5 mr-2" />
             Đăng xuất
@@ -214,6 +216,7 @@ export default function Layout({ children }: LayoutProps) {
             <button
               onClick={() => setSidebarOpen(true)}
               className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+              title="Mở menu"
             >
               <Menu className="h-6 w-6" />
             </button>

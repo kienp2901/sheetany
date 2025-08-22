@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'HOCMAI EMS Admin',
   description: 'Trang quản trị tra cứu EMS HOCMAI',
+  // icons: {
+  //   icon: "/next.svg", // hoặc .ico, .svg
+  // },
 };
 
 export default function RootLayout({

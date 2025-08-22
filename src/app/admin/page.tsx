@@ -204,13 +204,15 @@ export default function AdminPage() {
         <div className="flex space-x-2">
           <button
             onClick={() => openEditModal(row)}
-            className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+            className="text-indigo-600 hover:text-indigo-900 text-sm font-medium cursor-pointer"
+            title={`Chỉnh sửa thông tin quản trị viên ${row.email}`}
           >
             <Edit className="h-4 w-4" />
           </button>
           <button
             onClick={() => handleDeleteAdmin(row)}
-            className="text-red-600 hover:text-red-900 text-sm font-medium"
+            className="text-red-600 hover:text-red-900 text-sm font-medium cursor-pointer"
+            title={`Xóa quản trị viên ${row.email}`}
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -408,6 +410,7 @@ export default function AdminPage() {
                   <Button
                     onClick={() => setShowAddModal(true)}
                     className="flex items-center space-x-2"
+                    title="Thêm quản trị viên mới vào hệ thống"
                   >
                     <Plus className="h-4 w-4" />
                     <span>Thêm quản trị viên</span>
@@ -451,19 +454,28 @@ export default function AdminPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Công cụ hệ thống</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button className="bg-gray-50 p-6 rounded-lg text-center hover:bg-gray-100 transition-colors">
+                    <button 
+                      className="bg-gray-50 p-6 rounded-lg text-center hover:bg-gray-100 transition-colors"
+                      title="Thực hiện sao lưu toàn bộ dữ liệu hệ thống"
+                    >
                       <Database className="h-8 w-8 text-blue-500 mx-auto mb-3" />
                       <h4 className="text-sm font-medium text-gray-900">Backup dữ liệu</h4>
                       <p className="text-xs text-gray-600 mt-1">Sao lưu toàn bộ dữ liệu</p>
                     </button>
                     
-                    <button className="bg-gray-50 p-6 rounded-lg text-center hover:bg-gray-100 transition-colors">
+                    <button 
+                      className="bg-gray-50 p-6 rounded-lg text-center hover:bg-gray-100 transition-colors"
+                      title="Cài đặt và cấu hình hệ thống"
+                    >
                       <Settings className="h-8 w-8 text-green-500 mx-auto mb-3" />
                       <h4 className="text-sm font-medium text-gray-900">Cấu hình</h4>
                       <p className="text-xs text-gray-600 mt-1">Cài đặt hệ thống</p>
                     </button>
                     
-                    <button className="bg-gray-50 p-6 rounded-lg text-center hover:bg-gray-100 transition-colors">
+                    <button 
+                      className="bg-gray-50 p-6 rounded-lg text-center hover:bg-gray-100 transition-colors"
+                      title="Xem nhật ký hoạt động và lỗi hệ thống"
+                    >
                       <AlertTriangle className="h-8 w-8 text-yellow-500 mx-auto mb-3" />
                       <h4 className="text-sm font-medium text-gray-900">Logs</h4>
                       <p className="text-xs text-gray-600 mt-1">Xem nhật ký hệ thống</p>
@@ -510,12 +522,14 @@ export default function AdminPage() {
                   setShowAddModal(false);
                   setFormData({ email: '', firstName: '', lastName: '' });
                 }}
+                title="Hủy bỏ việc thêm quản trị viên"
               >
                 Hủy
               </Button>
               <Button
                 onClick={handleAddAdmin}
                 disabled={!formData.email}
+                title="Thêm quản trị viên mới vào hệ thống"
               >
                 Thêm quản trị viên
               </Button>
@@ -584,10 +598,14 @@ export default function AdminPage() {
                   setSelectedAdmin(null);
                   setFormData({ email: '', firstName: '', lastName: '' });
                 }}
+                title="Hủy bỏ việc chỉnh sửa thông tin"
               >
                 Hủy
               </Button>
-              <Button onClick={handleEditAdmin}>
+              <Button 
+                onClick={handleEditAdmin}
+                title="Cập nhật thông tin quản trị viên"
+              >
                 Cập nhật
               </Button>
             </div>
