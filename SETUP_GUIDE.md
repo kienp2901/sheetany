@@ -4,7 +4,7 @@
 
 ```bash
 # Clone project và cài đặt dependencies
-cd sheetany
+cd your-project
 npm install
 
 # Tạo file environment
