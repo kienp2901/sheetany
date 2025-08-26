@@ -135,3 +135,29 @@ dist
 
 # Storybook build outputs
 storybook-static
+
+# CI/CD and Development Tools
+# Husky
+.husky/_
+.husky/.gitignore
+
+# Commitlint
+.commitlintrc.js
+.commitlintrc.json
+.commitlintrc.yml
+
+# Dependabot
+.github/dependabot.yml
+
+# Checkly
+.checkly/
+
+# Crowdin
+crowdin.yml
+
+# Codecov
+codecov.yml
+.codecov
+
+# GitHub Actions cache
+.github/actions/cache/

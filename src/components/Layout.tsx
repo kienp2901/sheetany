@@ -3,8 +3,17 @@
 import { useAuth } from '@/lib/auth-context';
 import Link from 'next/link';
 // import Image from 'next/image';
+import {
+  FileText,
+  LogOut,
+  Menu,
+  Package,
+  Search,
+  Settings,
+  User,
+  X,
+} from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { LogOut, Search, Package, FileText, Settings, User, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
 interface LayoutProps {
@@ -32,16 +41,18 @@ export default function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden" 
+        <div
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Mobile Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-80 bg-white shadow-lg border-r border-gray-200 transform transition-transform duration-300 ease-in-out flex flex-col lg:hidden ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-80 bg-white shadow-lg border-r border-gray-200 transform transition-transform duration-300 ease-in-out flex flex-col lg:hidden ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         {/* Mobile Close Button */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
@@ -77,10 +88,12 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
               )}
             </div>
-            
+
             {/* User Info */}
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold text-gray-900 truncate">{userName}</h3>
+              <h3 className="text-sm font-semibold text-gray-900 truncate">
+                {userName}
+              </h3>
               <p className="text-xs text-gray-600 truncate">{userEmail}</p>
             </div>
           </div>
@@ -156,10 +169,12 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
               )}
             </div>
-            
+
             {/* User Info */}
             <div className="text-center">
-              <h2 className="text-lg font-semibold text-gray-900">{userName}</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {userName}
+              </h2>
               <p className="text-sm text-gray-600 break-all">{userEmail}</p>
             </div>
           </div>
@@ -240,9 +255,7 @@ export default function Layout({ children }: LayoutProps) {
         </header>
 
         {/* Main Content */}
-        <main className="p-4 sm:p-6 bg-gray-50 min-h-screen">
-          {children}
-        </main>
+        <main className="p-4 sm:p-6 bg-gray-50 min-h-screen">{children}</main>
       </div>
     </div>
   );

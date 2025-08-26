@@ -86,7 +86,7 @@ describe('Auth Context', () => {
 
     test('should load saved session from localStorage', async () => {
       const savedUser = {
-        email: 'kienpn@ctv.hocmai.vn',
+        email: 'admin@hocmai.vn',
         name: 'Admin User',
         picture: 'https://example.com/avatar.jpg',
       };
@@ -136,16 +136,17 @@ describe('Auth Context', () => {
   describe('Login Functionality', () => {
     test('should login successfully with valid credential', async () => {
       const mockUser = {
-        email: 'kienpn@ctv.hocmai.vn',
+        email: 'admin@hocmai.vn',
         name: 'Admin User',
         picture: 'https://example.com/avatar.jpg',
       };
       const mockToken = 'jwt-token';
 
       // Create a valid JWT token for testing
-      const mockJWT =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGhvY21haS52biIsIm5hbWUiOiJBZG1pbiBVc2VyIiwicGljdHVyZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXZhdGFyLmpwZyJ9.signature';
+      // const mockJWT =
+      //   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGhvY21haS52biIsIm5hbWUiOiJBZG1pbiBVc2VyIiwicGljdHVyZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXZhdGFyLmpwZyJ9.signature';
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (apiClient.loginGoogle as any).mockResolvedValueOnce({
         token: mockToken,
       });
@@ -184,6 +185,7 @@ describe('Auth Context', () => {
 
     test('should handle login failure', async () => {
       const error = new Error('Login failed');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (apiClient.loginGoogle as any).mockRejectedValueOnce(error);
 
       render(
@@ -217,9 +219,10 @@ describe('Auth Context', () => {
 
     test('should handle invalid JWT payload', async () => {
       // Mock invalid JWT that can't be parsed
-      const invalidCredential = 'invalid.jwt.token';
+      // const invalidCredential = 'invalid.jwt.token';
 
       // Mock API to reject the invalid credential
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (apiClient.loginGoogle as any).mockRejectedValueOnce(
         new Error('Invalid JWT')
       );
@@ -254,7 +257,7 @@ describe('Auth Context', () => {
     test('should logout successfully', async () => {
       // Setup authenticated state
       const savedUser = {
-        email: 'kienpn@ctv.hocmai.vn',
+        email: 'admin@hocmai.vn',
         name: 'Admin User',
         picture: 'https://example.com/avatar.jpg',
       };
@@ -350,6 +353,7 @@ describe('Auth Context', () => {
     });
 
     test('should handle API client errors', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (apiClient.setAuthToken as any).mockImplementation(() => {
         throw new Error('API client error');
       });

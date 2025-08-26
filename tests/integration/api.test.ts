@@ -26,6 +26,7 @@ describe('API Client', () => {
         token: 'jwt-token',
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => mockResponse,
@@ -46,6 +47,7 @@ describe('API Client', () => {
     test('should handle login failure', async () => {
       const mockToken = 'invalid-token';
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: false,
         statusText: 'Bad Request',
@@ -68,6 +70,7 @@ describe('API Client', () => {
         },
       ];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -100,6 +103,7 @@ describe('API Client', () => {
         },
       ];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -134,6 +138,7 @@ describe('API Client', () => {
         },
       ];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -171,6 +176,7 @@ describe('API Client', () => {
         },
       ];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -215,6 +221,7 @@ describe('API Client', () => {
         },
       ];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -253,6 +260,7 @@ describe('API Client', () => {
         },
       ];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -291,6 +299,7 @@ describe('API Client', () => {
         },
       ];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -327,6 +336,7 @@ describe('API Client', () => {
         },
       ];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -352,6 +362,7 @@ describe('API Client', () => {
         lastName: 'Admin',
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -380,6 +391,7 @@ describe('API Client', () => {
         lastName: 'Admin',
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -409,6 +421,7 @@ describe('API Client', () => {
     });
 
     test('should delete admin successfully', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ status: true }),
@@ -427,12 +440,14 @@ describe('API Client', () => {
 
   describe('Error Handling', () => {
     test('should handle network errors', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockRejectedValueOnce(new Error('Network error'));
 
       await expect(apiClient.getStudents()).rejects.toThrow('Network error');
     });
 
     test('should handle API errors', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: false,
         statusText: 'Internal Server Error',
@@ -444,6 +459,7 @@ describe('API Client', () => {
     });
 
     test('should handle malformed JSON responses', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => {

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { Button } from './Button';
 import {
   Card,
@@ -82,7 +82,8 @@ export const FooterOnly: Story = {
 };
 
 export const StatsCardExample: Story = {
-  render: (args) => (
+  // render: (args) => (
+  render: () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl">
       <StatsCard
         title="Total Users"

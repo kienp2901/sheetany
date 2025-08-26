@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "📝 Validating commit message..."
+
+# Check if commitlint is installed
+if ! command -v npx &> /dev/null; then
+  echo "❌ npx not found. Please install Node.js and npm."
+  exit 1
+fi
+
+# Run commitlint
+npx commitlint --edit "$1"
+if [ $? -ne 0 ]; then
+  echo "❌ Commit message validation failed."
+  echo "💡 Please use conventional commit format:"
+  echo "   - feat: add new feature"
+  echo "   - fix: bug fix"
+  echo "   - docs: documentation changes"
+  echo "   - style: formatting, missing semicolons, etc."
+  echo "   - refactor: code refactoring"
+  echo "   - test: adding tests"
+  echo "   - chore: maintenance tasks"
+  exit 1
+fi
+
+echo "✅ Commit message validation passed!"

@@ -62,7 +62,8 @@ test.describe('Navigation and Layout', () => {
       ).toBeVisible();
     } catch (error) {
       console.log(
-        'HOCMAI EMS Admin heading not found, checking for alternative'
+        'HOCMAI EMS Admin heading not found, checking for alternative:',
+        error
       );
       // Try alternative selectors - check if we're on mobile viewport
       const viewport = page.viewportSize();
@@ -122,6 +123,10 @@ test.describe('Navigation and Layout', () => {
         page.getByRole('heading', { name: 'HOCMAI EMS Admin' })
       ).toBeVisible();
     } catch (error) {
+      console.log(
+        'HOCMAI EMS Admin heading not found, checking for alternative:',
+        error
+      );
       // Check viewport and use appropriate header
       const viewport = page.viewportSize();
       if (viewport && viewport.width < 1024) {
@@ -324,6 +329,7 @@ test.describe('Navigation and Layout', () => {
       await expect(productsLink).toHaveClass(/bg-indigo-50/);
       await expect(productsLink).toHaveClass(/text-indigo-700/);
     } catch (error) {
+      console.log('Products link not found, checking for alternative:', error);
       // Wait a bit more and try again
       await page.waitForTimeout(2000);
       await expect(productsLink).toHaveClass(/bg-indigo-50/);
@@ -376,6 +382,7 @@ test.describe('Navigation and Layout', () => {
       expect(true).toBe(true);
     } catch (error) {
       // If no 404 message, check if we can see any layout elements
+      console.log('No 404 message, checking for alternative:', error);
       const validHeadings = ['HOCMAI EMS', 'HOCMAI EMS Admin'];
 
       let foundValidPage = false;
@@ -386,6 +393,7 @@ test.describe('Navigation and Layout', () => {
           break;
         } catch (e) {
           // Continue checking other headings
+          console.log('No valid heading found, checking for alternative:', e);
         }
       }
 
@@ -458,12 +466,17 @@ test.describe('Navigation and Layout', () => {
         page.locator('header h1').filter({ hasText: 'HOCMAI EMS' }).first()
       ).toBeVisible();
     } catch (error) {
+      console.log('No mobile header found, checking for alternative:', error);
       try {
         // Try desktop header
         await expect(
           page.getByRole('heading', { name: 'HOCMAI EMS Admin' })
         ).toBeVisible();
       } catch (error2) {
+        console.log(
+          'No desktop header found, checking for alternative:',
+          error2
+        );
         // If neither works, check for any HOCMAI text
         await expect(page.getByText('HOCMAI EMS')).toBeVisible();
       }
@@ -483,6 +496,7 @@ test.describe('Navigation and Layout', () => {
         page.getByRole('heading', { name: 'HOCMAI EMS Admin' })
       ).toBeVisible();
     } catch (error) {
+      console.log('No desktop header found, checking for alternative:', error);
       // Try alternative heading
       await expect(page.getByText('HOCMAI EMS Admin')).toBeVisible();
     }
@@ -500,6 +514,7 @@ test.describe('Navigation and Layout', () => {
         page.locator('header h1').filter({ hasText: 'HOCMAI EMS' }).first()
       ).toBeVisible();
     } catch (error) {
+      console.log('No mobile header found, checking for alternative:', error);
       // Try alternative mobile header
       await expect(page.getByText('HOCMAI EMS')).toBeVisible();
     }

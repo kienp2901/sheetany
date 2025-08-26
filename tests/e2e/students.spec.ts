@@ -390,6 +390,7 @@ test.describe('Students Page', () => {
     try {
       await viewDetailsButton!.evaluate((el) => (el as HTMLElement).click());
     } catch (error) {
+      console.log('JavaScript click failed, trying force click:', error);
       // If JavaScript click fails, try force click
       await viewDetailsButton!.click({ force: true });
     }

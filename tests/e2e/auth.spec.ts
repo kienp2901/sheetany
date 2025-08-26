@@ -30,6 +30,7 @@ test.describe('Authentication Flow', () => {
     // Mock successful Google OAuth response
     await page.addInitScript(() => {
       // Mock Google OAuth
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).google = {
         accounts: {
           id: {

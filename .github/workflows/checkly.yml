@@ -1,0 +1,38 @@
+name: Checkly Monitoring
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  checkly:
+    name: Run Checkly checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install Checkly CLI
+        run: npm install -g @checkly/cli
+
+      - name: Run Checkly checks
+        run: |
+          checkly test --reporter=list
+        env:
+          CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
+          CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}
+
+      - name: Deploy Checkly checks
+        run: |
+          checkly deploy
+        env:
+          CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
+          CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}

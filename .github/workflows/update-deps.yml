@@ -1,0 +1,62 @@
+name: Update Dependencies
+
+on:
+  schedule:
+    # Run every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  update-deps:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for outdated packages
+        id: check
+        run: |
+          npm outdated --json > outdated.json || echo "{}" > outdated.json
+          echo "outdated=$(cat outdated.json)" >> $GITHUB_OUTPUT
+
+      - name: Update dependencies
+        if: steps.check.outputs.outdated != '{}'
+        run: |
+          npm update
+          npm audit fix
+
+      - name: Create Pull Request
+        if: steps.check.outputs.outdated != '{}'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update dependencies'
+          title: 'chore: update dependencies'
+          body: |
+            ## Dependency Updates
+
+            This PR updates outdated dependencies to their latest versions.
+
+            ### Updated packages:
+            - Run `npm outdated` to see what was updated
+
+            ### Checklist:
+            - [ ] Tests pass
+            - [ ] Build succeeds
+            - [ ] No breaking changes
+          branch: chore/update-dependencies
+          delete-branch: true
+          labels: |
+            dependencies
+            automated
