@@ -50,7 +50,8 @@ const localStorageMock = {
   setItem: jest.fn(),
   removeItem: jest.fn(),
   clear: jest.fn(),
-};
+} as unknown as Storage;
+
 global.localStorage = localStorageMock;
 
 // Mock sessionStorage
@@ -59,5 +60,6 @@ const sessionStorageMock = {
   setItem: jest.fn(),
   removeItem: jest.fn(),
   clear: jest.fn(),
-};
+} as unknown as Storage;
+
 global.sessionStorage = sessionStorageMock;
