@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/lib/auth-context';
-import Layout from '@/components/Layout';
 import DataTable from '@/components/DataTable';
-import { apiClient, ExamHistory } from '@/lib/api';
+import Layout from '@/components/Layout';
+import { apiClient, ExamHistory, GroupedContestType } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
+import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
 export default function ExamsPage() {
   const { accessToken } = useAuth();
   const [examHistory, setExamHistory] = useState<ExamHistory[]>([]);
   const [loading, setLoading] = useState(false);
-  const [contestType, setContestType] = useState(0); // default "Select contest type"
+  const [selectedContestType, setSelectedContestType] = useState<string>(''); // Sử dụng string để lưu key của contest type
   const [mockContestId, setMockContestId] = useState('');
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [pagination, setPagination] = useState({
@@ -20,9 +20,39 @@ export default function ExamsPage() {
     total: 0,
   });
   const [currentSearch, setCurrentSearch] = useState<{
-    contestType: number;
+    contestType: string;
+    contestTypeValues: number[];
     mockContestId: number;
   } | null>(null);
+
+  // Gom nhóm contest types theo tên cuộc thi
+  const groupedContestTypes: GroupedContestType[] = [
+    { title: 'Select contest type', values: [] },
+    { title: 'HSA exam', values: [0, 10, 17, 18] },
+    { title: 'TSA exam', values: [1, 4, 9] },
+    { title: 'IELTS practice', values: [2] },
+    { title: 'IELTS exam', values: [3, 27] },
+    { title: 'HMO ĐGNL', values: [5] },
+    { title: 'Topclass', values: [6] },
+    { title: 'V-ACT practice', values: [7] },
+    { title: 'V-ACT exam', values: [8] },
+    { title: 'Testsite Part', values: [11] },
+    { title: 'Testsite Slide', values: [12] },
+    { title: 'HMO Thiên Long', values: [13] },
+    { title: 'Speakwell testsite', values: [14] },
+    { title: 'PEN 2025 exam', values: [15] },
+    { title: 'PEN 2025 practice', values: [16] },
+    { title: 'Introduction Mock Tests 1&2 exam', values: [19] },
+    {
+      title:
+        'Introduction Mock Test 3, Final Test; Foundation Mock Tests 1&2 exam',
+      values: [21],
+    },
+    { title: 'Foundation Mock Test 3, Final Test exam', values: [23] },
+    { title: 'Preparation Mock Tests 1 và 2 exam', values: [25] },
+    { title: 'Exercise', values: [29] },
+    { title: 'ICC Entry Test exam', values: [30, 31] },
+  ];
 
   useEffect(() => {
     if (accessToken) {
@@ -39,7 +69,7 @@ export default function ExamsPage() {
         page: pagination.page,
       });
       setExamHistory(result.data);
-      setPagination(prev => ({ ...prev, total: result.total }));
+      setPagination((prev) => ({ ...prev, total: result.total }));
     } catch (error) {
       console.error('Error loading initial data:', error);
       toast.error('Lỗi khi tải dữ liệu ban đầu');
@@ -48,25 +78,42 @@ export default function ExamsPage() {
       setIsInitialLoad(false);
     }
   }, [pagination.limit, pagination.page]); // 👈 dependencies
-  
+
   useEffect(() => {
     if (accessToken) {
       loadInitialData();
     }
   }, [accessToken, loadInitialData]);
 
-  const loadExamHistory = async (contestType?: number, mockContestId?: number) => {
+  const loadExamHistory = async (
+    contestTypeKey?: string,
+    mockContestId?: number
+  ) => {
     setLoading(true);
     try {
-      const result = await apiClient.getExamHistory(contestType, mockContestId, {
-        limit: pagination.limit,
-        page: 1, // Reset to first page when searching
-      });
+      let contestTypeValues: number[] | undefined;
+
+      if (contestTypeKey && contestTypeKey !== '') {
+        const selectedType = groupedContestTypes.find(
+          (type) => type.title === contestTypeKey
+        );
+        contestTypeValues = selectedType?.values;
+      }
+
+      const result = await apiClient.getExamHistory(
+        contestTypeValues,
+        mockContestId,
+        {
+          limit: pagination.limit,
+          page: 1, // Reset to first page when searching
+        }
+      );
       setExamHistory(result.data);
-      setPagination(prev => ({ ...prev, page: 1, total: result.total }));
-      setCurrentSearch({ 
-        contestType: contestType ?? 0, 
-        mockContestId: mockContestId ?? 0 
+      setPagination((prev) => ({ ...prev, page: 1, total: result.total }));
+      setCurrentSearch({
+        contestType: contestTypeKey || '',
+        contestTypeValues: contestTypeValues || [],
+        mockContestId: mockContestId || 0,
       });
     } catch (error) {
       console.error('Error loading exam history:', error);
@@ -75,35 +122,37 @@ export default function ExamsPage() {
       setLoading(false);
     }
   };
-  
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-  
-    if (contestType === 0 && !mockContestId) {
+
+    if (selectedContestType === '' && !mockContestId) {
       toast.error('Vui lòng chọn loại cuộc thi hoặc nhập ID đề thi');
       return;
     }
-  
+
     loadExamHistory(
-      contestType === 0 ? undefined : contestType, 
+      selectedContestType,
       mockContestId ? parseInt(mockContestId) : undefined
     );
   };
 
   const handleExport = async () => {
     try {
-      let contestTypeParam = currentSearch?.contestType;
+      let contestTypeValues: number[] | undefined;
       let mockContestIdParam = currentSearch?.mockContestId;
-  
+
       // nếu chưa search => export toàn bộ dữ liệu (không filter)
       if (!currentSearch) {
-        contestTypeParam = undefined;
-        mockContestIdParam = undefined;
+        contestTypeValues = undefined;
+        mockContestIdParam = 0;
+      } else {
+        contestTypeValues = currentSearch.contestTypeValues;
       }
-  
+
       const blob = await apiClient.exportExamHistory(
-        contestTypeParam ?? 0,
-        mockContestIdParam ?? 0
+        contestTypeValues || 0,
+        mockContestIdParam || 0
       );
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -123,13 +172,14 @@ export default function ExamsPage() {
   };
 
   const handlePageChange = (page: number) => {
-    setPagination(prev => ({ ...prev, page }));
+    setPagination((prev) => ({ ...prev, page }));
   };
 
   const handleClearSearch = () => {
     setCurrentSearch(null);
+    setSelectedContestType('');
     setMockContestId('');
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setPagination((prev) => ({ ...prev, page: 1 }));
     // Load initial data again
     loadInitialData();
   };
@@ -160,14 +210,32 @@ export default function ExamsPage() {
       render: (_: unknown, row: ExamHistory) => row.mockcontests?.name || '-',
     },
     {
+      key: 'contest_type',
+      label: 'Loại cuộc thi',
+      render: (_: unknown, row: ExamHistory) => {
+        const contestType = row.mockcontests?.contest_type;
+        if (contestType !== undefined) {
+          const contestTypeInfo = groupedContestTypes.find((type) =>
+            type.values.includes(contestType)
+          );
+          return contestTypeInfo
+            ? contestTypeInfo.title
+            : `Unknown (${contestType})`;
+        }
+        return '-';
+      },
+    },
+    {
       key: 'timeStart',
       label: 'Thời gian bắt đầu',
-      render: (value: unknown) => new Date(value as string).toLocaleString('vi-VN'),
+      render: (value: unknown) =>
+        new Date(value as string).toLocaleString('vi-VN'),
     },
     {
       key: 'timeFinish',
       label: 'Thời gian nộp',
-      render: (value: unknown) => new Date(value as string).toLocaleString('vi-VN'),
+      render: (value: unknown) =>
+        new Date(value as string).toLocaleString('vi-VN'),
     },
     {
       key: 'scoreMockContest',
@@ -179,10 +247,11 @@ export default function ExamsPage() {
   ];
 
   const contestTypes = [
-    { value: 0, label: 'Select contest type' }, // new option
-    { value: 15, label: 'TN THPT' },
-    { value: 1, label: 'HSA' },
-    { value: 2, label: 'TSA' },
+    { value: '', label: 'Select contest type' }, // new option
+    ...groupedContestTypes.slice(1).map((type) => ({
+      value: type.title,
+      label: type.title,
+    })),
   ];
 
   return (
@@ -190,7 +259,9 @@ export default function ExamsPage() {
       <div className="space-y-4 sm:space-y-6">
         {/* Page Header */}
         <div className="text-center sm:text-left">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Tra cứu đề thi</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            Tra cứu đề thi
+          </h1>
           <p className="mt-1 sm:mt-2 text-sm text-gray-600">
             Tra cứu lịch sử làm bài theo ID đề thi và loại cuộc thi
           </p>
@@ -201,13 +272,16 @@ export default function ExamsPage() {
           <form onSubmit={handleSearch} className="space-y-4 sm:space-y-6">
             <div className="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-1 lg:grid-cols-2 sm:gap-4">
               <div>
-                <label htmlFor="contestType" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="contestType"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Loại cuộc thi
                 </label>
                 <select
                   id="contestType"
-                  value={contestType}
-                  onChange={(e) => setContestType(parseInt(e.target.value))}
+                  value={selectedContestType}
+                  onChange={(e) => setSelectedContestType(e.target.value)}
                   className="block w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm"
                 >
                   {contestTypes.map((type) => (
@@ -217,9 +291,12 @@ export default function ExamsPage() {
                   ))}
                 </select>
               </div>
-              
+
               <div>
-                <label htmlFor="mockContestId" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="mockContestId"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   ID Đề thi
                 </label>
                 <input
@@ -232,7 +309,7 @@ export default function ExamsPage() {
                 />
               </div>
             </div>
-            
+
             <div className="flex justify-center sm:justify-end">
               <button
                 type="submit"
@@ -270,14 +347,25 @@ export default function ExamsPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div className="bg-white p-3 rounded-md">
-                <span className="font-medium text-blue-700 block sm:inline">Loại cuộc thi:</span>
+                <span className="font-medium text-blue-700 block sm:inline">
+                  Loại cuộc thi:
+                </span>
                 <span className="text-gray-900 sm:ml-1">
-                  {contestTypes.find(t => t.value === currentSearch.contestType)?.label}
+                  {currentSearch.contestType}
+                  {currentSearch.contestTypeValues.length > 0 && (
+                    <span className="text-sm text-gray-500 block sm:inline sm:ml-2">
+                      (IDs: {currentSearch.contestTypeValues.join(', ')})
+                    </span>
+                  )}
                 </span>
               </div>
               <div className="bg-white p-3 rounded-md">
-                <span className="font-medium text-blue-700 block sm:inline">ID Đề thi:</span>
-                <span className="text-gray-900 sm:ml-1">{currentSearch.mockContestId}</span>
+                <span className="font-medium text-blue-700 block sm:inline">
+                  ID Đề thi:
+                </span>
+                <span className="text-gray-900 sm:ml-1">
+                  {currentSearch.mockContestId}
+                </span>
               </div>
             </div>
           </div>
@@ -296,15 +384,16 @@ export default function ExamsPage() {
             onExport={currentSearch ? handleExport : undefined}
             exportLabel="Xuất CSV"
           />
-        ) : !loading && (
-          <div className="bg-white p-6 rounded-lg shadow-sm text-center">
-            <p className="text-gray-500">
-              {currentSearch 
-                ? 'Không tìm thấy kết quả nào cho tìm kiếm này' 
-                : 'Chưa có dữ liệu để hiển thị'
-              }
-            </p>
-          </div>
+        ) : (
+          !loading && (
+            <div className="bg-white p-6 rounded-lg shadow-sm text-center">
+              <p className="text-gray-500">
+                {currentSearch
+                  ? 'Không tìm thấy kết quả nào cho tìm kiếm này'
+                  : 'Chưa có dữ liệu để hiển thị'}
+              </p>
+            </div>
+          )
         )}
       </div>
     </Layout>

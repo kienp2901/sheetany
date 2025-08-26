@@ -77,6 +77,11 @@ interface ExamHistory {
   scoreMockContest: number;
 }
 
+interface GroupedContestType {
+  title: string;
+  values: number[];
+}
+
 interface Admin {
   email: string;
   idAdminHocmaiManager: number;
@@ -123,11 +128,11 @@ class ApiClient {
         body: JSON.stringify({ token }),
       }
     );
-  
+
     if (!response.token) {
-      throw new Error("Login failed: token not found");
+      throw new Error('Login failed: token not found');
     }
-  
+
     return { token: response.token };
   }
 
@@ -283,23 +288,30 @@ class ApiClient {
 
   // Exam Management
   async getExamHistory(
-    contestType?: number,
+    contestType?: number | number[],
     idMockContest?: number,
     params?: { limit?: number; page?: number }
   ): Promise<{ data: ExamHistory[]; total: number }> {
     const queryParams = new URLSearchParams();
-  
-    // Chỉ append nếu có contestType và idMockContest
-    if (contestType && contestType > 0) {
-      queryParams.append('contest_type', contestType.toString());
+
+    // Xử lý contestType - có thể là số đơn hoặc mảng số
+    if (contestType) {
+      if (Array.isArray(contestType)) {
+        // Nếu là mảng, join các giá trị bằng dấu phẩy
+        queryParams.append('contest_type', contestType.join(','));
+      } else if (contestType > 0) {
+        // Nếu là số đơn và > 0
+        queryParams.append('contest_type', contestType.toString());
+      }
     }
+
     if (idMockContest && idMockContest > 0) {
       queryParams.append('idMockContest', idMockContest.toString());
     }
-  
+
     queryParams.append('limit', (params?.limit || 10).toString());
     queryParams.append('page', (params?.page || 1).toString());
-  
+
     const response = await this.makeRequest<ExamHistory[]>(
       `/hocmaiadmin/student/historyByMockContest?${queryParams.toString()}`
     );
@@ -307,11 +319,18 @@ class ApiClient {
   }
 
   async exportExamHistory(
-    contestType: number,
+    contestType: number | number[],
     idMockContest: number
   ): Promise<Blob> {
     const queryParams = new URLSearchParams();
-    queryParams.append('contest_type', contestType.toString());
+
+    // Xử lý contestType cho export
+    if (Array.isArray(contestType)) {
+      queryParams.append('contest_type', contestType.join(','));
+    } else {
+      queryParams.append('contest_type', contestType.toString());
+    }
+
     queryParams.append('idMockContest', idMockContest.toString());
 
     const url = `${API_BASE_URL}/hocmaiadmin/student/historyByMockContest/csv?${queryParams.toString()}`;
@@ -332,12 +351,13 @@ class ApiClient {
 export const apiClient = new ApiClient();
 
 export type {
-  Student,
-  Product,
-  StudentProduct,
-  StudentHistory,
-  StudentByProduct,
-  ExamHistory,
   Admin,
   ApiResponse,
+  ExamHistory,
+  GroupedContestType,
+  Product,
+  Student,
+  StudentByProduct,
+  StudentHistory,
+  StudentProduct,
 };

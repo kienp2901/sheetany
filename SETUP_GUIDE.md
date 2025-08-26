@@ -14,6 +14,7 @@ cp env.example .env.local
 ## 2. Cấu hình Google OAuth
 
 ### Bước 1: Tạo Google OAuth App
+
 1. Truy cập [Google Cloud Console](https://console.cloud.google.com/)
 2. Tạo project mới hoặc chọn project có sẵn
 3. Kích hoạt Google Identity Services API
@@ -24,11 +25,12 @@ cp env.example .env.local
    - `https://yourdomain.com` (production)
 
 ### Bước 2: Cấu hình .env.local
+
 ```env
 # Google OAuth Configuration (Client-side only)
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id-here
 
-# API Configuration  
+# API Configuration
 API_BASE_URL=https://apiemsdev.hocmai.net
 ```
 
@@ -43,15 +45,27 @@ npm run dev
 # Production build
 npm run build
 npm start
+
+# Testing
+npm run test              # Jest integration tests
+npm run test:e2e          # Playwright E2E tests
+npm run test:all          # All tests
+
+# Storybook
+npm run storybook         # Development mode
+npm run build-storybook   # Build static
 ```
 
 ## 4. Cấu hình API HOCMAI
 
 ### Thêm email vào whitelist
+
 Liên hệ team HOCMAI để thêm email vào hệ thống API:
+
 - Gửi email có domain `@hocmai.vn` để được thêm vào danh sách admin
 
 ### Flow authentication
+
 1. User đăng nhập bằng Google Sign-In (client-side)
 2. Nhận được Google ID token từ Google
 3. Gọi API `/hocmaiadmin/adminHocmaiManager/loginGoogle` với Google token
@@ -61,6 +75,7 @@ Liên hệ team HOCMAI để thêm email vào hệ thống API:
 ## 5. Tính năng chính
 
 ### Tra cứu học sinh
+
 - URL: `/students`
 - Tìm kiếm theo ID học sinh hoặc email
 - Xem chi tiết thông tin học sinh
@@ -68,7 +83,8 @@ Liên hệ team HOCMAI để thêm email vào hệ thống API:
 - Xem lịch sử làm bài thi (có phân trang)
 - Responsive design với cards view trên mobile
 
-### Tra cứu sản phẩm  
+### Tra cứu sản phẩm
+
 - URL: `/products`
 - Xem danh sách tất cả sản phẩm/phòng luyện (có phân trang)
 - Tìm kiếm sản phẩm theo tên hoặc mã
@@ -77,6 +93,7 @@ Liên hệ team HOCMAI để thêm email vào hệ thống API:
 - Xuất CSV danh sách học sinh đã đăng ký sản phẩm
 
 ### Tra cứu đề thi
+
 - URL: `/exams`
 - Chọn loại cuộc thi (TN THPT, HSA, TSA...)
 - Nhập ID đề thi để tra cứu
@@ -85,15 +102,58 @@ Liên hệ team HOCMAI để thêm email vào hệ thống API:
 - Xuất CSV kết quả lịch sử làm bài
 
 ### Quản trị Admin
+
 - URL: `/admin`
 - Thêm/sửa/xóa admin có quyền truy cập hệ thống
 - Chỉ chấp nhận email có domain @hocmai.vn
 - Giao diện tabs: Tổng quan, Quản lý quyền truy cập, Hệ thống
 - Modal forms cho thêm/sửa admin với validation
 
-## 6. Deployment
+## 6. Testing
+
+### Integration Tests (Jest)
+
+```bash
+# Run tests
+npm run test
+
+# Watch mode
+npm run test:watch
+
+# Coverage report
+npm run test:coverage
+```
+
+### End-to-End Tests (Playwright)
+
+```bash
+# Install browsers
+npm run test:e2e:install
+
+# Run E2E tests
+npm run test:e2e
+
+# UI mode
+npm run test:e2e:ui
+
+# Debug mode
+npm run test:e2e:debug
+```
+
+### Storybook
+
+```bash
+# Development
+npm run storybook
+
+# Build static
+npm run build-storybook
+```
+
+## 7. Deployment
 
 ### Vercel (Recommended)
+
 ```bash
 # Install Vercel CLI
 npm i -g vercel
@@ -103,6 +163,7 @@ vercel --prod
 ```
 
 ### Manual Server
+
 ```bash
 # Build
 npm run build
@@ -112,28 +173,39 @@ npm start
 ```
 
 ### Environment Variables cho Production
+
 Cần setup các biến môi trường:
+
 - `NEXT_PUBLIC_GOOGLE_CLIENT_ID`: Google OAuth client ID (public, có thể expose)
 - `API_BASE_URL`: URL của HOCMAI API (có thể để mặc định https://apiemsdev.hocmai.net)
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 ### Lỗi authentication
+
 - Kiểm tra Google Client ID trong .env.local
 - Đảm bảo domain được thêm vào authorized JavaScript origins
 - Kiểm tra email có domain @hocmai.vn
 - Kiểm tra email đã được thêm vào whitelist HOCMAI API
 
 ### Lỗi API calls
+
 - Kiểm tra API_BASE_URL
 - Đảm bảo email đã được thêm vào whitelist HOCMAI
 - Kiểm tra network requests trong DevTools
 
 ### Lỗi build
+
 - Chạy `npm run lint` để kiểm tra lỗi code
 - Chạy `npm run build` để test build locally
 
-## 8. Cấu trúc Project
+### Lỗi testing
+
+- Kiểm tra Jest configuration
+- Đảm bảo Playwright browsers đã được install
+- Kiểm tra test environment variables
+
+## 9. Cấu trúc Project
 
 ```
 src/
@@ -149,6 +221,7 @@ src/
 │   └── page.tsx           # Home page (redirect to students)
 ├── components/            # Reusable UI Components
 │   ├── Button.tsx         # Button component với variants
+│   ├── Card.tsx           # Card component
 │   ├── DataTable.tsx      # Table với pagination và export
 │   ├── Layout.tsx         # Main layout với responsive sidebar
 │   ├── Modal.tsx          # Modal component
@@ -158,20 +231,33 @@ src/
 │   ├── auth-context.tsx  # Auth context provider
 │   └── utils.ts          # Utility functions
 └── middleware.ts         # Route protection middleware
+
+tests/                    # Testing
+├── e2e/                  # Playwright E2E tests
+├── integration/          # Jest integration tests
+└── README.md            # Testing documentation
+
+stories/                  # Storybook
+├── assets/              # Story assets
+├── Button.stories.ts    # Button stories
+├── Card.stories.ts      # Card stories
+└── Configure.mdx        # Storybook configuration
 ```
 
-## 9. API Integration
+## 10. API Integration
 
 ### HOCMAI EMS API Endpoints
+
 - **Base URL**: https://apiemsdev.hocmai.net
 - **Authentication**: Bearer token từ Google OAuth
 
 ### Endpoints được sử dụng:
+
 ```
 # Authentication
 POST /hocmaiadmin/adminHocmaiManager/loginGoogle
 
-# Admin Management  
+# Admin Management
 GET    /hocmaiadmin/adminHocmaiManager
 POST   /hocmaiadmin/adminHocmaiManager
 PATCH  /hocmaiadmin/adminHocmaiManager/{id}
@@ -192,10 +278,48 @@ GET /hocmaiadmin/student/historyByMockContest
 GET /hocmaiadmin/student/historyByMockContest/csv
 ```
 
-## 10. Support
+## 11. Development Workflow
+
+### Code Quality
+
+```bash
+# Lint check
+npm run lint
+
+# Type check
+npm run type-check
+
+# Build check
+npm run build
+```
+
+### Testing Workflow
+
+1. Write unit tests for new components
+2. Add integration tests for API calls
+3. Create E2E tests for critical user flows
+4. Update Storybook stories for UI components
+5. Ensure all tests pass before committing
+
+### Git Workflow
+
+1. Create feature branch from main
+2. Implement feature with tests
+3. Update documentation
+4. Create pull request
+5. Code review and merge
+
+## 12. Support
 
 Liên hệ team HOCMAI để:
+
 - Thêm email vào whitelist API
-- Cấu hình Google OAuth domain restriction  
+- Cấu hình Google OAuth domain restriction
 - Hỗ trợ API issues
 - Cấp quyền truy cập môi trường staging/production
+
+**Tài liệu bổ sung:**
+
+- [RESPONSIVE_GUIDE.md](./RESPONSIVE_GUIDE.md) - Responsive design patterns
+- [GOOGLE_AUTH_MIGRATION.md](./GOOGLE_AUTH_MIGRATION.md) - Migration details
+- [tests/README.md](./tests/README.md) - Testing guidelines

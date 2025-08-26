@@ -1,9 +1,9 @@
 'use client';
 
-import { Fragment, ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 import { Dialog, Transition } from '@headlessui/react';
 import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Fragment, ReactNode } from 'react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -45,8 +45,10 @@ export default function Modal({
           leaveTo="opacity-0"
         >
           <div
-            className="fixed inset-0 bg-black"
+            className="fixed inset-0 bg-black cursor-pointer"
             style={{ opacity: 0.5 }}
+            data-testid="modal-backdrop"
+            onClick={onClose}
           />
         </Transition.Child>
 
@@ -83,13 +85,19 @@ export default function Modal({
                         type="button"
                         className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         onClick={onClose}
+                        aria-label="Close"
                       >
                         <X className="h-5 w-5" />
                       </button>
                     )}
                   </div>
                 )}
-                <div className={cn('p-4 sm:p-6', title || showCloseButton ? '' : 'pt-6')}>
+                <div
+                  className={cn(
+                    'p-4 sm:p-6',
+                    title || showCloseButton ? '' : 'pt-6'
+                  )}
+                >
                   {children}
                 </div>
               </Dialog.Panel>
@@ -108,11 +116,7 @@ interface ModalHeaderProps {
 }
 
 export function ModalHeader({ children, className }: ModalHeaderProps) {
-  return (
-    <div className={cn('mb-4 sm:mb-6', className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn('mb-4 sm:mb-6', className)}>{children}</div>;
 }
 
 // Modal Body Component
@@ -122,11 +126,7 @@ interface ModalBodyProps {
 }
 
 export function ModalBody({ children, className }: ModalBodyProps) {
-  return (
-    <div className={cn('space-y-4', className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn('space-y-4', className)}>{children}</div>;
 }
 
 // Modal Footer Component
@@ -137,7 +137,12 @@ interface ModalFooterProps {
 
 export function ModalFooter({ children, className }: ModalFooterProps) {
   return (
-    <div className={cn('flex flex-col sm:flex-row gap-3 sm:gap-3 sm:justify-end pt-4 sm:pt-6 border-t border-gray-200 mt-6', className)}>
+    <div
+      className={cn(
+        'flex flex-col sm:flex-row gap-3 sm:gap-3 sm:justify-end pt-4 sm:pt-6 border-t border-gray-200 mt-6',
+        className
+      )}
+    >
       {children}
     </div>
   );

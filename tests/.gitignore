@@ -1,0 +1,22 @@
+# Jest
+coverage/
+*.lcov
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Test artifacts
+*.png
+*.jpg
+*.mp4
+*.webm
+
+# Temporary files
+*.tmp
+*.temp
+
+# Environment files
+.env.test
+.env.local.test

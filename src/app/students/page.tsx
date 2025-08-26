@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import DataTable from '@/components/DataTable';
 import Layout from '@/components/Layout';
 import SearchBar from '@/components/SearchBar';
-import DataTable from '@/components/DataTable';
-import { apiClient, Student, StudentProduct, StudentHistory } from '@/lib/api';
+import { apiClient, Student, StudentHistory, StudentProduct } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { ArrowLeft } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
 export default function StudentsPage() {
@@ -19,7 +19,9 @@ export default function StudentsPage() {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
-  const [activeHistoryTab, setActiveHistoryTab] = useState<'normal' | 'topclass'>('normal');
+  const [activeHistoryTab, setActiveHistoryTab] = useState<
+    'normal' | 'topclass'
+  >('normal');
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -42,9 +44,12 @@ export default function StudentsPage() {
       // Load initial data
       loadStudents();
     }
-  }, [accessToken]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const loadStudents = async (searchParams?: { idOriginal?: string; email?: string }) => {
+  const loadStudents = async (searchParams?: {
+    idOriginal?: string;
+    email?: string;
+  }) => {
     setLoading(true);
     try {
       const result = await apiClient.getStudents({
@@ -53,7 +58,7 @@ export default function StudentsPage() {
         page: pagination.page,
       });
       setStudents(result.data);
-      setPagination(prev => ({ ...prev, total: result.total }));
+      setPagination((prev) => ({ ...prev, total: result.total }));
     } catch (error) {
       console.error('Error loading students:', error);
       toast.error('Lỗi khi tải danh sách học sinh');
@@ -79,7 +84,10 @@ export default function StudentsPage() {
         }
       );
       setStudentProducts(productsResult.data);
-      setProductsPagination(prev => ({ ...prev, total: productsResult.total }));
+      setProductsPagination((prev) => ({
+        ...prev,
+        total: productsResult.total,
+      }));
       setLoadingProducts(false);
 
       // Load student history for normal exams (type = 0)
@@ -92,7 +100,7 @@ export default function StudentsPage() {
         }
       );
       setStudentHistory(historyResult.data);
-      setHistoryPagination(prev => ({ ...prev, total: historyResult.total }));
+      setHistoryPagination((prev) => ({ ...prev, total: historyResult.total }));
       setLoadingHistory(false);
     } catch (error) {
       console.error('Error loading student details:', error);
@@ -113,20 +121,20 @@ export default function StudentsPage() {
   };
 
   const handleProductsPageChange = (page: number) => {
-    setProductsPagination(prev => ({ ...prev, page }));
+    setProductsPagination((prev) => ({ ...prev, page }));
   };
 
   const handleHistoryPageChange = (page: number) => {
-    setHistoryPagination(prev => ({ ...prev, page }));
+    setHistoryPagination((prev) => ({ ...prev, page }));
   };
 
   const handleHistoryTabChange = (tab: 'normal' | 'topclass') => {
     if (tab === activeHistoryTab) return;
-    
+
     setActiveHistoryTab(tab);
-    setHistoryPagination(prev => ({ ...prev, page: 1 })); // Reset to first page
+    setHistoryPagination((prev) => ({ ...prev, page: 1 })); // Reset to first page
     setLoadingHistory(true);
-    
+
     // Load history data for the selected tab
     if (selectedStudent) {
       const type = tab === 'normal' ? 0 : 1;
@@ -136,7 +144,7 @@ export default function StudentsPage() {
 
   const loadHistoryData = async (type: 0 | 1, page: number) => {
     if (!selectedStudent) return;
-    
+
     try {
       const historyResult = await apiClient.getStudentHistory(
         selectedStudent.idOriginal,
@@ -147,7 +155,7 @@ export default function StudentsPage() {
         }
       );
       setStudentHistory(historyResult.data);
-      setHistoryPagination(prev => ({ ...prev, total: historyResult.total }));
+      setHistoryPagination((prev) => ({ ...prev, total: historyResult.total }));
     } catch (error) {
       console.error('Error loading history:', error);
       toast.error('Lỗi khi tải lịch sử làm bài');
@@ -158,7 +166,7 @@ export default function StudentsPage() {
 
   const handleSearch = (query: string) => {
     const searchParams: { idOriginal?: string; email?: string } = {};
-    
+
     // Check if query is email or ID
     if (query.includes('@')) {
       searchParams.email = query;
@@ -170,7 +178,7 @@ export default function StudentsPage() {
   };
 
   const handlePageChange = (page: number) => {
-    setPagination(prev => ({ ...prev, page }));
+    setPagination((prev) => ({ ...prev, page }));
   };
 
   useEffect(() => {
@@ -194,7 +202,10 @@ export default function StudentsPage() {
             }
           );
           setStudentProducts(productsResult.data);
-          setProductsPagination(prev => ({ ...prev, total: productsResult.total }));
+          setProductsPagination((prev) => ({
+            ...prev,
+            total: productsResult.total,
+          }));
         } catch (error) {
           console.error('Error loading products:', error);
           toast.error('Lỗi khi tải danh sách sản phẩm');
@@ -214,7 +225,12 @@ export default function StudentsPage() {
       loadHistoryData(type, historyPagination.page);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [historyPagination.page, selectedStudent?.idOriginal, accessToken, activeHistoryTab]);
+  }, [
+    historyPagination.page,
+    selectedStudent?.idOriginal,
+    accessToken,
+    activeHistoryTab,
+  ]);
 
   const studentColumns = [
     {
@@ -252,12 +268,14 @@ export default function StudentsPage() {
     {
       key: 'timeStart',
       label: 'Thời gian bắt đầu',
-      render: (value: unknown) => new Date(value as string).toLocaleDateString('vi-VN'),
+      render: (value: unknown) =>
+        new Date(value as string).toLocaleDateString('vi-VN'),
     },
     {
       key: 'timeFinish',
       label: 'Thời gian kết thúc',
-      render: (value: unknown) => new Date(value as string).toLocaleDateString('vi-VN'),
+      render: (value: unknown) =>
+        new Date(value as string).toLocaleDateString('vi-VN'),
     },
     {
       key: 'idProduct',
@@ -269,7 +287,8 @@ export default function StudentsPage() {
     {
       key: 'mockcontests.name',
       label: 'Tên đề thi',
-      render: (_: unknown, row: StudentHistory) => row.mockcontests?.name || '-',
+      render: (_: unknown, row: StudentHistory) =>
+        row.mockcontests?.name || '-',
     },
     {
       key: 'products.name',
@@ -279,12 +298,14 @@ export default function StudentsPage() {
     {
       key: 'timeStart',
       label: 'Thời gian bắt đầu',
-      render: (value: unknown) => new Date(value as string).toLocaleString('vi-VN'),
+      render: (value: unknown) =>
+        new Date(value as string).toLocaleString('vi-VN'),
     },
     {
       key: 'timeFinish',
       label: 'Thời gian kết thúc',
-      render: (value: unknown) => new Date(value as string).toLocaleString('vi-VN'),
+      render: (value: unknown) =>
+        new Date(value as string).toLocaleString('vi-VN'),
     },
     {
       key: 'scoreMockContest',
@@ -294,7 +315,7 @@ export default function StudentsPage() {
 
   const historyTabs = [
     { id: 'normal', name: 'Phòng luyện đề', type: 0 },
-    { id: 'topclass', name: 'Phòng luyện Topclass', type: 1 }
+    { id: 'topclass', name: 'Phòng luyện Topclass', type: 1 },
   ];
 
   if (showDetail && selectedStudent) {
@@ -328,16 +349,28 @@ export default function StudentsPage() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="bg-white p-4 rounded-md shadow-sm">
-                <span className="font-medium text-blue-700 block mb-1">ID học sinh:</span>
-                <span className="text-gray-900 text-lg">{selectedStudent.idOriginal}</span>
+                <span className="font-medium text-blue-700 block mb-1">
+                  ID học sinh:
+                </span>
+                <span className="text-gray-900 text-lg">
+                  {selectedStudent.idOriginal}
+                </span>
               </div>
               <div className="bg-white p-4 rounded-md shadow-sm">
-                <span className="font-medium text-blue-700 block mb-1">Email:</span>
-                <span className="text-gray-900 break-all">{selectedStudent.email}</span>
+                <span className="font-medium text-blue-700 block mb-1">
+                  Email:
+                </span>
+                <span className="text-gray-900 break-all">
+                  {selectedStudent.email}
+                </span>
               </div>
               <div className="bg-white p-4 rounded-md shadow-sm sm:col-span-2 lg:col-span-1">
-                <span className="font-medium text-blue-700 block mb-1">Họ tên:</span>
-                <span className="text-gray-900 text-lg">{selectedStudent.name}</span>
+                <span className="font-medium text-blue-700 block mb-1">
+                  Họ tên:
+                </span>
+                <span className="text-gray-900 text-lg">
+                  {selectedStudent.name}
+                </span>
               </div>
             </div>
           </div>
@@ -363,14 +396,16 @@ export default function StudentsPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Lịch sử làm bài
             </h3>
-            
+
             {/* Tab Navigation */}
             <div className="border-b border-gray-200 mb-4">
               <nav className="flex overflow-x-auto">
                 {historyTabs.map((tab) => (
                   <button
                     key={tab.id}
-                    onClick={() => handleHistoryTabChange(tab.id as 'normal' | 'topclass')}
+                    onClick={() =>
+                      handleHistoryTabChange(tab.id as 'normal' | 'topclass')
+                    }
                     className={`flex items-center px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors cursor-pointer ${
                       activeHistoryTab === tab.id
                         ? 'border-indigo-500 text-indigo-600'
@@ -405,7 +440,9 @@ export default function StudentsPage() {
       <div className="space-y-4 sm:space-y-6">
         {/* Page Header */}
         <div className="text-center sm:text-left">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Tra cứu học sinh</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            Tra cứu học sinh
+          </h1>
           <p className="mt-1 sm:mt-2 text-sm text-gray-600">
             Tìm kiếm học sinh theo ID hoặc email để xem thông tin chi tiết
           </p>
@@ -434,13 +471,18 @@ export default function StudentsPage() {
               </div>
             ) : (
               students.map((student, index) => (
-                <div key={index} className="bg-white rounded-lg shadow-sm p-4 space-y-3">
+                <div
+                  key={index}
+                  className="bg-white rounded-lg shadow-sm p-4 space-y-3"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg font-semibold text-gray-900 truncate">
                         {student.name}
                       </h3>
-                      <p className="text-sm text-gray-600 truncate">ID: {student.idOriginal}</p>
+                      <p className="text-sm text-gray-600 truncate">
+                        ID: {student.idOriginal}
+                      </p>
                     </div>
                   </div>
                   <div className="text-sm text-gray-600 break-all">

@@ -30,7 +30,9 @@ export default function DataTable<T = unknown>({
   onExport,
   exportLabel = 'Xuất CSV',
 }: DataTableProps<T>) {
-  const totalPages = pagination ? Math.ceil(pagination.total / pagination.limit) : 1;
+  const totalPages = pagination
+    ? Math.ceil(pagination.total / pagination.limit)
+    : 1;
 
   return (
     <div className="bg-white shadow-sm rounded-lg">
@@ -72,8 +74,9 @@ export default function DataTable<T = unknown>({
                   colSpan={columns.length}
                   className="px-3 sm:px-6 py-12 text-center text-sm text-gray-500"
                 >
-                  <div className="flex justify-center">
+                  <div className="flex flex-col items-center space-y-2">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                    <span>Đang tải...</span>
                   </div>
                 </td>
               </tr>
@@ -95,14 +98,30 @@ export default function DataTable<T = unknown>({
                       className="px-3 sm:px-6 py-4 text-sm text-gray-900"
                       style={{ minWidth: '120px' }}
                     >
-                      <div className="truncate max-w-xs sm:max-w-none" title={
-                        column.render 
-                          ? String(column.render((row as Record<string, unknown>)[column.key], row))
-                          : String((row as Record<string, unknown>)[column.key] ?? '')
-                      }>
+                      <div
+                        className="truncate max-w-xs sm:max-w-none"
+                        title={
+                          column.render
+                            ? String(
+                                column.render(
+                                  (row as Record<string, unknown>)[column.key],
+                                  row
+                                )
+                              )
+                            : String(
+                                (row as Record<string, unknown>)[column.key] ??
+                                  ''
+                              )
+                        }
+                      >
                         {column.render
-                          ? column.render((row as Record<string, unknown>)[column.key], row)
-                          : String((row as Record<string, unknown>)[column.key] ?? '')}
+                          ? column.render(
+                              (row as Record<string, unknown>)[column.key],
+                              row
+                            )
+                          : String(
+                              (row as Record<string, unknown>)[column.key] ?? ''
+                            )}
                       </div>
                     </td>
                   ))}
@@ -153,7 +172,10 @@ export default function DataTable<T = unknown>({
                 </span>{' '}
                 đến{' '}
                 <span className="font-medium">
-                  {Math.min(pagination.page * pagination.limit, pagination.total)}
+                  {Math.min(
+                    pagination.page * pagination.limit,
+                    pagination.total
+                  )}
                 </span>{' '}
                 trong tổng số{' '}
                 <span className="font-medium">{pagination.total}</span> kết quả

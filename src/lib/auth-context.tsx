@@ -1,9 +1,15 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { apiClient } from './api';
-import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
+import toast from 'react-hot-toast';
+import { apiClient } from './api';
 
 export interface User {
   email?: string;
@@ -52,19 +58,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
           isLoading: false,
           isAuthenticated: true,
         });
-        
+
         // Set cookie for middleware (in case it's missing)
         document.cookie = `auth_token=${savedToken}; path=/; max-age=86400; SameSite=Lax`;
-        
+
         apiClient.setAuthToken(savedToken);
       } catch (error) {
         console.error('Error loading saved session:', error);
         localStorage.removeItem('auth_user');
         localStorage.removeItem('auth_token');
-        setState(prev => ({ ...prev, isLoading: false }));
+        setState((prev) => ({ ...prev, isLoading: false }));
       }
     } else {
-      setState(prev => ({ ...prev, isLoading: false }));
+      setState((prev) => ({ ...prev, isLoading: false }));
     }
   }, []);
 
@@ -80,65 +86,65 @@ export function AuthProvider({ children }: AuthProviderProps) {
       );
       return JSON.parse(jsonPayload);
     } catch (e) {
-      console.error("JWT parse error:", e);
+      console.error('JWT parse error:', e);
       return null;
     }
   }
 
   const login = async (credential: string) => {
-    setState(prev => ({ ...prev, isLoading: true }));
-    console.log("credential: ", credential);
-  
+    setState((prev) => ({ ...prev, isLoading: true }));
+    console.log('credential: ', credential);
+
     try {
       // ✅ Decode JWT payload đúng cách
       const payload = parseJwt(credential);
-      if (!payload) throw new Error("Invalid JWT payload");
-  
+      if (!payload) throw new Error('Invalid JWT payload');
+
       const user: User = {
         email: payload.email,
         name: payload.name,
         picture: payload.picture,
       };
-  
+
       // Gọi API backend để đổi Google credential lấy token của hệ thống
       const loginResponse = await apiClient.loginGoogle(credential);
       const accessToken = loginResponse.token;
-  
+
       // Lưu vào localStorage
       localStorage.setItem('auth_user', JSON.stringify(user));
       localStorage.setItem('auth_token', accessToken);
-  
+
       // Set cookie cho middleware
       document.cookie = `auth_token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
-  
+
       // Set token cho API client
       apiClient.setAuthToken(accessToken);
-  
+
       setState({
         user,
         accessToken,
         isLoading: false,
         isAuthenticated: true,
       });
-  
+
       toast.success('Đăng nhập thành công!');
     } catch (error) {
       console.error('Login error:', error);
-      setState(prev => ({ ...prev, isLoading: false }));
+      setState((prev) => ({ ...prev, isLoading: false }));
       toast.error('Đăng nhập thất bại. Vui lòng thử lại.');
-      throw error;
     }
   };
 
   const logout = () => {
     localStorage.removeItem('auth_user');
     localStorage.removeItem('auth_token');
-    
+
     // Remove cookie
-    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    
+    document.cookie =
+      'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+
     apiClient.setAuthToken(null);
-    
+
     setState({
       user: null,
       accessToken: null,
@@ -147,7 +153,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     toast.success('Đã đăng xuất thành công!');
-    
+
     // Redirect to signin page
     router.push('/auth/signin');
   };
@@ -159,9 +165,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 }
 
