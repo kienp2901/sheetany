@@ -4,36 +4,22 @@ import { useState, useEffect } from "react"
 import SearchBox from "./SearchBox"
 import CategoryFilter from "./CategoryFilter"
 import PostList from "./PostList"
-import { siteServiceApi, type SiteData } from "@/services/api/siteServiceApi"
+import { siteServiceApi } from "@/services/api/siteServiceApi"
 import useDebounce from "@/hooks/useDebounce"
+import { useSiteData } from "@/components/SiteDataProvider"
 
 export default function BlogHeader() {
   const [selectedCategory, setSelectedCategory] = useState("All categories")
   const [searchQuery, setSearchQuery] = useState("")
   const debouncedSearchQuery = useDebounce(searchQuery, 500) // 500ms delay
-  const [siteData, setSiteData] = useState<SiteData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { siteData, loading } = useSiteData()
 
   useEffect(() => {
-    const fetchSiteData = async () => {
-      try {
-        const response = await siteServiceApi.getSiteData()
-        if (response.status) {
-          setSiteData(response.data)
-          // Update selected category with API data
-          const allCategoriesText =
-            siteServiceApi.getSiteInfoByCode(response.data.site_informations, "all_categories") || "All categories"
-          setSelectedCategory(allCategoriesText)
-        }
-      } catch (error) {
-        console.error("Failed to fetch site data:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchSiteData()
-  }, [])
+    if (!siteData) return
+    const allCategoriesText =
+      siteServiceApi.getSiteInfoByCode(siteData.site_informations, "all_categories") || "All categories"
+    setSelectedCategory(allCategoriesText)
+  }, [siteData])
 
   if (loading) {
     return (
