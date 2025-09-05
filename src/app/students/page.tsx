@@ -6,7 +6,7 @@ import SearchBar from '@/components/SearchBar';
 import { apiClient, Student, StudentHistory, StudentProduct } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
 export default function StudentsPage() {
@@ -38,13 +38,8 @@ export default function StudentsPage() {
     total: 0,
   });
 
-  useEffect(() => {
-    if (accessToken) {
-      apiClient.setAuthToken(accessToken);
-      // Load initial data
-      loadStudents();
-    }
-  }, [accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Track if initial load has been done
+  const initialLoadDone = useRef(false);
 
   const loadStudents = async (searchParams?: {
     idOriginal?: string;
@@ -66,6 +61,14 @@ export default function StudentsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (accessToken && !initialLoadDone.current) {
+      apiClient.setAuthToken(accessToken);
+      loadStudents();
+      initialLoadDone.current = true;
+    }
+  }, [accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadStudentDetails = async (student: Student) => {
     setSelectedStudent(student);
@@ -182,15 +185,15 @@ export default function StudentsPage() {
   };
 
   useEffect(() => {
-    if (accessToken) {
+    if (accessToken && pagination.page > 1 && initialLoadDone.current) {
       loadStudents();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.page, accessToken]);
+  }, [pagination.page]);
 
   // Load products when pagination changes
   useEffect(() => {
-    if (selectedStudent && accessToken) {
+    if (selectedStudent && accessToken && productsPagination.page > 1) {
       const loadProducts = async () => {
         setLoadingProducts(true);
         try {
@@ -216,21 +219,16 @@ export default function StudentsPage() {
       loadProducts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productsPagination.page, selectedStudent?.idOriginal, accessToken]);
+  }, [productsPagination.page]);
 
   // Load history when pagination changes
   useEffect(() => {
-    if (selectedStudent && accessToken) {
+    if (selectedStudent && accessToken && historyPagination.page > 1) {
       const type = activeHistoryTab === 'normal' ? 0 : 1;
       loadHistoryData(type, historyPagination.page);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    historyPagination.page,
-    selectedStudent?.idOriginal,
-    accessToken,
-    activeHistoryTab,
-  ]);
+  }, [historyPagination.page]);
 
   const studentColumns = [
     {

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import DataTable from '@/components/DataTable';
 import Layout from '@/components/Layout';
 import SearchBar from '@/components/SearchBar';
-import DataTable from '@/components/DataTable';
-import { useAuth } from '@/lib/auth-context';
 import { apiClient, Product, StudentByProduct } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { ArrowLeft } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
 export default function ProductsPage() {
@@ -14,7 +14,9 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [productStudents, setProductStudents] = useState<StudentByProduct[]>([]);
+  const [productStudents, setProductStudents] = useState<StudentByProduct[]>(
+    []
+  );
   const [loading, setLoading] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
@@ -29,28 +31,31 @@ export default function ProductsPage() {
     total: 0,
   });
 
+  // Track if initial load has been done
+  const initialLoadDone = useRef(false);
 
   useEffect(() => {
-    if (accessToken) {
+    if (accessToken && !initialLoadDone.current) {
       apiClient.setAuthToken(accessToken);
       loadProducts();
+      initialLoadDone.current = true;
     }
   }, [accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (accessToken) {
+    if (accessToken && pagination.page > 1 && initialLoadDone.current) {
       loadProducts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.page, accessToken]);
+  }, [pagination.page]);
 
   // Load students when pagination changes for product detail
   useEffect(() => {
-    if (selectedProduct && accessToken) {
+    if (selectedProduct && accessToken && studentsPagination.page > 1) {
       loadProductStudents();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [studentsPagination.page, selectedProduct?.idProduct, accessToken]);
+  }, [studentsPagination.page]);
 
   const loadProducts = async () => {
     setLoading(true);
@@ -61,7 +66,7 @@ export default function ProductsPage() {
       });
       setProducts(result.data);
       setFilteredProducts(result.data);
-      setPagination(prev => ({ ...prev, total: result.total }));
+      setPagination((prev) => ({ ...prev, total: result.total }));
     } catch (error) {
       console.error('Error loading products:', error);
       toast.error('Lỗi khi tải danh sách sản phẩm');
@@ -70,18 +75,24 @@ export default function ProductsPage() {
     }
   };
 
-  const loadProductStudents = async (searchParams?: { idOriginal?: string; email?: string }) => {
+  const loadProductStudents = async (searchParams?: {
+    idOriginal?: string;
+    email?: string;
+  }) => {
     if (!selectedProduct) return;
-    
+
     setLoadingStudents(true);
     try {
-      const result = await apiClient.getStudentsByProduct(selectedProduct.idProduct, {
-        ...searchParams,
-        limit: studentsPagination.limit,
-        page: studentsPagination.page,
-      });
+      const result = await apiClient.getStudentsByProduct(
+        selectedProduct.idProduct,
+        {
+          ...searchParams,
+          limit: studentsPagination.limit,
+          page: studentsPagination.page,
+        }
+      );
       setProductStudents(result.data);
-      setStudentsPagination(prev => ({ ...prev, total: result.total }));
+      setStudentsPagination((prev) => ({ ...prev, total: result.total }));
     } catch (error) {
       console.error('Error loading product students:', error);
       toast.error('Lỗi khi tải danh sách học sinh');
@@ -91,16 +102,17 @@ export default function ProductsPage() {
   };
 
   const handleSearch = (query: string) => {
-    const filtered = products.filter(product =>
-      product.name.toLowerCase().includes(query.toLowerCase()) ||
-      product.idProduct.toString().includes(query)
+    const filtered = products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(query.toLowerCase()) ||
+        product.idProduct.toString().includes(query)
     );
     setFilteredProducts(filtered);
   };
 
   const handleStudentSearch = (query: string) => {
     const searchParams: { idOriginal?: string; email?: string } = {};
-    
+
     // Check if query is email or ID
     if (query.includes('@')) {
       searchParams.email = query;
@@ -127,16 +139,16 @@ export default function ProductsPage() {
   };
 
   const handlePageChange = (page: number) => {
-    setPagination(prev => ({ ...prev, page }));
+    setPagination((prev) => ({ ...prev, page }));
   };
 
   const handleStudentsPageChange = (page: number) => {
-    setStudentsPagination(prev => ({ ...prev, page }));
+    setStudentsPagination((prev) => ({ ...prev, page }));
   };
 
   const handleExportStudents = async () => {
     if (!selectedProduct) return;
-    
+
     try {
       const blob = await apiClient.exportStudentsByProduct(
         selectedProduct.idProduct
@@ -200,16 +212,16 @@ export default function ProductsPage() {
     {
       key: 'timeStart',
       label: 'Ngày bắt đầu',
-      render: (value: unknown) => new Date(value as string).toLocaleDateString('vi-VN'),
+      render: (value: unknown) =>
+        new Date(value as string).toLocaleDateString('vi-VN'),
     },
     {
       key: 'timeFinish',
       label: 'Ngày kết thúc',
-      render: (value: unknown) => new Date(value as string).toLocaleDateString('vi-VN'),
+      render: (value: unknown) =>
+        new Date(value as string).toLocaleDateString('vi-VN'),
     },
   ];
-
-
 
   if (showDetail && selectedProduct) {
     return (
@@ -242,12 +254,20 @@ export default function ProductsPage() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-white p-4 rounded-md shadow-sm">
-                <span className="font-medium text-blue-700 block mb-1">ID sản phẩm:</span>
-                <span className="text-gray-900 text-lg">{selectedProduct.idProduct}</span>
+                <span className="font-medium text-blue-700 block mb-1">
+                  ID sản phẩm:
+                </span>
+                <span className="text-gray-900 text-lg">
+                  {selectedProduct.idProduct}
+                </span>
               </div>
               <div className="bg-white p-4 rounded-md shadow-sm">
-                <span className="font-medium text-blue-700 block mb-1">Tên sản phẩm:</span>
-                <span className="text-gray-900 text-lg">{selectedProduct.name}</span>
+                <span className="font-medium text-blue-700 block mb-1">
+                  Tên sản phẩm:
+                </span>
+                <span className="text-gray-900 text-lg">
+                  {selectedProduct.name}
+                </span>
               </div>
             </div>
           </div>
@@ -267,7 +287,8 @@ export default function ProductsPage() {
           {/* Students Table */}
           <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Danh sách học sinh đã đăng ký ({studentsPagination.total.toLocaleString()})
+              Danh sách học sinh đã đăng ký (
+              {studentsPagination.total.toLocaleString()})
             </h3>
             <DataTable<StudentByProduct>
               columns={studentColumns}
@@ -291,7 +312,9 @@ export default function ProductsPage() {
       <div className="space-y-4 sm:space-y-6">
         {/* Page Header */}
         <div className="text-center sm:text-left">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Tra cứu sản phẩm</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            Tra cứu sản phẩm
+          </h1>
           <p className="mt-1 sm:mt-2 text-sm text-gray-600">
             Quản lý và tra cứu thông tin các sản phẩm khóa học
           </p>
@@ -340,13 +363,18 @@ export default function ProductsPage() {
               </div>
             ) : (
               filteredProducts.map((product) => (
-                <div key={product.idProduct} className="bg-white rounded-lg shadow-sm p-4 space-y-3">
+                <div
+                  key={product.idProduct}
+                  className="bg-white rounded-lg shadow-sm p-4 space-y-3"
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg font-semibold text-gray-900 truncate">
                         {product.name}
                       </h3>
-                      <p className="text-sm text-gray-600 truncate">Mã: {product.idProduct}</p>
+                      <p className="text-sm text-gray-600 truncate">
+                        Mã: {product.idProduct}
+                      </p>
                     </div>
                   </div>
                   <button

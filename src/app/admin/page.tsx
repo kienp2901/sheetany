@@ -1,32 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/auth-context';
-import Layout from '@/components/Layout';
-import DataTable from '@/components/DataTable';
-import Modal from '@/components/Modal';
 import { Button } from '@/components/Button';
-import { apiClient, Admin } from '@/lib/api';
-import { 
-  Users, 
-  Package, 
+import DataTable from '@/components/DataTable';
+import Layout from '@/components/Layout';
+import Modal from '@/components/Modal';
+import { Admin, apiClient } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
+import {
+  AlertTriangle,
+  Database,
   DollarSign,
-  UserCheck,
+  Edit,
+  Package,
+  Plus,
   // Activity,
   Settings,
   Shield,
-  Database,
-  AlertTriangle,
-  Plus,
-  Edit,
-  Trash2
+  Trash2,
+  UserCheck,
+  Users,
 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
 export default function AdminPage() {
   const { accessToken } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'system'>('users');
-  
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'system'>(
+    'users'
+  );
+
   // Admin management state
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(false);
@@ -36,8 +38,11 @@ export default function AdminPage() {
   const [formData, setFormData] = useState({
     email: '',
     firstName: '',
-    lastName: ''
+    lastName: '',
   });
+
+  // Track if initial load has been done
+  const initialLoadDone = useRef(false);
 
   // Dummy statistics data
   const systemStats = {
@@ -46,7 +51,7 @@ export default function AdminPage() {
     totalExams: 1250,
     activeUsers: 8930,
     revenue: 125000000,
-    growth: 12.5
+    growth: 12.5,
   };
 
   const recentActivities = [
@@ -55,42 +60,43 @@ export default function AdminPage() {
       type: 'user_login',
       message: 'Người dùng admin@hocmai.vn đã đăng nhập',
       timestamp: '2024-01-15 10:30:00',
-      status: 'success'
+      status: 'success',
     },
     {
       id: 2,
       type: 'system_backup',
       message: 'Backup dữ liệu hệ thống hoàn tất',
       timestamp: '2024-01-15 09:00:00',
-      status: 'success'
+      status: 'success',
     },
     {
       id: 3,
       type: 'error',
       message: 'Lỗi kết nối database tạm thời',
       timestamp: '2024-01-15 08:45:00',
-      status: 'error'
+      status: 'error',
     },
     {
       id: 4,
       type: 'new_user',
       message: '25 người dùng mới đăng ký trong 24h qua',
       timestamp: '2024-01-15 08:00:00',
-      status: 'info'
-    }
+      status: 'info',
+    },
   ];
 
   const systemHealth = [
     { name: 'Database', status: 'healthy', uptime: '99.9%' },
     { name: 'API Server', status: 'healthy', uptime: '99.8%' },
     { name: 'File Storage', status: 'warning', uptime: '98.5%' },
-    { name: 'Email Service', status: 'healthy', uptime: '99.7%' }
+    { name: 'Email Service', status: 'healthy', uptime: '99.7%' },
   ];
 
   useEffect(() => {
-    if (accessToken) {
+    if (accessToken && !initialLoadDone.current) {
       apiClient.setAuthToken(accessToken);
       loadAdmins();
+      initialLoadDone.current = true;
     }
   }, [accessToken]);
 
@@ -117,7 +123,7 @@ export default function AdminPage() {
 
   const handleAddAdmin = async () => {
     if (!validateEmail(formData.email)) return;
-    
+
     try {
       await apiClient.addAdmin(formData.email);
       toast.success('Thêm quản trị viên thành công');
@@ -133,12 +139,12 @@ export default function AdminPage() {
   const handleEditAdmin = async () => {
     if (!selectedAdmin) return;
     if (formData.email && !validateEmail(formData.email)) return;
-    
+
     try {
       await apiClient.updateAdmin(selectedAdmin.idAdminHocmaiManager, {
         ...(formData.email && { email: formData.email }),
         ...(formData.firstName && { firstName: formData.firstName }),
-        ...(formData.lastName && { lastName: formData.lastName })
+        ...(formData.lastName && { lastName: formData.lastName }),
       });
       toast.success('Cập nhật thông tin thành công');
       setShowEditModal(false);
@@ -155,7 +161,7 @@ export default function AdminPage() {
     if (!confirm(`Bạn có chắc chắn muốn xóa quản trị viên ${admin.email}?`)) {
       return;
     }
-    
+
     try {
       await apiClient.deleteAdmin(admin.idAdminHocmaiManager);
       toast.success('Xóa quản trị viên thành công');
@@ -171,7 +177,7 @@ export default function AdminPage() {
     setFormData({
       email: admin.email,
       firstName: admin.firstName || '',
-      lastName: admin.lastName || ''
+      lastName: admin.lastName || '',
     });
     setShowEditModal(true);
   };
@@ -224,7 +230,7 @@ export default function AdminPage() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
-      currency: 'VND'
+      currency: 'VND',
     }).format(amount);
   };
 
@@ -262,29 +268,29 @@ export default function AdminPage() {
       value: systemStats.totalUsers.toLocaleString(),
       change: '+12%',
       icon: Users,
-      color: 'bg-blue-500'
+      color: 'bg-blue-500',
     },
     {
       name: 'Tổng sản phẩm',
       value: systemStats.totalProducts.toString(),
       change: '+3%',
       icon: Package,
-      color: 'bg-green-500'
+      color: 'bg-green-500',
     },
     {
       name: 'Người dùng hoạt động',
       value: systemStats.activeUsers.toLocaleString(),
       change: '+8%',
       icon: UserCheck,
-      color: 'bg-purple-500'
+      color: 'bg-purple-500',
     },
     {
       name: 'Doanh thu tháng',
       value: formatCurrency(systemStats.revenue),
       change: `+${systemStats.growth}%`,
       icon: DollarSign,
-      color: 'bg-yellow-500'
-    }
+      color: 'bg-yellow-500',
+    },
   ];
 
   return (
@@ -292,7 +298,9 @@ export default function AdminPage() {
       <div className="space-y-4 sm:space-y-6">
         {/* Page Header */}
         <div className="text-center sm:text-left">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Quản trị hệ thống</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            Quản trị hệ thống
+          </h1>
           <p className="mt-1 sm:mt-2 text-sm text-gray-600">
             Theo dõi và quản lý toàn bộ hệ thống HOCMAI EMS
           </p>
@@ -306,8 +314,8 @@ export default function AdminPage() {
             </div>
             <div className="ml-3">
               <p className="text-sm text-amber-700">
-                <strong>Khu vực quản trị:</strong> Chỉ dành cho quản trị viên hệ thống. 
-                Vui lòng thận trọng khi thực hiện các thao tác.
+                <strong>Khu vực quản trị:</strong> Chỉ dành cho quản trị viên hệ
+                thống. Vui lòng thận trọng khi thực hiện các thao tác.
               </p>
             </div>
           </div>
@@ -322,7 +330,9 @@ export default function AdminPage() {
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as 'overview' | 'users' | 'system')}
+                    onClick={() =>
+                      setActiveTab(tab.id as 'overview' | 'users' | 'system')
+                    }
                     className={`flex items-center px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                       activeTab === tab.id
                         ? 'border-indigo-500 text-indigo-600'
@@ -347,16 +357,27 @@ export default function AdminPage() {
                   {overviewCards.map((card) => {
                     const Icon = card.icon;
                     return (
-                      <div key={card.name} className="bg-gray-50 p-4 rounded-lg">
+                      <div
+                        key={card.name}
+                        className="bg-gray-50 p-4 rounded-lg"
+                      >
                         <div className="flex items-center">
-                          <div className={`flex-shrink-0 p-3 rounded-md ${card.color}`}>
+                          <div
+                            className={`flex-shrink-0 p-3 rounded-md ${card.color}`}
+                          >
                             <Icon className="h-6 w-6 text-white" />
                           </div>
                           <div className="ml-4 flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-500 truncate">{card.name}</p>
+                            <p className="text-sm font-medium text-gray-500 truncate">
+                              {card.name}
+                            </p>
                             <div className="flex items-center">
-                              <p className="text-lg font-semibold text-gray-900">{card.value}</p>
-                              <span className="ml-2 text-sm text-green-600">{card.change}</span>
+                              <p className="text-lg font-semibold text-gray-900">
+                                {card.value}
+                              </p>
+                              <span className="ml-2 text-sm text-green-600">
+                                {card.change}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -367,15 +388,26 @@ export default function AdminPage() {
 
                 {/* Recent Activities */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Hoạt động gần đây</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Hoạt động gần đây
+                  </h3>
                   <div className="space-y-3">
                     {recentActivities.map((activity) => (
-                      <div key={activity.id} className="bg-gray-50 p-4 rounded-lg">
+                      <div
+                        key={activity.id}
+                        className="bg-gray-50 p-4 rounded-lg"
+                      >
                         <div className="flex items-start space-x-3">
-                          <div className={`w-2 h-2 rounded-full mt-2 ${getActivityColor(activity.status)}`}></div>
+                          <div
+                            className={`w-2 h-2 rounded-full mt-2 ${getActivityColor(activity.status)}`}
+                          ></div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-900">{activity.message}</p>
-                            <p className="text-xs text-gray-500 mt-1">{activity.timestamp}</p>
+                            <p className="text-sm text-gray-900">
+                              {activity.message}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {activity.timestamp}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -393,10 +425,13 @@ export default function AdminPage() {
                   <div className="flex items-start">
                     <Shield className="h-5 w-5 text-blue-600 mt-0.5 mr-3" />
                     <div>
-                      <h3 className="text-sm font-medium text-blue-900">Quản lý quyền truy cập</h3>
+                      <h3 className="text-sm font-medium text-blue-900">
+                        Quản lý quyền truy cập
+                      </h3>
                       <p className="text-sm text-blue-700 mt-1">
-                        Chỉ email có domain @hocmai.vn mới được phép truy cập hệ thống. 
-                        Quản lý danh sách người dùng được phép đăng nhập vào trang quản trị.
+                        Chỉ email có domain @hocmai.vn mới được phép truy cập hệ
+                        thống. Quản lý danh sách người dùng được phép đăng nhập
+                        vào trang quản trị.
                       </p>
                     </div>
                   </div>
@@ -433,18 +468,32 @@ export default function AdminPage() {
               <div className="space-y-6">
                 {/* System Health */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Tình trạng hệ thống</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Tình trạng hệ thống
+                  </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {systemHealth.map((service) => (
-                      <div key={service.name} className="bg-gray-50 p-4 rounded-lg">
+                      <div
+                        key={service.name}
+                        className="bg-gray-50 p-4 rounded-lg"
+                      >
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-medium text-gray-900">{service.name}</h4>
-                          <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(service.status)}`}>
-                            {service.status === 'healthy' ? 'Tốt' : 
-                             service.status === 'warning' ? 'Cảnh báo' : 'Lỗi'}
+                          <h4 className="text-sm font-medium text-gray-900">
+                            {service.name}
+                          </h4>
+                          <span
+                            className={`px-2 py-1 text-xs rounded-full ${getStatusColor(service.status)}`}
+                          >
+                            {service.status === 'healthy'
+                              ? 'Tốt'
+                              : service.status === 'warning'
+                                ? 'Cảnh báo'
+                                : 'Lỗi'}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-600 mt-2">Uptime: {service.uptime}</p>
+                        <p className="text-sm text-gray-600 mt-2">
+                          Uptime: {service.uptime}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -452,33 +501,47 @@ export default function AdminPage() {
 
                 {/* System Tools */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Công cụ hệ thống</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Công cụ hệ thống
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button 
+                    <button
                       className="bg-gray-50 p-6 rounded-lg text-center hover:bg-gray-100 transition-colors"
                       title="Thực hiện sao lưu toàn bộ dữ liệu hệ thống"
                     >
                       <Database className="h-8 w-8 text-blue-500 mx-auto mb-3" />
-                      <h4 className="text-sm font-medium text-gray-900">Backup dữ liệu</h4>
-                      <p className="text-xs text-gray-600 mt-1">Sao lưu toàn bộ dữ liệu</p>
+                      <h4 className="text-sm font-medium text-gray-900">
+                        Backup dữ liệu
+                      </h4>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Sao lưu toàn bộ dữ liệu
+                      </p>
                     </button>
-                    
-                    <button 
+
+                    <button
                       className="bg-gray-50 p-6 rounded-lg text-center hover:bg-gray-100 transition-colors"
                       title="Cài đặt và cấu hình hệ thống"
                     >
                       <Settings className="h-8 w-8 text-green-500 mx-auto mb-3" />
-                      <h4 className="text-sm font-medium text-gray-900">Cấu hình</h4>
-                      <p className="text-xs text-gray-600 mt-1">Cài đặt hệ thống</p>
+                      <h4 className="text-sm font-medium text-gray-900">
+                        Cấu hình
+                      </h4>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Cài đặt hệ thống
+                      </p>
                     </button>
-                    
-                    <button 
+
+                    <button
                       className="bg-gray-50 p-6 rounded-lg text-center hover:bg-gray-100 transition-colors"
                       title="Xem nhật ký hoạt động và lỗi hệ thống"
                     >
                       <AlertTriangle className="h-8 w-8 text-yellow-500 mx-auto mb-3" />
-                      <h4 className="text-sm font-medium text-gray-900">Logs</h4>
-                      <p className="text-xs text-gray-600 mt-1">Xem nhật ký hệ thống</p>
+                      <h4 className="text-sm font-medium text-gray-900">
+                        Logs
+                      </h4>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Xem nhật ký hệ thống
+                      </p>
                     </button>
                   </div>
                 </div>
@@ -498,14 +561,19 @@ export default function AdminPage() {
         >
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Email <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
                 id="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="example@hocmai.vn"
                 required
@@ -549,42 +617,57 @@ export default function AdminPage() {
         >
           <div className="space-y-4">
             <div>
-              <label htmlFor="edit-email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="edit-email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Email
               </label>
               <input
                 type="email"
                 id="edit-email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="example@hocmai.vn"
               />
             </div>
-            
+
             <div>
-              <label htmlFor="edit-firstName" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="edit-firstName"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Họ
               </label>
               <input
                 type="text"
                 id="edit-firstName"
                 value={formData.firstName}
-                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, firstName: e.target.value })
+                }
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="Nhập họ..."
               />
             </div>
-            
+
             <div>
-              <label htmlFor="edit-lastName" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="edit-lastName"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Tên
               </label>
               <input
                 type="text"
                 id="edit-lastName"
                 value={formData.lastName}
-                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, lastName: e.target.value })
+                }
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="Nhập tên..."
               />
@@ -602,7 +685,7 @@ export default function AdminPage() {
               >
                 Hủy
               </Button>
-              <Button 
+              <Button
                 onClick={handleEditAdmin}
                 title="Cập nhật thông tin quản trị viên"
               >

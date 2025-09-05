@@ -4,7 +4,7 @@ import DataTable from '@/components/DataTable';
 import Layout from '@/components/Layout';
 import { apiClient, ExamHistory, GroupedContestType } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
 export default function ExamsPage() {
@@ -24,6 +24,9 @@ export default function ExamsPage() {
     contestTypeValues: number[];
     mockContestId: number;
   } | null>(null);
+
+  // Track if initial load has been done
+  const initialLoadDone = useRef(false);
 
   // Gom nhóm contest types theo tên cuộc thi
   const groupedContestTypes: GroupedContestType[] = [
@@ -77,11 +80,12 @@ export default function ExamsPage() {
       setLoading(false);
       setIsInitialLoad(false);
     }
-  }, [pagination.limit, pagination.page]); // 👈 dependencies
+  }, [pagination.limit, pagination.page]);
 
   useEffect(() => {
-    if (accessToken) {
+    if (accessToken && !initialLoadDone.current) {
       loadInitialData();
+      initialLoadDone.current = true;
     }
   }, [accessToken, loadInitialData]);
 
@@ -173,6 +177,12 @@ export default function ExamsPage() {
 
   const handlePageChange = (page: number) => {
     setPagination((prev) => ({ ...prev, page }));
+    // Load data for the new page
+    if (currentSearch) {
+      loadExamHistory(currentSearch.contestType, currentSearch.mockContestId);
+    } else {
+      loadInitialData();
+    }
   };
 
   const handleClearSearch = () => {
@@ -282,10 +292,14 @@ export default function ExamsPage() {
                   id="contestType"
                   value={selectedContestType}
                   onChange={(e) => setSelectedContestType(e.target.value)}
-                  className="block w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm"
+                  className="block w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm text-gray-900 bg-white"
                 >
                   {contestTypes.map((type) => (
-                    <option key={type.value} value={type.value}>
+                    <option
+                      key={type.value}
+                      value={type.value}
+                      className="text-gray-900 bg-white"
+                    >
                       {type.label}
                     </option>
                   ))}
@@ -304,7 +318,7 @@ export default function ExamsPage() {
                   id="mockContestId"
                   value={mockContestId}
                   onChange={(e) => setMockContestId(e.target.value)}
-                  className="block w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm"
+                  className="block w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm text-gray-900 bg-white"
                   placeholder="Nhập ID đề thi..."
                 />
               </div>
