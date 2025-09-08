@@ -264,7 +264,7 @@ PATCH  /hocmaiadmin/adminHocmaiManager/{id}
 DELETE /hocmaiadmin/adminHocmaiManager/{id}
 
 # Students
-GET /hocmaiadmin/api/listStudent
+GET /hocmaiadmin/student/listStudent
 GET /hocmaiadmin/student/productByStudent
 GET /hocmaiadmin/student/historyByStudent
 

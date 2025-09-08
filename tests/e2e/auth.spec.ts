@@ -58,7 +58,7 @@ test.describe('Authentication Flow', () => {
     );
 
     // Mock successful students API call
-    await page.route('**/hocmaiadmin/api/listStudent**', async (route) => {
+    await page.route('**/hocmaiadmin/student/listStudent**', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',

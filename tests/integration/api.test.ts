@@ -88,7 +88,9 @@ describe('API Client', () => {
       expect(result.data).toEqual(mockStudents);
       expect(result.total).toBe(1);
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/hocmaiadmin/api/listStudent?limit=10&page=1'),
+        expect.stringContaining(
+          '/hocmaiadmin/student/listStudent?limit=10&page=1'
+        ),
         expect.any(Object)
       );
     });
@@ -122,7 +124,7 @@ describe('API Client', () => {
       expect(result.data).toEqual(mockStudents);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining(
-          '/hocmaiadmin/api/listStudent?idOriginal=ST001&limit=10&page=1'
+          '/hocmaiadmin/student/listStudent?idOriginal=ST001&limit=10&page=1'
         ),
         expect.any(Object)
       );
@@ -157,7 +159,7 @@ describe('API Client', () => {
       expect(result.data).toEqual(mockStudents);
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining(
-          '/hocmaiadmin/api/listStudent?email=student2%40example.com&limit=10&page=1'
+          '/hocmaiadmin/student/listStudent?email=student2%40example.com&limit=10&page=1'
         ),
         expect.any(Object)
       );

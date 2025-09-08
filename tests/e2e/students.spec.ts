@@ -29,7 +29,7 @@ test.describe('Students Page', () => {
     });
 
     // Mock API students
-    await page.route('**/hocmaiadmin/api/listStudent**', async (route) => {
+    await page.route('**/hocmaiadmin/student/listStudent**', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -137,7 +137,7 @@ test.describe('Students Page', () => {
 
   test('should search students by ID', async ({ page }) => {
     // Mock API: chỉ trả về ST001 khi search, các request khác trả về rỗng
-    await page.route('**/hocmaiadmin/api/listStudent**', async (route) => {
+    await page.route('**/hocmaiadmin/student/listStudent**', async (route) => {
       const url = route.request().url();
       if (url.includes('idOriginal=ST001')) {
         await route.fulfill({
@@ -210,7 +210,7 @@ test.describe('Students Page', () => {
 
   test('should search students by email', async ({ page }) => {
     // Mock API: chỉ trả về ST001 nếu query có email=student1@example.com
-    await page.route('**/hocmaiadmin/api/listStudent**', async (route) => {
+    await page.route('**/hocmaiadmin/student/listStudent**', async (route) => {
       const url = route.request().url();
       if (url.includes('email=student1@example.com')) {
         await route.fulfill({
@@ -287,7 +287,7 @@ test.describe('Students Page', () => {
   }) => {
     // Mock student products API
     await page.route(
-      '**/hocmaiadmin/api/listStudentProduct**',
+      '**/hocmaiadmin/student/listStudentProduct**',
       async (route) => {
         await route.fulfill({
           status: 200,
@@ -310,7 +310,7 @@ test.describe('Students Page', () => {
 
     // Mock student history API
     await page.route(
-      '**/hocmaiadmin/api/listStudentHistory**',
+      '**/hocmaiadmin/student/listStudentHistory**',
       async (route) => {
         await route.fulfill({
           status: 200,
@@ -439,7 +439,7 @@ test.describe('Students Page', () => {
 
   test('should handle pagination correctly', async ({ page }) => {
     // Mock pagination response
-    await page.route('**/hocmaiadmin/api/listStudent**', async (route) => {
+    await page.route('**/hocmaiadmin/student/listStudent**', async (route) => {
       const url = route.request().url();
       if (url.includes('page=2')) {
         await route.fulfill({
@@ -532,7 +532,7 @@ test.describe('Students Page', () => {
 
   test('should show loading states', async ({ page }) => {
     // Mock slow API response
-    await page.route('**/hocmaiadmin/api/listStudent**', async (route) => {
+    await page.route('**/hocmaiadmin/student/listStudent**', async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 3000));
       await route.fulfill({
         status: 200,
@@ -571,7 +571,7 @@ test.describe('Students Page', () => {
 
   test('should handle empty search results', async ({ page }) => {
     // Mock empty search response
-    await page.route('**/hocmaiadmin/api/listStudent**', async (route) => {
+    await page.route('**/hocmaiadmin/student/listStudent**', async (route) => {
       const url = route.request().url();
       if (url.includes('idOriginal=INVALID')) {
         await route.fulfill({

@@ -189,7 +189,7 @@ class ApiClient {
     queryParams.append('page', (params?.page || 1).toString());
 
     const response = await this.makeRequest<Student[]>(
-      `/hocmaiadmin/api/listStudent?${queryParams.toString()}`
+      `/hocmaiadmin/student/listStudent?${queryParams.toString()}`
     );
     return { data: response.data, total: response.total || 0 };
   }

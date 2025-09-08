@@ -184,7 +184,7 @@ stories/                  # Storybook
 
 #### Students
 
-- `GET /hocmaiadmin/api/listStudent` - Search students
+- `GET /hocmaiadmin/student/listStudent` - Search students
 - `GET /hocmaiadmin/student/productByStudent` - Student's products
 - `GET /hocmaiadmin/student/historyByStudent` - Student's exam history
 

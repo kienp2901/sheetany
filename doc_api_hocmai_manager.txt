@@ -54,7 +54,7 @@ response:
 
 
 - api get list học sinh HOCMAI
-curl --location 'https://apiemsdev.hocmai.net/hocmaiadmin/api/listStudent?idOriginal=5449936&email=nguyenhaiduy1995%40gmail.com&limit=10&page=1' \
+curl --location 'https://apiemsdev.hocmai.net/hocmaiadmin/student/listStudent?idOriginal=5449936&email=nguyenhaiduy1995%40gmail.com&limit=10&page=1' \
 --header 'Authorization: Bearer eyJhb...'
 
 response:
@@ -109,7 +109,7 @@ response:
 
 
 - api lịch sử làm bài thi trong các phòng luyện đề/Topclass:
-truyền type = 0: lịch sử đề thi bình thường | type = 1: lịch sử đề thi topclass 
+truyền type = 0: lịch sử đề thi bình thường | type = 1: lịch sử đề thi topclass
 curl --location 'https://apiemsdev.hocmai.net/hocmaiadmin/student/historyByStudent?idOriginal=5515594&type=0&limit=10&page=1' \
 --header 'Authorization: Bearer eyJhb...'
 
@@ -132,7 +132,7 @@ response:
                 "name": "PEN TEST 2025",
                 "idProduct": 82
             },
-            "scoreMockContest": 0// điểm 
+            "scoreMockContest": 0// điểm
         },
         ...
     ]
