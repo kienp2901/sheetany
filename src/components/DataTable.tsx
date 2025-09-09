@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { useState } from 'react';
 
 interface Column<T = unknown> {
   key: string;
@@ -17,6 +18,7 @@ interface DataTableProps<T = unknown> {
     limit: number;
     total: number;
     onPageChange: (page: number) => void;
+    onLimitChange?: (limit: number) => void;
   };
   onExport?: () => void;
   exportLabel?: string;
@@ -30,9 +32,30 @@ export default function DataTable<T = unknown>({
   onExport,
   exportLabel = 'Xuất CSV',
 }: DataTableProps<T>) {
+  const [pageInput, setPageInput] = useState('');
   const totalPages = pagination
     ? Math.ceil(pagination.total / pagination.limit)
     : 1;
+
+  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPageInput(e.target.value);
+  };
+
+  const handlePageInputSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const page = parseInt(pageInput);
+    if (page >= 1 && page <= totalPages && pagination) {
+      pagination.onPageChange(page);
+      setPageInput('');
+    }
+  };
+
+  const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLimit = parseInt(e.target.value);
+    if (pagination?.onLimitChange) {
+      pagination.onLimitChange(newLimit);
+    }
+  };
 
   return (
     <div className="bg-white shadow-sm rounded-lg">
@@ -133,38 +156,78 @@ export default function DataTable<T = unknown>({
       </div>
 
       {/* Pagination */}
-      {pagination && totalPages > 1 && (
+      {pagination && (
         <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
           {/* Mobile Pagination */}
-          <div className="flex items-center justify-between sm:hidden">
-            <div className="flex-1">
+          <div className="flex flex-col space-y-3 sm:hidden">
+            {/* Page info and limit selector */}
+            <div className="flex items-center justify-between">
               <p className="text-xs text-gray-700">
                 Trang {pagination.page} / {totalPages}
               </p>
+              {pagination.onLimitChange && (
+                <div className="flex items-center space-x-2">
+                  <label className="text-xs text-gray-700">Hiển thị:</label>
+                  <select
+                    value={pagination.limit}
+                    onChange={handleLimitChange}
+                    className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value={10}>10</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </div>
+              )}
             </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => pagination.onPageChange(pagination.page - 1)}
-                disabled={pagination.page <= 1}
-                className="relative inline-flex items-center px-3 py-2 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                title="Trang trước"
+
+            {/* Page input and navigation */}
+            <div className="flex items-center space-x-2">
+              <form
+                onSubmit={handlePageInputSubmit}
+                className="flex items-center space-x-2"
               >
-                Trước
-              </button>
-              <button
-                onClick={() => pagination.onPageChange(pagination.page + 1)}
-                disabled={pagination.page >= totalPages}
-                className="relative inline-flex items-center px-3 py-2 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                title="Trang sau"
-              >
-                Sau
-              </button>
+                <input
+                  type="number"
+                  min="1"
+                  max={totalPages}
+                  value={pageInput}
+                  onChange={handlePageInputChange}
+                  placeholder="Trang"
+                  className="w-16 text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <button
+                  type="submit"
+                  className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  Đi
+                </button>
+              </form>
+
+              <div className="flex space-x-1">
+                <button
+                  onClick={() => pagination.onPageChange(pagination.page - 1)}
+                  disabled={pagination.page <= 1}
+                  className="relative inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  title="Trang trước"
+                >
+                  <ChevronLeft className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={() => pagination.onPageChange(pagination.page + 1)}
+                  disabled={pagination.page >= totalPages}
+                  className="relative inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  title="Trang sau"
+                >
+                  <ChevronRight className="h-3 w-3" />
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Desktop Pagination */}
           <div className="hidden sm:flex sm:items-center sm:justify-between">
-            <div>
+            <div className="flex items-center space-x-4">
               <p className="text-sm text-gray-700">
                 Hiển thị{' '}
                 <span className="font-medium">
@@ -180,8 +243,48 @@ export default function DataTable<T = unknown>({
                 trong tổng số{' '}
                 <span className="font-medium">{pagination.total}</span> kết quả
               </p>
+
+              {pagination.onLimitChange && (
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm text-gray-700">Hiển thị:</label>
+                  <select
+                    value={pagination.limit}
+                    onChange={handleLimitChange}
+                    className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value={10}>10</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </div>
+              )}
             </div>
-            <div>
+
+            <div className="flex items-center space-x-4">
+              {/* Page input */}
+              <form
+                onSubmit={handlePageInputSubmit}
+                className="flex items-center space-x-2"
+              >
+                <span className="text-sm text-gray-700">Đi đến trang:</span>
+                <input
+                  type="number"
+                  min="1"
+                  max={totalPages}
+                  value={pageInput}
+                  onChange={handlePageInputChange}
+                  placeholder="Trang"
+                  className="w-20 text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <button
+                  type="submit"
+                  className="px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  Đi
+                </button>
+              </form>
+
+              {/* Navigation buttons */}
               <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
                 <button
                   onClick={() => pagination.onPageChange(pagination.page - 1)}

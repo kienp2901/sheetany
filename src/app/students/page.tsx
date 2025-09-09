@@ -22,6 +22,10 @@ export default function StudentsPage() {
   const [activeHistoryTab, setActiveHistoryTab] = useState<
     'normal' | 'topclass'
   >('normal');
+  const [currentSearch, setCurrentSearch] = useState<{
+    idOriginal?: string;
+    email?: string;
+  } | null>(null);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -40,17 +44,24 @@ export default function StudentsPage() {
 
   // Track if initial load has been done
   const initialLoadDone = useRef(false);
+  const lastPageRef = useRef(1);
+  const lastProductsPageRef = useRef(1);
+  const lastHistoryPageRef = useRef(1);
 
-  const loadStudents = async (searchParams?: {
-    idOriginal?: string;
-    email?: string;
-  }) => {
+  const loadStudents = async (
+    searchParams?: {
+      idOriginal?: string;
+      email?: string;
+    },
+    customLimit?: number,
+    customPage?: number
+  ) => {
     setLoading(true);
     try {
       const result = await apiClient.getStudents({
         ...searchParams,
-        limit: pagination.limit,
-        page: pagination.page,
+        limit: customLimit ?? pagination.limit,
+        page: customPage ?? pagination.page,
       });
       setStudents(result.data);
       setPagination((prev) => ({ ...prev, total: result.total }));
@@ -127,8 +138,27 @@ export default function StudentsPage() {
     setProductsPagination((prev) => ({ ...prev, page }));
   };
 
+  const handleProductsLimitChange = (limit: number) => {
+    setProductsPagination((prev) => ({ ...prev, limit, page: 1 }));
+    lastProductsPageRef.current = 1;
+    // Reload products data with new limit and page 1
+    if (selectedStudent) {
+      loadStudentProducts(selectedStudent, limit, 1);
+    }
+  };
+
   const handleHistoryPageChange = (page: number) => {
     setHistoryPagination((prev) => ({ ...prev, page }));
+  };
+
+  const handleHistoryLimitChange = (limit: number) => {
+    setHistoryPagination((prev) => ({ ...prev, limit, page: 1 }));
+    lastHistoryPageRef.current = 1;
+    // Reload history data with new limit and page 1
+    if (selectedStudent) {
+      const type = activeHistoryTab === 'normal' ? 0 : 1;
+      loadHistoryData(type, 1, limit);
+    }
   };
 
   const handleHistoryTabChange = (tab: 'normal' | 'topclass') => {
@@ -145,7 +175,38 @@ export default function StudentsPage() {
     }
   };
 
-  const loadHistoryData = async (type: 0 | 1, page: number) => {
+  const loadStudentProducts = async (
+    student: Student,
+    customLimit?: number,
+    customPage?: number
+  ) => {
+    setLoadingProducts(true);
+    try {
+      const productsResult = await apiClient.getStudentProducts(
+        student.idOriginal,
+        {
+          limit: customLimit ?? productsPagination.limit,
+          page: customPage ?? productsPagination.page,
+        }
+      );
+      setStudentProducts(productsResult.data);
+      setProductsPagination((prev) => ({
+        ...prev,
+        total: productsResult.total,
+      }));
+    } catch (error) {
+      console.error('Error loading products:', error);
+      toast.error('Lỗi khi tải danh sách sản phẩm');
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  const loadHistoryData = async (
+    type: 0 | 1,
+    page: number,
+    customLimit?: number
+  ) => {
     if (!selectedStudent) return;
 
     try {
@@ -153,7 +214,7 @@ export default function StudentsPage() {
         selectedStudent.idOriginal,
         type,
         {
-          limit: historyPagination.limit,
+          limit: customLimit ?? historyPagination.limit,
           page: page,
         }
       );
@@ -169,23 +230,58 @@ export default function StudentsPage() {
 
   const handleSearch = (query: string) => {
     const searchParams: { idOriginal?: string; email?: string } = {};
+    const trimmedQuery = query.trim();
 
-    // Check if query is email or ID
-    if (query.includes('@')) {
-      searchParams.email = query;
+    // Check if query is ID or email
+    // ID: only contains numbers (with optional leading/trailing spaces)
+    const idRegex = /^\d+$/;
+    // Email: full email format or username part (contains letters)
+    const fullEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const usernameRegex = /^[a-zA-Z][a-zA-Z0-9._-]*$/;
+
+    if (idRegex.test(trimmedQuery)) {
+      // Pure numbers = ID
+      searchParams.idOriginal = trimmedQuery;
+    } else if (fullEmailRegex.test(trimmedQuery)) {
+      // Full email format
+      searchParams.email = trimmedQuery;
+    } else if (usernameRegex.test(trimmedQuery)) {
+      // Username part of email (starts with letter, contains letters/numbers/._-)
+      searchParams.email = trimmedQuery;
     } else {
-      searchParams.idOriginal = query;
+      // Fallback: treat as ID
+      searchParams.idOriginal = trimmedQuery;
     }
 
+    setCurrentSearch(searchParams);
     loadStudents(searchParams);
+  };
+
+  const handleClearSearch = () => {
+    setCurrentSearch(null);
+    setPagination((prev) => ({ ...prev, page: 1 }));
+    // Load initial data again
+    loadStudents();
   };
 
   const handlePageChange = (page: number) => {
     setPagination((prev) => ({ ...prev, page }));
   };
 
+  const handleLimitChange = (limit: number) => {
+    setPagination((prev) => ({ ...prev, limit, page: 1 }));
+    lastPageRef.current = 1;
+    // Reload data with new limit and page 1
+    loadStudents(undefined, limit, 1);
+  };
+
   useEffect(() => {
-    if (accessToken && pagination.page > 1 && initialLoadDone.current) {
+    if (
+      accessToken &&
+      initialLoadDone.current &&
+      pagination.page !== lastPageRef.current
+    ) {
+      lastPageRef.current = pagination.page;
       loadStudents();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -193,37 +289,25 @@ export default function StudentsPage() {
 
   // Load products when pagination changes
   useEffect(() => {
-    if (selectedStudent && accessToken && productsPagination.page > 1) {
-      const loadProducts = async () => {
-        setLoadingProducts(true);
-        try {
-          const productsResult = await apiClient.getStudentProducts(
-            selectedStudent.idOriginal,
-            {
-              limit: productsPagination.limit,
-              page: productsPagination.page,
-            }
-          );
-          setStudentProducts(productsResult.data);
-          setProductsPagination((prev) => ({
-            ...prev,
-            total: productsResult.total,
-          }));
-        } catch (error) {
-          console.error('Error loading products:', error);
-          toast.error('Lỗi khi tải danh sách sản phẩm');
-        } finally {
-          setLoadingProducts(false);
-        }
-      };
-      loadProducts();
+    if (
+      selectedStudent &&
+      accessToken &&
+      productsPagination.page !== lastProductsPageRef.current
+    ) {
+      lastProductsPageRef.current = productsPagination.page;
+      loadStudentProducts(selectedStudent);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productsPagination.page]);
 
   // Load history when pagination changes
   useEffect(() => {
-    if (selectedStudent && accessToken && historyPagination.page > 1) {
+    if (
+      selectedStudent &&
+      accessToken &&
+      historyPagination.page !== lastHistoryPageRef.current
+    ) {
+      lastHistoryPageRef.current = historyPagination.page;
       const type = activeHistoryTab === 'normal' ? 0 : 1;
       loadHistoryData(type, historyPagination.page);
     }
@@ -385,6 +469,7 @@ export default function StudentsPage() {
               pagination={{
                 ...productsPagination,
                 onPageChange: handleProductsPageChange,
+                onLimitChange: handleProductsLimitChange,
               }}
             />
           </div>
@@ -425,6 +510,7 @@ export default function StudentsPage() {
               pagination={{
                 ...historyPagination,
                 onPageChange: handleHistoryPageChange,
+                onLimitChange: handleHistoryLimitChange,
               }}
             />
           </div>
@@ -454,6 +540,42 @@ export default function StudentsPage() {
             loading={loading}
           />
         </div>
+
+        {/* Search Results Info */}
+        {currentSearch && (
+          <div className="bg-blue-50 p-4 sm:p-6 rounded-lg border border-blue-200">
+            <div className="flex justify-between items-start mb-3">
+              <h2 className="text-lg font-semibold text-blue-900">
+                Kết quả tìm kiếm
+              </h2>
+              <button
+                onClick={handleClearSearch}
+                className="px-3 py-1 text-sm text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors cursor-pointer"
+                title="Xóa tìm kiếm"
+              >
+                Xóa tìm kiếm
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="bg-white p-3 rounded-md">
+                <span className="font-medium text-blue-700 block sm:inline">
+                  Tìm kiếm theo:
+                </span>
+                <span className="text-gray-900 sm:ml-1">
+                  {currentSearch.email ? 'Email' : 'ID học sinh'}
+                </span>
+              </div>
+              <div className="bg-white p-3 rounded-md">
+                <span className="font-medium text-blue-700 block sm:inline">
+                  Giá trị:
+                </span>
+                <span className="text-gray-900 sm:ml-1">
+                  {currentSearch.email || currentSearch.idOriginal}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Students Table/Cards */}
         <div className="space-y-4">
@@ -507,6 +629,7 @@ export default function StudentsPage() {
               pagination={{
                 ...pagination,
                 onPageChange: handlePageChange,
+                onLimitChange: handleLimitChange,
               }}
             />
           </div>

@@ -27,34 +27,25 @@ export default function ExamsPage() {
 
   // Track if initial load has been done
   const initialLoadDone = useRef(false);
+  const lastPageRef = useRef(1);
 
   // Gom nhóm contest types theo tên cuộc thi
   const groupedContestTypes: GroupedContestType[] = [
     { title: 'Select contest type', values: [] },
-    { title: 'HSA exam', values: [0, 10, 17, 18] },
-    { title: 'TSA exam', values: [1, 4, 9] },
-    { title: 'IELTS practice', values: [2] },
-    { title: 'IELTS exam', values: [3, 27] },
+    { title: 'HSA 2025', values: [17, 18] },
+    { title: 'HSA (ĐGNL HN)', values: [0, 10] },
+    { title: 'V-ACT (ĐGNL HCM)', values: [7, 8] },
+    { title: 'TSA luyện tập', values: [1, 9] },
+    { title: 'TSA thi thử', values: [4] },
+    { title: 'LMS Ican', values: [19, 21, 23, 25, 27, 29] },
+    { title: 'IELTS ICC', values: [2, 3] },
+    { title: 'Speakwell Testsite', values: [14] },
     { title: 'HMO ĐGNL', values: [5] },
     { title: 'Topclass', values: [6] },
-    { title: 'V-ACT practice', values: [7] },
-    { title: 'V-ACT exam', values: [8] },
-    { title: 'Testsite Part', values: [11] },
-    { title: 'Testsite Slide', values: [12] },
+    { title: 'Testsite', values: [11, 12] },
     { title: 'HMO Thiên Long', values: [13] },
-    { title: 'Speakwell testsite', values: [14] },
-    { title: 'PEN 2025 exam', values: [15] },
-    { title: 'PEN 2025 practice', values: [16] },
-    { title: 'Introduction Mock Tests 1&2 exam', values: [19] },
-    {
-      title:
-        'Introduction Mock Test 3, Final Test; Foundation Mock Tests 1&2 exam',
-      values: [21],
-    },
-    { title: 'Foundation Mock Test 3, Final Test exam', values: [23] },
-    { title: 'Preparation Mock Tests 1 và 2 exam', values: [25] },
-    { title: 'Exercise', values: [29] },
-    { title: 'ICC Entry Test exam', values: [30, 31] },
+    { title: 'PEN 2025 (TN THPT)', values: [15, 16] },
+    { title: 'ICC Entry Test', values: [30, 31] },
   ];
 
   useEffect(() => {
@@ -63,24 +54,27 @@ export default function ExamsPage() {
     }
   }, [accessToken]);
 
-  const loadInitialData = useCallback(async () => {
-    setLoading(true);
-    setIsInitialLoad(true);
-    try {
-      const result = await apiClient.getExamHistory(undefined, undefined, {
-        limit: pagination.limit,
-        page: pagination.page,
-      });
-      setExamHistory(result.data);
-      setPagination((prev) => ({ ...prev, total: result.total }));
-    } catch (error) {
-      console.error('Error loading initial data:', error);
-      toast.error('Lỗi khi tải dữ liệu ban đầu');
-    } finally {
-      setLoading(false);
-      setIsInitialLoad(false);
-    }
-  }, [pagination.limit, pagination.page]);
+  const loadInitialData = useCallback(
+    async (customLimit?: number, customPage?: number) => {
+      setLoading(true);
+      setIsInitialLoad(true);
+      try {
+        const result = await apiClient.getExamHistory(undefined, undefined, {
+          limit: customLimit ?? pagination.limit,
+          page: customPage ?? pagination.page,
+        });
+        setExamHistory(result.data);
+        setPagination((prev) => ({ ...prev, total: result.total }));
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+        toast.error('Lỗi khi tải dữ liệu ban đầu');
+      } finally {
+        setLoading(false);
+        setIsInitialLoad(false);
+      }
+    },
+    [pagination.limit, pagination.page]
+  );
 
   useEffect(() => {
     if (accessToken && !initialLoadDone.current) {
@@ -89,9 +83,28 @@ export default function ExamsPage() {
     }
   }, [accessToken, loadInitialData]);
 
+  useEffect(() => {
+    if (
+      accessToken &&
+      initialLoadDone.current &&
+      pagination.page !== lastPageRef.current
+    ) {
+      lastPageRef.current = pagination.page;
+      // Load data for the new page
+      if (currentSearch) {
+        loadExamHistory(currentSearch.contestType, currentSearch.mockContestId);
+      } else {
+        loadInitialData();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.page]);
+
   const loadExamHistory = async (
     contestTypeKey?: string,
-    mockContestId?: number
+    mockContestId?: number,
+    customLimit?: number,
+    customPage?: number
   ) => {
     setLoading(true);
     try {
@@ -108,8 +121,8 @@ export default function ExamsPage() {
         contestTypeValues,
         mockContestId,
         {
-          limit: pagination.limit,
-          page: 1, // Reset to first page when searching
+          limit: customLimit ?? pagination.limit,
+          page: customPage ?? 1, // Reset to first page when searching
         }
       );
       setExamHistory(result.data);
@@ -182,6 +195,22 @@ export default function ExamsPage() {
       loadExamHistory(currentSearch.contestType, currentSearch.mockContestId);
     } else {
       loadInitialData();
+    }
+  };
+
+  const handleLimitChange = (limit: number) => {
+    setPagination((prev) => ({ ...prev, limit, page: 1 }));
+    lastPageRef.current = 1;
+    // Reload data with new limit and page 1
+    if (currentSearch) {
+      loadExamHistory(
+        currentSearch.contestType,
+        currentSearch.mockContestId,
+        limit,
+        1
+      );
+    } else {
+      loadInitialData(limit, 1);
     }
   };
 
@@ -394,6 +423,7 @@ export default function ExamsPage() {
             pagination={{
               ...pagination,
               onPageChange: handlePageChange,
+              onLimitChange: handleLimitChange,
             }}
             onExport={currentSearch ? handleExport : undefined}
             exportLabel="Xuất CSV"

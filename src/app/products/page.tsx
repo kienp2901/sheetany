@@ -11,7 +11,8 @@ import toast from 'react-hot-toast';
 
 export default function ProductsPage() {
   const { accessToken } = useAuth();
-  const [products, setProducts] = useState<Product[]>([]);
+  // const [products, setProducts] = useState<Product[]>([]);
+  const [, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productStudents, setProductStudents] = useState<StudentByProduct[]>(
@@ -20,6 +21,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(false);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
+  const [currentSearch, setCurrentSearch] = useState<string>('');
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -33,6 +35,8 @@ export default function ProductsPage() {
 
   // Track if initial load has been done
   const initialLoadDone = useRef(false);
+  const lastPageRef = useRef(1);
+  const lastStudentsPageRef = useRef(1);
 
   useEffect(() => {
     if (accessToken && !initialLoadDone.current) {
@@ -43,26 +47,55 @@ export default function ProductsPage() {
   }, [accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (accessToken && pagination.page > 1 && initialLoadDone.current) {
-      loadProducts();
+    if (
+      accessToken &&
+      initialLoadDone.current &&
+      pagination.page !== lastPageRef.current
+    ) {
+      lastPageRef.current = pagination.page;
+      if (currentSearch) {
+        // If searching, maintain search params
+        const trimmedQuery = currentSearch.trim();
+        const idRegex = /^\d+$/;
+        if (idRegex.test(trimmedQuery)) {
+          loadProducts(undefined, pagination.page, {
+            idProduct: parseInt(trimmedQuery),
+          });
+        } else {
+          loadProducts(undefined, pagination.page, { name: trimmedQuery });
+        }
+      } else {
+        loadProducts();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.page]);
 
-  // Load students when pagination changes for product detail
+  // Load students when selectedProduct changes or pagination changes for product detail
   useEffect(() => {
-    if (selectedProduct && accessToken && studentsPagination.page > 1) {
-      loadProductStudents();
+    if (selectedProduct && accessToken && showDetail) {
+      if (studentsPagination.page !== lastStudentsPageRef.current) {
+        lastStudentsPageRef.current = studentsPagination.page;
+        loadProductStudents();
+      } else if (selectedProduct) {
+        // Initial load when product is selected
+        loadProductStudents();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [studentsPagination.page]);
+  }, [selectedProduct, studentsPagination.page, showDetail]);
 
-  const loadProducts = async () => {
+  const loadProducts = async (
+    customLimit?: number,
+    customPage?: number,
+    searchParams?: { idProduct?: number; name?: string }
+  ) => {
     setLoading(true);
     try {
       const result = await apiClient.getProducts({
-        limit: pagination.limit,
-        page: pagination.page,
+        limit: customLimit ?? pagination.limit,
+        page: customPage ?? pagination.page,
+        ...searchParams,
       });
       setProducts(result.data);
       setFilteredProducts(result.data);
@@ -75,10 +108,14 @@ export default function ProductsPage() {
     }
   };
 
-  const loadProductStudents = async (searchParams?: {
-    idOriginal?: string;
-    email?: string;
-  }) => {
+  const loadProductStudents = async (
+    searchParams?: {
+      idOriginal?: string;
+      email?: string;
+    },
+    customLimit?: number,
+    customPage?: number
+  ) => {
     if (!selectedProduct) return;
 
     setLoadingStudents(true);
@@ -87,8 +124,8 @@ export default function ProductsPage() {
         selectedProduct.idProduct,
         {
           ...searchParams,
-          limit: studentsPagination.limit,
-          page: studentsPagination.page,
+          limit: customLimit ?? studentsPagination.limit,
+          page: customPage ?? studentsPagination.page,
         }
       );
       setProductStudents(result.data);
@@ -102,12 +139,31 @@ export default function ProductsPage() {
   };
 
   const handleSearch = (query: string) => {
-    const filtered = products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(query.toLowerCase()) ||
-        product.idProduct.toString().includes(query)
-    );
-    setFilteredProducts(filtered);
+    setCurrentSearch(query);
+    setPagination((prev) => ({ ...prev, page: 1 }));
+
+    // Determine search type and call API
+    const trimmedQuery = query.trim();
+    if (trimmedQuery) {
+      // Check if query is ID or name
+      const idRegex = /^\d+$/;
+      if (idRegex.test(trimmedQuery)) {
+        // Search by ID
+        loadProducts(undefined, 1, { idProduct: parseInt(trimmedQuery) });
+      } else {
+        // Search by name
+        loadProducts(undefined, 1, { name: trimmedQuery });
+      }
+    } else {
+      // Empty query - load all products
+      loadProducts();
+    }
+  };
+
+  const handleClearSearch = () => {
+    setCurrentSearch('');
+    setPagination((prev) => ({ ...prev, page: 1 }));
+    loadProducts();
   };
 
   const handleStudentSearch = (query: string) => {
@@ -128,7 +184,6 @@ export default function ProductsPage() {
     setShowDetail(true);
     setProductStudents([]);
     setStudentsPagination({ page: 1, limit: 10, total: 0 });
-    loadProductStudents();
   };
 
   const handleBackToList = () => {
@@ -142,8 +197,33 @@ export default function ProductsPage() {
     setPagination((prev) => ({ ...prev, page }));
   };
 
+  const handleLimitChange = (limit: number) => {
+    setPagination((prev) => ({ ...prev, limit, page: 1 }));
+    lastPageRef.current = 1;
+    // Reload data with new limit and page 1
+    if (currentSearch) {
+      // If searching, maintain search params
+      const trimmedQuery = currentSearch.trim();
+      const idRegex = /^\d+$/;
+      if (idRegex.test(trimmedQuery)) {
+        loadProducts(limit, 1, { idProduct: parseInt(trimmedQuery) });
+      } else {
+        loadProducts(limit, 1, { name: trimmedQuery });
+      }
+    } else {
+      loadProducts(limit, 1);
+    }
+  };
+
   const handleStudentsPageChange = (page: number) => {
     setStudentsPagination((prev) => ({ ...prev, page }));
+  };
+
+  const handleStudentsLimitChange = (limit: number) => {
+    setStudentsPagination((prev) => ({ ...prev, limit, page: 1 }));
+    lastStudentsPageRef.current = 1;
+    // Reload students data with new limit and page 1
+    loadProductStudents(undefined, limit, 1);
   };
 
   const handleExportStudents = async () => {
@@ -297,6 +377,7 @@ export default function ProductsPage() {
               pagination={{
                 ...studentsPagination,
                 onPageChange: handleStudentsPageChange,
+                onLimitChange: handleStudentsLimitChange,
               }}
               onExport={handleExportStudents}
               exportLabel="Xuất CSV"
@@ -349,6 +430,49 @@ export default function ProductsPage() {
           />
         </div>
 
+        {/* Search Results Info */}
+        {currentSearch && (
+          <div className="bg-blue-50 p-4 sm:p-6 rounded-lg border border-blue-200">
+            <div className="flex justify-between items-start mb-3">
+              <h2 className="text-lg font-semibold text-blue-900">
+                Kết quả tìm kiếm
+              </h2>
+              <button
+                onClick={handleClearSearch}
+                className="px-3 py-1 text-sm text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors cursor-pointer"
+                title="Xóa tìm kiếm"
+              >
+                Xóa tìm kiếm
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="bg-white p-3 rounded-md">
+                <span className="font-medium text-blue-700 block sm:inline">
+                  Từ khóa tìm kiếm:
+                </span>
+                <span className="text-gray-900 sm:ml-1">
+                  &ldquo;{currentSearch}&rdquo;
+                </span>
+              </div>
+              <div className="bg-white p-3 rounded-md">
+                <span className="font-medium text-blue-700 block sm:inline">
+                  Loại tìm kiếm:
+                </span>
+                <span className="text-gray-900 sm:ml-1">
+                  {/^\d+$/.test(currentSearch.trim())
+                    ? 'Mã sản phẩm'
+                    : 'Tên sản phẩm'}
+                </span>
+              </div>
+            </div>
+            <div className="mt-3 bg-white p-3 rounded-md">
+              <span className="text-sm text-gray-500">
+                Tìm thấy {pagination.total.toLocaleString()} kết quả
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Products Table/Cards */}
         <div className="space-y-4">
           {/* Mobile Cards View */}
@@ -398,6 +522,7 @@ export default function ProductsPage() {
               pagination={{
                 ...pagination,
                 onPageChange: handlePageChange,
+                onLimitChange: handleLimitChange,
               }}
             />
           </div>

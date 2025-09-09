@@ -230,10 +230,19 @@ class ApiClient {
   async getProducts(params?: {
     limit?: number;
     page?: number;
+    idProduct?: number;
+    name?: string;
   }): Promise<{ data: Product[]; total: number }> {
     const queryParams = new URLSearchParams();
     queryParams.append('limit', (params?.limit || 10).toString());
     queryParams.append('page', (params?.page || 1).toString());
+
+    if (params?.idProduct) {
+      queryParams.append('idProduct', params.idProduct.toString());
+    }
+    if (params?.name) {
+      queryParams.append('name', params.name);
+    }
 
     const response = await this.makeRequest<Product[]>(
       `/hocmaiadmin/student/listProduct?${queryParams.toString()}`
