@@ -22,6 +22,7 @@ export default function ProductsPage() {
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [currentSearch, setCurrentSearch] = useState<string>('');
+  const [currentStudentSearch, setCurrentStudentSearch] = useState<string>('');
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -138,27 +139,27 @@ export default function ProductsPage() {
     }
   };
 
-  const handleSearch = (query: string) => {
-    setCurrentSearch(query);
-    setPagination((prev) => ({ ...prev, page: 1 }));
+  // const handleSearch = (query: string) => {
+  //   setCurrentSearch(query);
+  //   setPagination((prev) => ({ ...prev, page: 1 }));
 
-    // Determine search type and call API
-    const trimmedQuery = query.trim();
-    if (trimmedQuery) {
-      // Check if query is ID or name
-      const idRegex = /^\d+$/;
-      if (idRegex.test(trimmedQuery)) {
-        // Search by ID
-        loadProducts(undefined, 1, { idProduct: parseInt(trimmedQuery) });
-      } else {
-        // Search by name
-        loadProducts(undefined, 1, { name: trimmedQuery });
-      }
-    } else {
-      // Empty query - load all products
-      loadProducts();
-    }
-  };
+  //   // Determine search type and call API
+  //   const trimmedQuery = query.trim();
+  //   if (trimmedQuery) {
+  //     // Check if query is ID or name
+  //     const idRegex = /^\d+$/;
+  //     if (idRegex.test(trimmedQuery)) {
+  //       // Search by ID
+  //       loadProducts(undefined, 1, { idProduct: parseInt(trimmedQuery) });
+  //     } else {
+  //       // Search by name
+  //       loadProducts(undefined, 1, { name: trimmedQuery });
+  //     }
+  //   } else {
+  //     // Empty query - load all products
+  //     loadProducts();
+  //   }
+  // };
 
   const handleClearSearch = () => {
     setCurrentSearch('');
@@ -167,6 +168,9 @@ export default function ProductsPage() {
   };
 
   const handleStudentSearch = (query: string) => {
+    setCurrentStudentSearch(query);
+    setStudentsPagination((prev) => ({ ...prev, page: 1 }));
+
     const searchParams: { idOriginal?: string; email?: string } = {};
 
     // Check if query is email or ID
@@ -176,7 +180,13 @@ export default function ProductsPage() {
       searchParams.idOriginal = query;
     }
 
-    loadProductStudents(searchParams);
+    loadProductStudents(searchParams, undefined, 1);
+  };
+
+  const handleClearStudentSearch = () => {
+    setCurrentStudentSearch('');
+    setStudentsPagination((prev) => ({ ...prev, page: 1 }));
+    loadProductStudents(undefined, undefined, 1);
   };
 
   const handleProductDetails = (product: Product) => {
@@ -191,6 +201,7 @@ export default function ProductsPage() {
     setSelectedProduct(null);
     setProductStudents([]);
     setStudentsPagination({ page: 1, limit: 10, total: 0 });
+    setCurrentStudentSearch('');
   };
 
   const handlePageChange = (page: number) => {
@@ -362,6 +373,50 @@ export default function ProductsPage() {
               onSearch={handleStudentSearch}
               loading={loadingStudents}
             />
+
+            {/* Student Search Results Info */}
+            {currentStudentSearch && (
+              <div className="mt-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex justify-between items-start mb-3">
+                  <h4 className="text-md font-semibold text-blue-900">
+                    Kết quả tìm kiếm học sinh
+                  </h4>
+                  <button
+                    onClick={handleClearStudentSearch}
+                    className="px-3 py-1 text-sm text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors cursor-pointer"
+                    title="Xóa tìm kiếm học sinh"
+                  >
+                    Xóa tìm kiếm
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="bg-white p-3 rounded-md">
+                    <span className="font-medium text-blue-700 block sm:inline">
+                      Từ khóa tìm kiếm:
+                    </span>
+                    <span className="text-gray-900 sm:ml-1">
+                      &ldquo;{currentStudentSearch}&rdquo;
+                    </span>
+                  </div>
+                  <div className="bg-white p-3 rounded-md">
+                    <span className="font-medium text-blue-700 block sm:inline">
+                      Loại tìm kiếm:
+                    </span>
+                    <span className="text-gray-900 sm:ml-1">
+                      {currentStudentSearch.includes('@')
+                        ? 'Email'
+                        : 'ID học sinh'}
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-3 bg-white p-3 rounded-md">
+                  <span className="text-sm text-gray-500">
+                    Tìm thấy {studentsPagination.total.toLocaleString()} học
+                    sinh
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Students Table */}
@@ -421,14 +476,14 @@ export default function ProductsPage() {
           })}
         </div> */}
 
-        {/* Search Section */}
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
+        {/* Search Section - Hidden */}
+        {/* <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
           <SearchBar
             placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
             onSearch={handleSearch}
             loading={loading}
           />
-        </div>
+        </div> */}
 
         {/* Search Results Info */}
         {currentSearch && (
