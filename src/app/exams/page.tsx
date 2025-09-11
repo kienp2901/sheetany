@@ -425,8 +425,8 @@ export default function ExamsPage() {
               onPageChange: handlePageChange,
               onLimitChange: handleLimitChange,
             }}
-            onExport={currentSearch ? handleExport : undefined}
-            exportLabel="Xuất CSV"
+            // onExport={currentSearch ? handleExport : undefined}
+            // exportLabel="Xuất CSV"
           />
         ) : (
           !loading && (

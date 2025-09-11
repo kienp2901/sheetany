@@ -434,8 +434,8 @@ export default function ProductsPage() {
                 onPageChange: handleStudentsPageChange,
                 onLimitChange: handleStudentsLimitChange,
               }}
-              onExport={handleExportStudents}
-              exportLabel="Xuất CSV"
+              // onExport={handleExportStudents}
+              // exportLabel="Xuất CSV"
             />
           </div>
         </div>
