@@ -172,6 +172,7 @@ export default function DataTable<T = unknown>({
                     value={pagination.limit}
                     onChange={handleLimitChange}
                     className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    suppressHydrationWarning
                   >
                     <option value={10}>10</option>
                     <option value={50}>50</option>
@@ -195,10 +196,12 @@ export default function DataTable<T = unknown>({
                   onChange={handlePageInputChange}
                   placeholder="Trang"
                   className="w-16 text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  suppressHydrationWarning
                 />
                 <button
                   type="submit"
                   className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  suppressHydrationWarning
                 >
                   Đi
                 </button>
@@ -251,6 +254,7 @@ export default function DataTable<T = unknown>({
                     value={pagination.limit}
                     onChange={handleLimitChange}
                     className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    suppressHydrationWarning
                   >
                     <option value={10}>10</option>
                     <option value={50}>50</option>
@@ -275,10 +279,12 @@ export default function DataTable<T = unknown>({
                   onChange={handlePageInputChange}
                   placeholder="Trang"
                   className="w-20 text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  suppressHydrationWarning
                 />
                 <button
                   type="submit"
                   className="px-3 py-1 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  suppressHydrationWarning
                 >
                   Đi
                 </button>

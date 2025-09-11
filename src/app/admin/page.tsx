@@ -383,6 +383,7 @@ export default function AdminPage() {
                         ? 'border-indigo-500 text-indigo-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
+                    suppressHydrationWarning
                   >
                     <Icon className="w-4 h-4 mr-2" />
                     {tab.name}
@@ -558,6 +559,7 @@ export default function AdminPage() {
                     <button
                       className="bg-gray-50 p-6 rounded-lg text-center hover:bg-gray-100 transition-colors"
                       title="Thực hiện sao lưu toàn bộ dữ liệu hệ thống"
+                      suppressHydrationWarning
                     >
                       <Database className="h-8 w-8 text-blue-500 mx-auto mb-3" />
                       <h4 className="text-sm font-medium text-gray-900">
@@ -571,6 +573,7 @@ export default function AdminPage() {
                     <button
                       className="bg-gray-50 p-6 rounded-lg text-center hover:bg-gray-100 transition-colors"
                       title="Cài đặt và cấu hình hệ thống"
+                      suppressHydrationWarning
                     >
                       <Settings className="h-8 w-8 text-green-500 mx-auto mb-3" />
                       <h4 className="text-sm font-medium text-gray-900">
@@ -584,6 +587,7 @@ export default function AdminPage() {
                     <button
                       className="bg-gray-50 p-6 rounded-lg text-center hover:bg-gray-100 transition-colors"
                       title="Xem nhật ký hoạt động và lỗi hệ thống"
+                      suppressHydrationWarning
                     >
                       <AlertTriangle className="h-8 w-8 text-yellow-500 mx-auto mb-3" />
                       <h4 className="text-sm font-medium text-gray-900">
@@ -627,6 +631,7 @@ export default function AdminPage() {
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="example@hocmai.vn"
                 required
+                suppressHydrationWarning
               />
               <p className="text-xs text-gray-500 mt-1">
                 Chỉ chấp nhận email có domain @hocmai.vn
@@ -682,6 +687,7 @@ export default function AdminPage() {
                 }
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="example@hocmai.vn"
+                suppressHydrationWarning
               />
             </div>
 
@@ -701,6 +707,7 @@ export default function AdminPage() {
                 }
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="Nhập họ..."
+                suppressHydrationWarning
               />
             </div>
 
@@ -720,6 +727,7 @@ export default function AdminPage() {
                 }
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="Nhập tên..."
+                suppressHydrationWarning
               />
             </div>
 

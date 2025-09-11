@@ -322,6 +322,7 @@ export default function ExamsPage() {
                   value={selectedContestType}
                   onChange={(e) => setSelectedContestType(e.target.value)}
                   className="block w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm text-gray-900 bg-white"
+                  suppressHydrationWarning
                 >
                   {contestTypes.map((type) => (
                     <option
@@ -349,6 +350,7 @@ export default function ExamsPage() {
                   onChange={(e) => setMockContestId(e.target.value)}
                   className="block w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base sm:text-sm text-gray-900 bg-white"
                   placeholder="Nhập ID đề thi..."
+                  suppressHydrationWarning
                 />
               </div>
             </div>
@@ -359,6 +361,7 @@ export default function ExamsPage() {
                 disabled={loading}
                 className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 sm:px-4 sm:py-2 border border-transparent text-base sm:text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 cursor-pointer"
                 title="Tra cứu lịch sử làm bài"
+                suppressHydrationWarning
               >
                 {loading ? (
                   <>

@@ -20,6 +20,7 @@ export interface User {
 export interface AuthState {
   user: User | null;
   accessToken: string | null;
+  googleCredential: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
 }
@@ -40,6 +41,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [state, setState] = useState<AuthState>({
     user: null,
     accessToken: null,
+    googleCredential: null,
     isLoading: true,
     isAuthenticated: false,
   });
@@ -48,13 +50,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const savedUser = localStorage.getItem('auth_user');
     const savedToken = localStorage.getItem('auth_token');
+    const savedGoogleCredential = localStorage.getItem('google_credential');
 
     if (savedUser && savedToken) {
       try {
         const user = JSON.parse(savedUser);
+
+        // Check if token is expired
+        const tokenPayload = parseJwt(savedToken);
+        const isTokenExpired =
+          tokenPayload && tokenPayload.exp
+            ? Date.now() >= tokenPayload.exp * 1000
+            : false;
+
+        if (isTokenExpired) {
+          console.warn('Token is expired, clearing session...');
+          localStorage.removeItem('auth_user');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('google_credential');
+          document.cookie =
+            'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          setState((prev) => ({ ...prev, isLoading: false }));
+          return;
+        }
+
         setState({
           user,
           accessToken: savedToken,
+          googleCredential: savedGoogleCredential,
           isLoading: false,
           isAuthenticated: true,
         });
@@ -67,12 +90,110 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error('Error loading saved session:', error);
         localStorage.removeItem('auth_user');
         localStorage.removeItem('auth_token');
+        localStorage.removeItem('google_credential');
         setState((prev) => ({ ...prev, isLoading: false }));
       }
     } else {
       setState((prev) => ({ ...prev, isLoading: false }));
     }
   }, []);
+
+  // Set up API client callbacks
+  useEffect(() => {
+    apiClient.setOnTokenExpired(async () => {
+      console.warn('API detected token expiration, attempting refresh...');
+
+      // Try to refresh token if we have Google credential
+      if (state.googleCredential) {
+        try {
+          const refreshResponse = await apiClient.refreshToken(
+            state.googleCredential
+          );
+
+          // Update stored token
+          localStorage.setItem('auth_token', refreshResponse.token);
+          document.cookie = `auth_token=${refreshResponse.token}; path=/; max-age=86400; SameSite=Lax`;
+
+          setState((prev) => ({
+            ...prev,
+            accessToken: refreshResponse.token,
+          }));
+
+          toast.success('Phiên đăng nhập đã được làm mới');
+          return;
+        } catch (error) {
+          console.error('Token refresh failed:', error);
+        }
+      }
+
+      // If refresh failed or no Google credential, logout
+      console.warn('Token refresh failed, logging out...');
+      logout(true);
+    });
+
+    apiClient.setOnTokenRefreshed((newToken: string) => {
+      setState((prev) => ({
+        ...prev,
+        accessToken: newToken,
+      }));
+    });
+
+    return () => {
+      apiClient.setOnTokenExpired(null);
+      apiClient.setOnTokenRefreshed(null);
+    };
+  }, [state.googleCredential, state.isAuthenticated]);
+
+  // Check token expiration periodically
+  useEffect(() => {
+    if (!state.isAuthenticated || !state.accessToken) return;
+
+    const checkTokenExpiration = async () => {
+      const tokenPayload = parseJwt(state.accessToken!);
+      const isTokenExpired =
+        tokenPayload && tokenPayload.exp
+          ? Date.now() >= tokenPayload.exp * 1000
+          : false;
+
+      if (isTokenExpired) {
+        console.warn('Token expired during session, attempting refresh...');
+
+        // Try to refresh token if we have Google credential
+        if (state.googleCredential) {
+          try {
+            const refreshResponse = await apiClient.refreshToken(
+              state.googleCredential
+            );
+
+            // Update stored token
+            localStorage.setItem('auth_token', refreshResponse.token);
+            document.cookie = `auth_token=${refreshResponse.token}; path=/; max-age=86400; SameSite=Lax`;
+
+            setState((prev) => ({
+              ...prev,
+              accessToken: refreshResponse.token,
+            }));
+
+            toast.success('Phiên đăng nhập đã được làm mới');
+            return;
+          } catch (error) {
+            console.error('Token refresh failed during periodic check:', error);
+          }
+        }
+
+        // If refresh failed or no Google credential, logout
+        console.warn(
+          'Token refresh failed during periodic check, logging out...'
+        );
+        logout(true);
+      }
+    };
+
+    // Check every 5 minutes
+    const interval = setInterval(checkTokenExpiration, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [state.isAuthenticated, state.accessToken, state.googleCredential]);
 
   function parseJwt(token: string) {
     try {
@@ -113,6 +234,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Lưu vào localStorage
       localStorage.setItem('auth_user', JSON.stringify(user));
       localStorage.setItem('auth_token', accessToken);
+      localStorage.setItem('google_credential', credential);
 
       // Set cookie cho middleware
       document.cookie = `auth_token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
@@ -123,6 +245,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setState({
         user,
         accessToken,
+        googleCredential: credential,
         isLoading: false,
         isAuthenticated: true,
       });
@@ -135,9 +258,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const logout = () => {
+  const logout = (isTokenExpired = false) => {
     localStorage.removeItem('auth_user');
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('google_credential');
 
     // Remove cookie
     document.cookie =
@@ -148,11 +272,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setState({
       user: null,
       accessToken: null,
+      googleCredential: null,
       isLoading: false,
       isAuthenticated: false,
     });
 
-    toast.success('Đã đăng xuất thành công!');
+    if (isTokenExpired) {
+      toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    } else {
+      toast.success('Đã đăng xuất thành công!');
+    }
 
     // Redirect to signin page
     router.push('/auth/signin');

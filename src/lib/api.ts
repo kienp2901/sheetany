@@ -91,9 +91,19 @@ interface Admin {
 
 class ApiClient {
   private authToken: string | null = null;
+  private onTokenExpired: (() => void) | null = null;
+  private onTokenRefreshed: ((newToken: string) => void) | null = null;
 
   setAuthToken(token: string | null) {
     this.authToken = token;
+  }
+
+  setOnTokenExpired(callback: (() => void) | null) {
+    this.onTokenExpired = callback;
+  }
+
+  setOnTokenRefreshed(callback: ((newToken: string) => void) | null) {
+    this.onTokenRefreshed = callback;
   }
 
   private async makeRequest<T>(
@@ -111,6 +121,15 @@ class ApiClient {
       ...options,
       headers,
     });
+
+    // Handle 401 Unauthorized - token expired
+    if (response.status === 401) {
+      console.warn('Access token expired, triggering logout...');
+      if (this.onTokenExpired) {
+        this.onTokenExpired();
+      }
+      throw new Error('Authentication expired. Please login again.');
+    }
 
     if (!response.ok) {
       throw new Error(`API request failed: ${response.statusText}`);
@@ -134,6 +153,26 @@ class ApiClient {
     }
 
     return { token: response.token };
+  }
+
+  // Refresh token using Google credential
+  async refreshToken(googleCredential: string): Promise<{ token: string }> {
+    try {
+      const response = await this.loginGoogle(googleCredential);
+
+      // Update the stored token
+      this.authToken = response.token;
+
+      // Notify auth context about the new token
+      if (this.onTokenRefreshed) {
+        this.onTokenRefreshed(response.token);
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      throw error;
+    }
   }
 
   // Admin Management
@@ -288,6 +327,15 @@ class ApiClient {
       },
     });
 
+    // Handle 401 Unauthorized - token expired
+    if (response.status === 401) {
+      console.warn('Access token expired during export, triggering logout...');
+      if (this.onTokenExpired) {
+        this.onTokenExpired();
+      }
+      throw new Error('Authentication expired. Please login again.');
+    }
+
     if (!response.ok) {
       throw new Error(`Export failed: ${response.statusText}`);
     }
@@ -348,6 +396,15 @@ class ApiClient {
         ...(this.authToken && { Authorization: `Bearer ${this.authToken}` }),
       },
     });
+
+    // Handle 401 Unauthorized - token expired
+    if (response.status === 401) {
+      console.warn('Access token expired during export, triggering logout...');
+      if (this.onTokenExpired) {
+        this.onTokenExpired();
+      }
+      throw new Error('Authentication expired. Please login again.');
+    }
 
     if (!response.ok) {
       throw new Error(`Export failed: ${response.statusText}`);

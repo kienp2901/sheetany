@@ -324,6 +324,7 @@ export default function ProductsPage() {
               onClick={handleBackToList}
               className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
               title="Quay lại danh sách sản phẩm"
+              suppressHydrationWarning
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Quay lại danh sách
@@ -385,6 +386,7 @@ export default function ProductsPage() {
                     onClick={handleClearStudentSearch}
                     className="px-3 py-1 text-sm text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors cursor-pointer"
                     title="Xóa tìm kiếm học sinh"
+                    suppressHydrationWarning
                   >
                     Xóa tìm kiếm
                   </button>
@@ -496,6 +498,7 @@ export default function ProductsPage() {
                 onClick={handleClearSearch}
                 className="px-3 py-1 text-sm text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors cursor-pointer"
                 title="Xóa tìm kiếm"
+                suppressHydrationWarning
               >
                 Xóa tìm kiếm
               </button>
@@ -560,6 +563,7 @@ export default function ProductsPage() {
                     onClick={() => handleProductDetails(product)}
                     className="w-full px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
                     title="Xem chi tiết sản phẩm"
+                    suppressHydrationWarning
                   >
                     Xem chi tiết
                   </button>

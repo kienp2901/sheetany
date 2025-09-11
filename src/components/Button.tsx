@@ -73,6 +73,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         ref={ref}
         disabled={disabled || loading}
+        suppressHydrationWarning
         {...props}
       >
         {loading && (

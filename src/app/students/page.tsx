@@ -410,6 +410,7 @@ export default function StudentsPage() {
               onClick={handleBackToList}
               className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
               title="Quay lại danh sách học sinh"
+              suppressHydrationWarning
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Quay lại danh sách
@@ -495,6 +496,7 @@ export default function StudentsPage() {
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                     title={`Chuyển sang tab ${tab.name}`}
+                    suppressHydrationWarning
                   >
                     {tab.name}
                   </button>
@@ -552,6 +554,7 @@ export default function StudentsPage() {
                 onClick={handleClearSearch}
                 className="px-3 py-1 text-sm text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors cursor-pointer"
                 title="Xóa tìm kiếm"
+                suppressHydrationWarning
               >
                 Xóa tìm kiếm
               </button>
@@ -612,6 +615,7 @@ export default function StudentsPage() {
                     onClick={() => loadStudentDetails(student)}
                     className="w-full px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer"
                     title="Xem chi tiết học sinh"
+                    suppressHydrationWarning
                   >
                     Xem chi tiết
                   </button>

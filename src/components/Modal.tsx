@@ -86,6 +86,7 @@ export default function Modal({
                         className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         onClick={onClose}
                         aria-label="Close"
+                        suppressHydrationWarning
                       >
                         <X className="h-5 w-5" />
                       </button>
@@ -194,6 +195,7 @@ export function ConfirmationModal({
           className="w-full sm:w-auto inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:text-sm"
           onClick={onClose}
           disabled={loading}
+          suppressHydrationWarning
         >
           {cancelText}
         </button>
@@ -205,6 +207,7 @@ export function ConfirmationModal({
           )}
           onClick={onConfirm}
           disabled={loading}
+          suppressHydrationWarning
         >
           {loading && (
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />

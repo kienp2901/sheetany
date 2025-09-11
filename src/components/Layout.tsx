@@ -136,6 +136,7 @@ export default function Layout({ children }: LayoutProps) {
             onClick={logout}
             className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
             title="Đăng xuất"
+            suppressHydrationWarning
           >
             <LogOut className="w-5 h-5 mr-2" />
             Đăng xuất
@@ -216,6 +217,7 @@ export default function Layout({ children }: LayoutProps) {
             onClick={logout}
             className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
             title="Đăng xuất"
+            suppressHydrationWarning
           >
             <LogOut className="w-5 h-5 mr-2" />
             Đăng xuất
