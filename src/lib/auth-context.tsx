@@ -287,9 +287,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     if (isTokenExpired) {
-      toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      // toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      router.push('/auth/signin');
     } else {
       toast.success('Đã đăng xuất thành công!');
+      router.push('/auth/signin');
     }
 
     // Redirect to signin page

@@ -139,27 +139,27 @@ export default function ProductsPage() {
     }
   };
 
-  // const handleSearch = (query: string) => {
-  //   setCurrentSearch(query);
-  //   setPagination((prev) => ({ ...prev, page: 1 }));
+  const handleSearch = (query: string) => {
+    setCurrentSearch(query);
+    setPagination((prev) => ({ ...prev, page: 1 }));
 
-  //   // Determine search type and call API
-  //   const trimmedQuery = query.trim();
-  //   if (trimmedQuery) {
-  //     // Check if query is ID or name
-  //     const idRegex = /^\d+$/;
-  //     if (idRegex.test(trimmedQuery)) {
-  //       // Search by ID
-  //       loadProducts(undefined, 1, { idProduct: parseInt(trimmedQuery) });
-  //     } else {
-  //       // Search by name
-  //       loadProducts(undefined, 1, { name: trimmedQuery });
-  //     }
-  //   } else {
-  //     // Empty query - load all products
-  //     loadProducts();
-  //   }
-  // };
+    // Determine search type and call API
+    const trimmedQuery = query.trim();
+    if (trimmedQuery) {
+      // Check if query is ID or name
+      const idRegex = /^\d+$/;
+      if (idRegex.test(trimmedQuery)) {
+        // Search by ID
+        loadProducts(undefined, 1, { idProduct: parseInt(trimmedQuery) });
+      } else {
+        // Search by name
+        loadProducts(undefined, 1, { name: trimmedQuery });
+      }
+    } else {
+      // Empty query - load all products
+      loadProducts();
+    }
+  };
 
   const handleClearSearch = () => {
     setCurrentSearch('');
@@ -479,13 +479,13 @@ export default function ProductsPage() {
         </div> */}
 
         {/* Search Section - Hidden */}
-        {/* <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm">
           <SearchBar
             placeholder="Tìm kiếm sản phẩm theo tên hoặc mã..."
             onSearch={handleSearch}
             loading={loading}
           />
-        </div> */}
+        </div>
 
         {/* Search Results Info */}
         {currentSearch && (
