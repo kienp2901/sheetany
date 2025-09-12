@@ -237,27 +237,27 @@ export default function ProductsPage() {
     loadProductStudents(undefined, limit, 1);
   };
 
-  const handleExportStudents = async () => {
-    if (!selectedProduct) return;
+  // const handleExportStudents = async () => {
+  //   if (!selectedProduct) return;
 
-    try {
-      const blob = await apiClient.exportStudentsByProduct(
-        selectedProduct.idProduct
-      );
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `students_product_${selectedProduct.idProduct}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast.success('Xuất file CSV thành công');
-    } catch (error) {
-      console.error('Error exporting CSV:', error);
-      toast.error('Lỗi khi xuất file CSV');
-    }
-  };
+  //   try {
+  //     const blob = await apiClient.exportStudentsByProduct(
+  //       selectedProduct.idProduct
+  //     );
+  //     const url = window.URL.createObjectURL(blob);
+  //     const a = document.createElement('a');
+  //     a.style.display = 'none';
+  //     a.href = url;
+  //     a.download = `students_product_${selectedProduct.idProduct}.csv`;
+  //     document.body.appendChild(a);
+  //     a.click();
+  //     window.URL.revokeObjectURL(url);
+  //     toast.success('Xuất file CSV thành công');
+  //   } catch (error) {
+  //     console.error('Error exporting CSV:', error);
+  //     toast.error('Lỗi khi xuất file CSV');
+  //   }
+  // };
 
   const productColumns = [
     {

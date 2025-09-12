@@ -154,39 +154,39 @@ export default function ExamsPage() {
     );
   };
 
-  const handleExport = async () => {
-    try {
-      let contestTypeValues: number[] | undefined;
-      let mockContestIdParam = currentSearch?.mockContestId;
+  // const handleExport = async () => {
+  //   try {
+  //     let contestTypeValues: number[] | undefined;
+  //     let mockContestIdParam = currentSearch?.mockContestId;
 
-      // nếu chưa search => export toàn bộ dữ liệu (không filter)
-      if (!currentSearch) {
-        contestTypeValues = undefined;
-        mockContestIdParam = 0;
-      } else {
-        contestTypeValues = currentSearch.contestTypeValues;
-      }
+  //     // nếu chưa search => export toàn bộ dữ liệu (không filter)
+  //     if (!currentSearch) {
+  //       contestTypeValues = undefined;
+  //       mockContestIdParam = 0;
+  //     } else {
+  //       contestTypeValues = currentSearch.contestTypeValues;
+  //     }
 
-      const blob = await apiClient.exportExamHistory(
-        contestTypeValues || 0,
-        mockContestIdParam || 0
-      );
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = currentSearch
-        ? `exam_history_${mockContestIdParam}.csv`
-        : `exam_history_all.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast.success('Xuất file CSV thành công');
-    } catch (error) {
-      console.error('Error exporting CSV:', error);
-      toast.error('Lỗi khi xuất file CSV');
-    }
-  };
+  //     const blob = await apiClient.exportExamHistory(
+  //       contestTypeValues || 0,
+  //       mockContestIdParam || 0
+  //     );
+  //     const url = window.URL.createObjectURL(blob);
+  //     const a = document.createElement('a');
+  //     a.style.display = 'none';
+  //     a.href = url;
+  //     a.download = currentSearch
+  //       ? `exam_history_${mockContestIdParam}.csv`
+  //       : `exam_history_all.csv`;
+  //     document.body.appendChild(a);
+  //     a.click();
+  //     window.URL.revokeObjectURL(url);
+  //     toast.success('Xuất file CSV thành công');
+  //   } catch (error) {
+  //     console.error('Error exporting CSV:', error);
+  //     toast.error('Lỗi khi xuất file CSV');
+  //   }
+  // };
 
   const handlePageChange = (page: number) => {
     setPagination((prev) => ({ ...prev, page }));
