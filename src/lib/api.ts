@@ -87,6 +87,7 @@ interface Admin {
   idAdminHocmaiManager: number;
   firstName?: string;
   lastName?: string;
+  idRoleAdmin?: number;
 }
 
 class ApiClient {
@@ -133,6 +134,8 @@ class ApiClient {
 
     // Parse response body to get error message
     const responseData = await response.json();
+
+    console.log(responseData);
 
     if (!response.ok) {
       // If response has a message field, use it; otherwise use statusText
@@ -194,12 +197,12 @@ class ApiClient {
     return response.data;
   }
 
-  async addAdmin(email: string): Promise<Admin> {
+  async addAdmin(email: string, idRoleAdmin: number): Promise<Admin> {
     const response = await this.makeRequest<Admin>(
       '/hocmaiadmin/adminHocmaiManager',
       {
         method: 'POST',
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, idRoleAdmin }),
       }
     );
     return response.data;
@@ -207,7 +210,12 @@ class ApiClient {
 
   async updateAdmin(
     id: number,
-    data: { email?: string; firstName?: string; lastName?: string }
+    data: {
+      email?: string;
+      firstName?: string;
+      lastName?: string;
+      idRoleAdmin?: number;
+    }
   ): Promise<Admin> {
     const response = await this.makeRequest<Admin>(
       `/hocmaiadmin/adminHocmaiManager/${id}`,
@@ -436,6 +444,5 @@ export type {
   Student,
   StudentByProduct,
   StudentHistory,
-  StudentProduct
+  StudentProduct,
 };
-

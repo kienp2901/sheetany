@@ -39,9 +39,17 @@ export default function AdminPage() {
     email: '',
     firstName: '',
     lastName: '',
+    idRoleAdmin: 3, // Default to Member role
   });
   // Track if initial load has been done
   const initialLoadDone = useRef(false);
+
+  // Role options
+  const roleOptions = [
+    { id: 1, name: 'Super Admin', description: 'Toàn quyền hệ thống' },
+    { id: 2, name: 'Admin', description: 'Quản trị viên' },
+    { id: 3, name: 'Member', description: 'Thành viên' },
+  ];
 
   // Dummy statistics data
   const systemStats = {
@@ -106,7 +114,12 @@ export default function AdminPage() {
       setAdmins(adminsData);
     } catch (error) {
       console.error('Error loading admins:', error);
-      toast.error('Lỗi khi tải danh sách quản trị viên');
+      // Check if error has a message from API response
+      if (error instanceof Error && error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('Lỗi khi tải danh sách quản trị viên');
+      }
     } finally {
       setLoading(false);
     }
@@ -124,12 +137,15 @@ export default function AdminPage() {
     if (!validateEmail(formData.email)) return;
 
     try {
-      const result = await apiClient.addAdmin(formData.email);
+      const result = await apiClient.addAdmin(
+        formData.email,
+        formData.idRoleAdmin
+      );
       console.log('result', result);
       console.log('Thêm quản trị viên thành công');
       toast.success('Thêm quản trị viên thành công');
       setShowAddModal(false);
-      setFormData({ email: '', firstName: '', lastName: '' });
+      setFormData({ email: '', firstName: '', lastName: '', idRoleAdmin: 3 });
       loadAdmins();
     } catch (error) {
       console.error('Error adding admin:', error);
@@ -152,11 +168,12 @@ export default function AdminPage() {
         ...(formData.email && { email: formData.email }),
         ...(formData.firstName && { firstName: formData.firstName }),
         ...(formData.lastName && { lastName: formData.lastName }),
+        idRoleAdmin: formData.idRoleAdmin,
       });
       toast.success('Cập nhật thông tin thành công');
       setShowEditModal(false);
       setSelectedAdmin(null);
-      setFormData({ email: '', firstName: '', lastName: '' });
+      setFormData({ email: '', firstName: '', lastName: '', idRoleAdmin: 3 });
       loadAdmins();
     } catch (error) {
       console.error('Error updating admin:', error);
@@ -195,6 +212,7 @@ export default function AdminPage() {
       email: admin.email,
       firstName: admin.firstName || '',
       lastName: admin.lastName || '',
+      idRoleAdmin: (admin as Admin & { idRoleAdmin?: number }).idRoleAdmin || 3, // Default to Member if not set
     });
     setShowEditModal(true);
   };
@@ -219,6 +237,15 @@ export default function AdminPage() {
       key: 'lastName',
       label: 'Tên',
       render: (value: unknown) => (value as string) || '-',
+    },
+    {
+      key: 'idRoleAdmin',
+      label: 'Vai trò',
+      render: (value: unknown) => {
+        const roleId = value as number;
+        const role = roleOptions.find((r) => r.id === roleId);
+        return role ? role.name : 'Member';
+      },
     },
     {
       key: 'actions',
@@ -576,7 +603,12 @@ export default function AdminPage() {
           isOpen={showAddModal}
           onClose={() => {
             setShowAddModal(false);
-            setFormData({ email: '', firstName: '', lastName: '' });
+            setFormData({
+              email: '',
+              firstName: '',
+              lastName: '',
+              idRoleAdmin: 3,
+            });
           }}
           title="Thêm quản trị viên mới"
         >
@@ -605,12 +637,45 @@ export default function AdminPage() {
               </p>
             </div>
 
+            <div>
+              <label
+                htmlFor="role"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Vai trò <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="role"
+                value={formData.idRoleAdmin}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    idRoleAdmin: parseInt(e.target.value),
+                  })
+                }
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                required
+                suppressHydrationWarning
+              >
+                {roleOptions.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {role.name} - {role.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="flex justify-end space-x-3 pt-4">
               <Button
                 variant="secondary"
                 onClick={() => {
                   setShowAddModal(false);
-                  setFormData({ email: '', firstName: '', lastName: '' });
+                  setFormData({
+                    email: '',
+                    firstName: '',
+                    lastName: '',
+                    idRoleAdmin: 3,
+                  });
                 }}
                 title="Hủy bỏ việc thêm quản trị viên"
               >
@@ -633,7 +698,12 @@ export default function AdminPage() {
           onClose={() => {
             setShowEditModal(false);
             setSelectedAdmin(null);
-            setFormData({ email: '', firstName: '', lastName: '' });
+            setFormData({
+              email: '',
+              firstName: '',
+              lastName: '',
+              idRoleAdmin: 3,
+            });
           }}
           title="Chỉnh sửa thông tin quản trị viên"
         >
@@ -656,6 +726,33 @@ export default function AdminPage() {
                 placeholder="example@hocmai.vn"
                 suppressHydrationWarning
               />
+            </div>
+
+            <div>
+              <label
+                htmlFor="edit-role"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Vai trò
+              </label>
+              <select
+                id="edit-role"
+                value={formData.idRoleAdmin}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    idRoleAdmin: parseInt(e.target.value),
+                  })
+                }
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                suppressHydrationWarning
+              >
+                {roleOptions.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {role.name} - {role.description}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -704,7 +801,12 @@ export default function AdminPage() {
                 onClick={() => {
                   setShowEditModal(false);
                   setSelectedAdmin(null);
-                  setFormData({ email: '', firstName: '', lastName: '' });
+                  setFormData({
+                    email: '',
+                    firstName: '',
+                    lastName: '',
+                    idRoleAdmin: 3,
+                  });
                 }}
                 title="Hủy bỏ việc chỉnh sửa thông tin"
               >
