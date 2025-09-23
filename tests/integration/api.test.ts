@@ -51,10 +51,11 @@ describe('API Client', () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: false,
         statusText: 'Bad Request',
+        json: async () => ({ message: 'Bad Request' }),
       });
 
       await expect(apiClient.loginGoogle(mockToken)).rejects.toThrow(
-        'API request failed: Bad Request'
+        'Bad Request'
       );
     });
   });
@@ -453,10 +454,11 @@ describe('API Client', () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: false,
         statusText: 'Internal Server Error',
+        json: async () => ({ message: 'Internal Server Error' }),
       });
 
       await expect(apiClient.getStudents()).rejects.toThrow(
-        'API request failed: Internal Server Error'
+        'Internal Server Error'
       );
     });
 

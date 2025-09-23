@@ -131,11 +131,22 @@ class ApiClient {
       throw new Error('Authentication expired. Please login again.');
     }
 
+    // Parse response body to get error message
+    const responseData = await response.json();
+
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.statusText}`);
+      // If response has a message field, use it; otherwise use statusText
+      const errorMessage = responseData.message || response.statusText;
+      const error = new Error(errorMessage) as Error & {
+        status: number;
+        response: ApiResponse<unknown>;
+      };
+      error.status = response.status;
+      error.response = responseData;
+      throw error;
     }
 
-    return response.json();
+    return responseData;
   }
 
   // Authentication
@@ -425,5 +436,6 @@ export type {
   Student,
   StudentByProduct,
   StudentHistory,
-  StudentProduct,
+  StudentProduct
 };
+

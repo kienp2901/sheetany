@@ -158,14 +158,22 @@ export default function AdminPage() {
     if (!validateEmail(formData.email)) return;
 
     try {
-      await apiClient.addAdmin(formData.email);
+      const result = await apiClient.addAdmin(formData.email);
+      console.log('result', result);
+      console.log('Thêm quản trị viên thành công');
       toast.success('Thêm quản trị viên thành công');
       setShowAddModal(false);
       setFormData({ email: '', firstName: '', lastName: '' });
       loadAdmins();
     } catch (error) {
       console.error('Error adding admin:', error);
-      toast.error('Lỗi khi thêm quản trị viên');
+
+      // Check if error has a message from API response
+      if (error instanceof Error && error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('Lỗi khi thêm quản trị viên');
+      }
     }
   };
 
@@ -186,7 +194,12 @@ export default function AdminPage() {
       loadAdmins();
     } catch (error) {
       console.error('Error updating admin:', error);
-      toast.error('Lỗi khi cập nhật thông tin');
+
+      if (error instanceof Error && error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('Lỗi khi cập nhật thông tin');
+      }
     }
   };
 
@@ -201,7 +214,12 @@ export default function AdminPage() {
       loadAdmins();
     } catch (error) {
       console.error('Error deleting admin:', error);
-      toast.error('Lỗi khi xóa quản trị viên');
+
+      if (error instanceof Error && error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('Lỗi khi xóa quản trị viên');
+      }
     }
   };
 
