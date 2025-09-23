@@ -92,9 +92,15 @@ export default function ExamsPage() {
       lastPageRef.current = pagination.page;
       // Load data for the new page
       if (currentSearch) {
-        loadExamHistory(currentSearch.contestType, currentSearch.mockContestId);
+        loadExamHistory(
+          currentSearch.contestType,
+          currentSearch.mockContestId,
+          pagination.limit,
+          pagination.page,
+          false // This is pagination, not a new search
+        );
       } else {
-        loadInitialData();
+        loadInitialData(pagination.limit, pagination.page);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,7 +110,8 @@ export default function ExamsPage() {
     contestTypeKey?: string,
     mockContestId?: number,
     customLimit?: number,
-    customPage?: number
+    customPage?: number,
+    isNewSearch: boolean = false
   ) => {
     setLoading(true);
     try {
@@ -122,11 +129,15 @@ export default function ExamsPage() {
         mockContestId,
         {
           limit: customLimit ?? pagination.limit,
-          page: customPage ?? 1, // Reset to first page when searching
+          page: customPage ?? (isNewSearch ? 1 : pagination.page),
         }
       );
       setExamHistory(result.data);
-      setPagination((prev) => ({ ...prev, page: 1, total: result.total }));
+      setPagination((prev) => ({
+        ...prev,
+        page: customPage ?? (isNewSearch ? 1 : prev.page),
+        total: result.total,
+      }));
       setCurrentSearch({
         contestType: contestTypeKey || '',
         contestTypeValues: contestTypeValues || [],
@@ -150,7 +161,10 @@ export default function ExamsPage() {
 
     loadExamHistory(
       selectedContestType,
-      mockContestId ? parseInt(mockContestId) : undefined
+      mockContestId ? parseInt(mockContestId) : undefined,
+      undefined,
+      undefined,
+      true // This is a new search
     );
   };
 
@@ -192,9 +206,15 @@ export default function ExamsPage() {
     setPagination((prev) => ({ ...prev, page }));
     // Load data for the new page
     if (currentSearch) {
-      loadExamHistory(currentSearch.contestType, currentSearch.mockContestId);
+      loadExamHistory(
+        currentSearch.contestType,
+        currentSearch.mockContestId,
+        pagination.limit,
+        page,
+        false // This is pagination, not a new search
+      );
     } else {
-      loadInitialData();
+      loadInitialData(pagination.limit, page);
     }
   };
 
@@ -207,7 +227,8 @@ export default function ExamsPage() {
         currentSearch.contestType,
         currentSearch.mockContestId,
         limit,
-        1
+        1,
+        false // This is pagination, not a new search
       );
     } else {
       loadInitialData(limit, 1);

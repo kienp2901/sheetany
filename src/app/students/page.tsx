@@ -54,17 +54,22 @@ export default function StudentsPage() {
       email?: string;
     },
     customLimit?: number,
-    customPage?: number
+    customPage?: number,
+    isNewSearch: boolean = false
   ) => {
     setLoading(true);
     try {
       const result = await apiClient.getStudents({
         ...searchParams,
         limit: customLimit ?? pagination.limit,
-        page: customPage ?? pagination.page,
+        page: customPage ?? (isNewSearch ? 1 : pagination.page),
       });
       setStudents(result.data);
-      setPagination((prev) => ({ ...prev, total: result.total }));
+      setPagination((prev) => ({
+        ...prev,
+        page: customPage ?? (isNewSearch ? 1 : prev.page),
+        total: result.total,
+      }));
     } catch (error) {
       console.error('Error loading students:', error);
       toast.error('Lỗi khi tải danh sách học sinh');
@@ -254,14 +259,14 @@ export default function StudentsPage() {
     }
 
     setCurrentSearch(searchParams);
-    loadStudents(searchParams);
+    loadStudents(searchParams, undefined, undefined, true); // This is a new search
   };
 
   const handleClearSearch = () => {
     setCurrentSearch(null);
     setPagination((prev) => ({ ...prev, page: 1 }));
     // Load initial data again
-    loadStudents();
+    loadStudents(undefined, undefined, undefined, true); // This is a new search (clearing)
   };
 
   const handlePageChange = (page: number) => {
@@ -272,7 +277,12 @@ export default function StudentsPage() {
     setPagination((prev) => ({ ...prev, limit, page: 1 }));
     lastPageRef.current = 1;
     // Reload data with new limit and page 1
-    loadStudents(undefined, limit, 1);
+    if (currentSearch) {
+      // If searching, maintain search params
+      loadStudents(currentSearch, limit, 1, false); // This is pagination, not a new search
+    } else {
+      loadStudents(undefined, limit, 1, false); // This is pagination, not a new search
+    }
   };
 
   useEffect(() => {
@@ -282,7 +292,12 @@ export default function StudentsPage() {
       pagination.page !== lastPageRef.current
     ) {
       lastPageRef.current = pagination.page;
-      loadStudents();
+      if (currentSearch) {
+        // If searching, maintain search params
+        loadStudents(currentSearch, pagination.limit, pagination.page, false); // This is pagination, not a new search
+      } else {
+        loadStudents(undefined, pagination.limit, pagination.page, false); // This is pagination, not a new search
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.page]);

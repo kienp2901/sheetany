@@ -40,15 +40,8 @@ export default function AdminPage() {
     firstName: '',
     lastName: '',
   });
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 10,
-    total: 0,
-  });
-
   // Track if initial load has been done
   const initialLoadDone = useRef(false);
-  const lastPageRef = useRef(1);
 
   // Dummy statistics data
   const systemStats = {
@@ -106,38 +99,11 @@ export default function AdminPage() {
     }
   }, [accessToken]);
 
-  useEffect(() => {
-    if (
-      accessToken &&
-      initialLoadDone.current &&
-      pagination.page !== lastPageRef.current
-    ) {
-      lastPageRef.current = pagination.page;
-      loadAdmins();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.page]);
-
-  // const loadAdmins = async (customLimit?: number, customPage?: number) => {
-  //   setLoading(true);
-  //   try {
-  //     const adminsData = await apiClient.getAdmins();
-  //     setAdmins(adminsData);
-  //     setPagination((prev) => ({ ...prev, total: adminsData.length }));
-  //   } catch (error) {
-  //     console.error('Error loading admins:', error);
-  //     toast.error('Lỗi khi tải danh sách quản trị viên');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const loadAdmins = async () => {
     setLoading(true);
     try {
       const adminsData = await apiClient.getAdmins();
       setAdmins(adminsData);
-      setPagination((prev) => ({ ...prev, total: adminsData.length }));
     } catch (error) {
       console.error('Error loading admins:', error);
       toast.error('Lỗi khi tải danh sách quản trị viên');
@@ -221,18 +187,6 @@ export default function AdminPage() {
         toast.error('Lỗi khi xóa quản trị viên');
       }
     }
-  };
-
-  const handlePageChange = (page: number) => {
-    setPagination((prev) => ({ ...prev, page }));
-  };
-
-  const handleLimitChange = (limit: number) => {
-    setPagination((prev) => ({ ...prev, limit, page: 1 }));
-    lastPageRef.current = 1;
-    // Reload data with new limit and page 1
-    // loadAdmins(limit, 1);
-    loadAdmins();
   };
 
   const openEditModal = (admin: Admin) => {
@@ -522,11 +476,6 @@ export default function AdminPage() {
                     columns={adminColumns}
                     data={admins}
                     loading={loading}
-                    pagination={{
-                      ...pagination,
-                      onPageChange: handlePageChange,
-                      onLimitChange: handleLimitChange,
-                    }}
                   />
                 </div>
               </div>

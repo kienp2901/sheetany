@@ -77,7 +77,24 @@ export default function ProductsPage() {
     if (selectedProduct && accessToken && showDetail) {
       if (studentsPagination.page !== lastStudentsPageRef.current) {
         lastStudentsPageRef.current = studentsPagination.page;
-        loadProductStudents();
+        // Only load if we're not in the middle of a search
+        if (!currentStudentSearch) {
+          loadProductStudents();
+        } else {
+          // If searching, maintain search params
+          const searchParams: { idOriginal?: string; email?: string } = {};
+          if (currentStudentSearch.includes('@')) {
+            searchParams.email = currentStudentSearch;
+          } else if (currentStudentSearch.trim()) {
+            searchParams.idOriginal = currentStudentSearch;
+          }
+          loadProductStudents(
+            searchParams,
+            studentsPagination.limit,
+            studentsPagination.page,
+            false
+          ); // This is pagination, not a new search
+        }
       } else if (selectedProduct) {
         // Initial load when product is selected
         loadProductStudents();
@@ -115,7 +132,8 @@ export default function ProductsPage() {
       email?: string;
     },
     customLimit?: number,
-    customPage?: number
+    customPage?: number,
+    isNewSearch: boolean = false
   ) => {
     if (!selectedProduct) return;
 
@@ -126,11 +144,15 @@ export default function ProductsPage() {
         {
           ...searchParams,
           limit: customLimit ?? studentsPagination.limit,
-          page: customPage ?? studentsPagination.page,
+          page: customPage ?? (isNewSearch ? 1 : studentsPagination.page),
         }
       );
       setProductStudents(result.data);
-      setStudentsPagination((prev) => ({ ...prev, total: result.total }));
+      setStudentsPagination((prev) => ({
+        ...prev,
+        page: customPage ?? (isNewSearch ? 1 : prev.page),
+        total: result.total,
+      }));
     } catch (error) {
       console.error('Error loading product students:', error);
       toast.error('Lỗi khi tải danh sách học sinh');
@@ -180,13 +202,13 @@ export default function ProductsPage() {
       searchParams.idOriginal = query;
     }
 
-    loadProductStudents(searchParams, undefined, 1);
+    loadProductStudents(searchParams, undefined, 1, true); // This is a new search
   };
 
   const handleClearStudentSearch = () => {
     setCurrentStudentSearch('');
     setStudentsPagination((prev) => ({ ...prev, page: 1 }));
-    loadProductStudents(undefined, undefined, 1);
+    loadProductStudents(undefined, undefined, 1, true); // This is a new search (clearing)
   };
 
   const handleProductDetails = (product: Product) => {
@@ -234,7 +256,18 @@ export default function ProductsPage() {
     setStudentsPagination((prev) => ({ ...prev, limit, page: 1 }));
     lastStudentsPageRef.current = 1;
     // Reload students data with new limit and page 1
-    loadProductStudents(undefined, limit, 1);
+    if (currentStudentSearch) {
+      // If searching, maintain search params
+      const searchParams: { idOriginal?: string; email?: string } = {};
+      if (currentStudentSearch.includes('@')) {
+        searchParams.email = currentStudentSearch;
+      } else if (currentStudentSearch.trim()) {
+        searchParams.idOriginal = currentStudentSearch;
+      }
+      loadProductStudents(searchParams, limit, 1, false); // This is pagination, not a new search
+    } else {
+      loadProductStudents(undefined, limit, 1, false); // This is pagination, not a new search
+    }
   };
 
   // const handleExportStudents = async () => {
