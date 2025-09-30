@@ -7,6 +7,7 @@ jest.mock('@/lib/api', () => ({
   apiClient: {
     setAuthToken: jest.fn(),
     loginGoogle: jest.fn(),
+    getMyInfo: jest.fn(),
     setOnTokenExpired: jest.fn(),
     setOnTokenRefreshed: jest.fn(),
     refreshToken: jest.fn(),
@@ -142,17 +143,24 @@ describe('Auth Context', () => {
         email: 'admin@hocmai.vn',
         name: 'Admin User',
         picture: 'https://example.com/avatar.jpg',
+        idRoleAdmin: 1,
       };
       const mockToken = 'jwt-token';
-
-      // Create a valid JWT token for testing
-      // const mockJWT =
-      //   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGhvY21haS52biIsIm5hbWUiOiJBZG1pbiBVc2VyIiwicGljdHVyZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXZhdGFyLmpwZyIsImV4cCI6OTk5OTk5OTk5OX0.signature';
+      const mockMyInfo = {
+        _id: '68930c539b6bc4acdd4e91b8',
+        email: 'admin@hocmai.vn',
+        firstName: 'Admin',
+        lastName: 'User',
+        idRoleAdmin: 1,
+      };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (apiClient.loginGoogle as any).mockResolvedValueOnce({
         token: mockToken,
       });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (apiClient.getMyInfo as any).mockResolvedValueOnce(mockMyInfo);
 
       render(
         <AuthProvider>
@@ -171,6 +179,10 @@ describe('Auth Context', () => {
         expect(apiClient.loginGoogle).toHaveBeenCalledWith(
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGhvY21haS52biIsIm5hbWUiOiJBZG1pbiBVc2VyIiwicGljdHVyZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXZhdGFyLmpwZyIsImV4cCI6OTk5OTk5OTk5OX0.signature'
         );
+      });
+
+      await waitFor(() => {
+        expect(apiClient.getMyInfo).toHaveBeenCalled();
       });
 
       await waitFor(() => {

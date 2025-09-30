@@ -29,7 +29,10 @@ export default function Layout({ children }: LayoutProps) {
     { name: 'Tra cứu học sinh', href: '/students', icon: Search },
     { name: 'Tra cứu sản phẩm', href: '/products', icon: Package },
     { name: 'Tra cứu đề thi', href: '/exams', icon: FileText },
-    { name: 'Quản trị Admin', href: '/admin', icon: Settings },
+    // Only show admin menu for role 1 (Super Admin) and role 2 (Admin)
+    ...(user?.idRoleAdmin && [1, 2].includes(user.idRoleAdmin)
+      ? [{ name: 'Quản trị Admin', href: '/admin', icon: Settings }]
+      : []),
   ];
 
   // Extract user info from auth context

@@ -90,6 +90,20 @@ interface Admin {
   idRoleAdmin?: number;
 }
 
+interface AdminInfo {
+  _id: string;
+  email: string;
+  hashedPassword: string;
+  firstName: string;
+  lastName: string;
+  isDelete: boolean;
+  createdAt: string;
+  updatedAt: string;
+  idAdminHocmaiManager: number;
+  __v: number;
+  idRoleAdmin: number;
+}
+
 class ApiClient {
   private authToken: string | null = null;
   private onTokenExpired: (() => void) | null = null;
@@ -190,6 +204,13 @@ class ApiClient {
   }
 
   // Admin Management
+  async getMyInfo(): Promise<AdminInfo> {
+    const response = await this.makeRequest<AdminInfo>(
+      '/hocmaiadmin/adminHocmaiManager/myinfo'
+    );
+    return response.data;
+  }
+
   async getAdmins(): Promise<Admin[]> {
     const response = await this.makeRequest<Admin[]>(
       '/hocmaiadmin/adminHocmaiManager'
@@ -437,6 +458,7 @@ export const apiClient = new ApiClient();
 
 export type {
   Admin,
+  AdminInfo,
   ApiResponse,
   ExamHistory,
   GroupedContestType,

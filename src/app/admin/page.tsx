@@ -24,7 +24,7 @@ import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
 export default function AdminPage() {
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'system'>(
     'users'
   );
@@ -99,13 +99,33 @@ export default function AdminPage() {
     { name: 'Email Service', status: 'healthy', uptime: '99.7%' },
   ];
 
+  // Role-based access control
   useEffect(() => {
-    if (accessToken && !initialLoadDone.current) {
+    if (user && !user.idRoleAdmin) {
+      // User role not loaded yet, wait
+      return;
+    }
+
+    if (user && ![1, 2].includes(user.idRoleAdmin || 0)) {
+      // User doesn't have admin access (role 1 or 2), redirect
+      toast.error('Bạn không có quyền truy cập trang quản trị');
+      // window.location.href = '/';
+      return;
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (
+      accessToken &&
+      !initialLoadDone.current &&
+      user?.idRoleAdmin &&
+      [1, 2].includes(user.idRoleAdmin)
+    ) {
       apiClient.setAuthToken(accessToken);
       loadAdmins();
       initialLoadDone.current = true;
     }
-  }, [accessToken]);
+  }, [accessToken, user]);
 
   const loadAdmins = async () => {
     setLoading(true);
@@ -336,6 +356,44 @@ export default function AdminPage() {
       color: 'bg-yellow-500',
     },
   ];
+
+  // Show loading or access denied message
+  if (!user?.idRoleAdmin) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">
+              Đang tải thông tin quyền truy cập...
+            </p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (![1, 2].includes(user.idRoleAdmin)) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <Shield className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Truy cập bị từ chối
+            </h1>
+            <p className="text-gray-600 mb-4">
+              Bạn không có quyền truy cập trang quản trị hệ thống.
+            </p>
+            <p className="text-sm text-gray-500">
+              Chỉ người dùng có quyền Super Admin hoặc Admin mới có thể truy cập
+              trang này.
+            </p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

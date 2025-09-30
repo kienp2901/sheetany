@@ -11,6 +11,7 @@ const mockUseAuth = {
     email: 'kienpn@ctv.hocmai.vn',
     name: 'Admin User',
     picture: 'https://example.com/avatar.jpg',
+    idRoleAdmin: 1, // Super Admin role to show admin menu
   },
   logout: jest.fn(),
 };
@@ -115,6 +116,24 @@ describe('Components', () => {
         expect(link).toHaveClass(/bg-indigo-50/);
         expect(link).toHaveClass(/text-indigo-700/);
       });
+    });
+
+    test('should hide admin menu for member role (role 3)', () => {
+      // Update mock to have member role
+      const originalUser = mockUseAuth.user;
+      mockUseAuth.user = { ...originalUser, idRoleAdmin: 3 };
+
+      render(
+        <Layout>
+          <div>Test content</div>
+        </Layout>
+      );
+
+      // Admin menu should not be visible for role 3
+      expect(screen.queryByText('Quản trị Admin')).not.toBeInTheDocument();
+
+      // Restore original user
+      mockUseAuth.user = originalUser;
     });
   });
 

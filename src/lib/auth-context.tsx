@@ -15,6 +15,7 @@ export interface User {
   email?: string;
   name?: string;
   picture?: string;
+  idRoleAdmin?: number;
 }
 
 export interface AuthState {
@@ -240,19 +241,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const loginResponse = await apiClient.loginGoogle(credential);
       const accessToken = loginResponse.token;
 
+      // Set token cho API client để có thể gọi myinfo
+      apiClient.setAuthToken(accessToken);
+
+      // Gọi API myinfo để lấy thông tin chi tiết user và role
+      const myInfo = await apiClient.getMyInfo();
+
+      // Cập nhật user với thông tin role
+      const userWithRole: User = {
+        ...user,
+        idRoleAdmin: myInfo.idRoleAdmin,
+      };
+
       // Lưu vào localStorage
-      localStorage.setItem('auth_user', JSON.stringify(user));
+      localStorage.setItem('auth_user', JSON.stringify(userWithRole));
       localStorage.setItem('auth_token', accessToken);
       localStorage.setItem('google_credential', credential);
 
       // Set cookie cho middleware
       document.cookie = `auth_token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
 
-      // Set token cho API client
-      apiClient.setAuthToken(accessToken);
-
       setState({
-        user,
+        user: userWithRole,
         accessToken,
         googleCredential: credential,
         isLoading: false,
